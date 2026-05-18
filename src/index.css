@@ -1,0 +1,28 @@
+html,
+body {
+  margin: 0;
+  width: 100%;
+  max-width: 100%;
+  overflow-x: hidden;
+}
+
+/* Replaced elements: avoid non-uniform scaling when only width is set */
+img {
+  max-width: 100%;
+  height: auto;
+}
+
+#root {
+  min-height: 100%;
+  width: 100%;
+  max-width: 100%;
+}
+
+/* Discover Collection — CSS Fonts 4 cap alignment (supported browsers only) */
+@supports (leading-trim: both) {
+  .discover-collection-heading,
+  .discover-collection-body {
+    leading-trim: both;
+    text-edge: cap;
+  }
+}

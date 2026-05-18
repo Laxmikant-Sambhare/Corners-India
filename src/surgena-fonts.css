@@ -1,0 +1,85 @@
+/**
+ * Surgena — Envato Elements license:
+ * `public/font-license /license_certificate_2UZKJW8F7N.pdf`
+ *
+ * Files: `public/fonts/surgena/*.ttf`
+ */
+@font-face {
+  font-family: Surgena;
+  font-style: normal;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-Light.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: italic;
+  font-weight: 300;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-LightItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: normal;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-Regular.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: italic;
+  font-weight: 400;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-Italic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: normal;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-Medium.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: italic;
+  font-weight: 500;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-MediumItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: normal;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-SemiBold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: italic;
+  font-weight: 600;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-SemiBoldItalic.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: normal;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-Bold.ttf") format("truetype");
+}
+
+@font-face {
+  font-family: Surgena;
+  font-style: italic;
+  font-weight: 700;
+  font-display: swap;
+  src: url("/fonts/surgena/Surgena-BoldItalic.ttf") format("truetype");
+}
