@@ -14,7 +14,11 @@
 import { readFileSync, readdirSync, statSync } from "fs";
 import { join, dirname, basename } from "path";
 import { fileURLToPath } from "url";
-import { loadEnvFromDotenv, getStoreDomain, adminGraphql } from "./admin-auth.mjs";
+import {
+  loadEnvFromDotenv,
+  getStoreDomain,
+  adminGraphql,
+} from "./admin-auth.mjs";
 import { loadFileIndex } from "./files-index.mjs";
 
 const __dirname = dirname(fileURLToPath(import.meta.url));
@@ -75,11 +79,7 @@ async function uploadOne(filePath) {
   for (const p of target.parameters) {
     form.append(p.name, p.value);
   }
-  form.append(
-    "file",
-    new Blob([bytes], { type: mimeType }),
-    filename,
-  );
+  form.append("file", new Blob([bytes], { type: mimeType }), filename);
 
   const uploadRes = await fetch(target.url, { method: "POST", body: form });
   if (!uploadRes.ok) {

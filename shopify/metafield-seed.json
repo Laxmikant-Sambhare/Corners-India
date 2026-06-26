@@ -36,6 +36,7 @@
       "dimension_front_ft": "2.62 ft",
       "dimension_side_ft": "2.39 ft",
       "dimension_depth_ft": "2.49 ft",
+      "dimension_diagram": "eira-chair-dimensions.webp",
       "material_bullets": ["Fully upholstered in high-end boucle fabric."],
       "made_to_order": true,
       "show_dimensions": true,
@@ -54,6 +55,7 @@
       "gallery_right_tall": "lifestyle-3.webp",
       "gallery_bottom_wide": "lifestyle-4.webp",
       "material_bullets": ["Italian Marble Top", "Legs in MDF and PU finish"],
+      "dimension_diagram": "eira-table-dimensions.webp",
       "made_to_order": true,
       "show_dimensions": true,
       "delivery_lead_time": "5 weeks"
@@ -66,7 +68,11 @@
       "gallery_bottom_left": "lifestyle-2.webp",
       "gallery_right_tall": "lifestyle-3.webp",
       "gallery_bottom_wide": "lifestyle-4.webp",
-      "material_bullets": ["Fully upholstered in high-end fabric.", "Wooden carved leg."],
+      "material_bullets": [
+        "Fully upholstered in high-end fabric.",
+        "Wooden carved leg."
+      ],
+      "dimension_diagram": "dunari-chair-dimensions.webp",
       "made_to_order": true,
       "show_dimensions": true
     },
@@ -78,7 +84,12 @@
       "gallery_bottom_left": "lifestyle-2.webp",
       "gallery_right_tall": "lifestyle-3.webp",
       "gallery_bottom_wide": "lifestyle-4.webp",
-      "material_bullets": ["High Density Fiberboard", "Top & Legs in PU finish", "Brass leg screw detail"],
+      "material_bullets": [
+        "High Density Fiberboard",
+        "Top & Legs in PU finish",
+        "Brass leg screw detail"
+      ],
+      "dimension_diagram": "dunari-table-dimensions.webp",
       "made_to_order": true,
       "show_dimensions": true
     },
@@ -92,7 +103,12 @@
       "gallery_bottom_left": "lifestyle-2.webp",
       "gallery_right_tall": "dunari-ottoman-view2.webp",
       "gallery_bottom_wide": "lifestyle-4.webp",
-      "material_bullets": ["Fully upholstered in high-end fabric.", "Powder coated Metal leg frame.", "IS 303 grade plywood internal framework."],
+      "material_bullets": [
+        "Fully upholstered in high-end fabric.",
+        "Powder coated Metal leg frame.",
+        "IS 303 grade plywood internal framework."
+      ],
+      "dimension_diagram": "dunari-ottoman-dimensions.webp",
       "made_to_order": true,
       "show_dimensions": true
     },

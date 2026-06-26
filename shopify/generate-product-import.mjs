@@ -40,6 +40,7 @@ const METAFIELD_KEYS = [
   "dimension_front_ft",
   "dimension_side_ft",
   "dimension_depth_ft",
+  "dimension_diagram",
   "material_bullets",
   "material_swatches",
   "delivery_copy",
@@ -61,6 +62,7 @@ const FILE_METAFIELD_KEYS = new Set([
   "gallery_bottom_left",
   "gallery_right_tall",
   "gallery_bottom_wide",
+  "dimension_diagram",
 ]);
 
 const METAFIELD_HEADERS = METAFIELD_KEYS.map(
@@ -316,34 +318,40 @@ function variantRow(partial, metafields = null) {
 }
 
 function sizeKey(size) {
-  return size.replace(/ ft x /g, "X").replace(/ ft/g, "").replace(/ /g, "");
+  return size
+    .replace(/ ft x /g, "X")
+    .replace(/ ft/g, "")
+    .replace(/ /g, "");
 }
 
 function furnitureRows(product) {
   const img = cdnUrl(product.listingImage);
   const mf = metafieldsForHandle(product.handle);
   return [
-    variantRow({
-      Handle: product.handle,
-      Title: product.title,
-      "Body (HTML)": bodyHtml(product),
-      Vendor: "Corners",
-      "Product Category": product.productCategory,
-      Type: product.type,
-      Tags: product.tags,
-      Published: "TRUE",
-      "Option1 Name": "Title",
-      "Option1 Value": "Default Title",
-      "Variant SKU": product.model,
-      "Variant Price": "50000.00",
-      "Variant Image": img,
-      "Image Src": img,
-      "Image Position": "1",
-      "Image Alt Text": `${product.title} product shot`,
-      "SEO Title": `${product.title} | Corners`,
-      "Google Shopping / MPN": product.model,
-      Status: "active",
-    }, mf),
+    variantRow(
+      {
+        Handle: product.handle,
+        Title: product.title,
+        "Body (HTML)": bodyHtml(product),
+        Vendor: "Corners",
+        "Product Category": product.productCategory,
+        Type: product.type,
+        Tags: product.tags,
+        Published: "TRUE",
+        "Option1 Name": "Title",
+        "Option1 Value": "Default Title",
+        "Variant SKU": product.model,
+        "Variant Price": "50000.00",
+        "Variant Image": img,
+        "Image Src": img,
+        "Image Position": "1",
+        "Image Alt Text": `${product.title} product shot`,
+        "SEO Title": `${product.title} | Corners`,
+        "Google Shopping / MPN": product.model,
+        Status: "active",
+      },
+      mf,
+    ),
   ];
 }
 
@@ -351,27 +359,31 @@ function rugSizeRows(product) {
   const img = cdnUrl(product.listingImage);
   const mf = metafieldsForHandle(product.handle);
   return RUG_SIZES.map((size, i) =>
-    variantRow({
-      Handle: product.handle,
-      Title: i === 0 ? product.title : "",
-      "Body (HTML)": i === 0 ? bodyHtml({ ...product, extra: RUG_SIZES.join(", ") }) : "",
-      Vendor: i === 0 ? "Corners" : "",
-      "Product Category": i === 0 ? product.productCategory : "",
-      Type: i === 0 ? product.type : "",
-      Tags: i === 0 ? product.tags : "",
-      Published: i === 0 ? "TRUE" : "",
-      "Option1 Name": "Size",
-      "Option1 Value": size,
-      "Variant SKU": `${product.model}-${sizeKey(size)}`,
-      "Variant Price": "50000.00",
-      "Variant Image": img,
-      "Image Src": i === 0 ? img : "",
-      "Image Position": i === 0 ? "1" : "",
-      "Image Alt Text": i === 0 ? `${product.title} flat product shot` : "",
-      "SEO Title": i === 0 ? `${product.title} | Corners` : "",
-      "Google Shopping / MPN": i === 0 ? product.model : "",
-      Status: i === 0 ? "active" : "",
-    }, i === 0 ? mf : null),
+    variantRow(
+      {
+        Handle: product.handle,
+        Title: i === 0 ? product.title : "",
+        "Body (HTML)":
+          i === 0 ? bodyHtml({ ...product, extra: RUG_SIZES.join(", ") }) : "",
+        Vendor: i === 0 ? "Corners" : "",
+        "Product Category": i === 0 ? product.productCategory : "",
+        Type: i === 0 ? product.type : "",
+        Tags: i === 0 ? product.tags : "",
+        Published: i === 0 ? "TRUE" : "",
+        "Option1 Name": "Size",
+        "Option1 Value": size,
+        "Variant SKU": `${product.model}-${sizeKey(size)}`,
+        "Variant Price": "50000.00",
+        "Variant Image": img,
+        "Image Src": i === 0 ? img : "",
+        "Image Position": i === 0 ? "1" : "",
+        "Image Alt Text": i === 0 ? `${product.title} flat product shot` : "",
+        "SEO Title": i === 0 ? `${product.title} | Corners` : "",
+        "Google Shopping / MPN": i === 0 ? product.model : "",
+        Status: i === 0 ? "active" : "",
+      },
+      i === 0 ? mf : null,
+    ),
   );
 }
 
@@ -385,33 +397,36 @@ function rugColorSizeRows(product) {
       const isFirst = colorIndex === 0 && sizeIndex === 0;
       const isFirstOfColor = sizeIndex === 0;
       rows.push(
-        variantRow({
-          Handle: product.handle,
-          Title: isFirst ? product.title : "",
-          "Body (HTML)":
-            isFirst
+        variantRow(
+          {
+            Handle: product.handle,
+            Title: isFirst ? product.title : "",
+            "Body (HTML)": isFirst
               ? bodyHtml({ ...product, extra: RUG_SIZES.join(", ") })
               : "",
-          Vendor: isFirst ? "Corners" : "",
-          "Product Category": isFirst ? product.productCategory : "",
-          Type: isFirst ? product.type : "",
-          Tags: isFirst ? product.tags : "",
-          Published: isFirst ? "TRUE" : "",
-          "Option1 Name": "Color",
-          "Option1 Value": color.name,
-          "Option2 Name": "Size",
-          "Option2 Value": size,
-          "Variant SKU": `${product.model}-${color.name.toUpperCase()}-${sizeKey(size)}`,
-          "Variant Price": "50000.00",
-          "Variant Image": img,
-          "Image Src": isFirstOfColor && img ? img : isFirstOfColor ? "" : "",
-          "Image Position": isFirstOfColor && img ? String(imagePosition++) : "",
-          "Image Alt Text":
-            isFirstOfColor && img ? `${product.title} ${color.name}` : "",
-          "SEO Title": isFirst ? `${product.title} | Corners` : "",
-          "Google Shopping / MPN": isFirst ? product.model : "",
-          Status: isFirst ? "active" : "",
-        }, isFirst ? mf : null),
+            Vendor: isFirst ? "Corners" : "",
+            "Product Category": isFirst ? product.productCategory : "",
+            Type: isFirst ? product.type : "",
+            Tags: isFirst ? product.tags : "",
+            Published: isFirst ? "TRUE" : "",
+            "Option1 Name": "Color",
+            "Option1 Value": color.name,
+            "Option2 Name": "Size",
+            "Option2 Value": size,
+            "Variant SKU": `${product.model}-${color.name.toUpperCase()}-${sizeKey(size)}`,
+            "Variant Price": "50000.00",
+            "Variant Image": img,
+            "Image Src": isFirstOfColor && img ? img : isFirstOfColor ? "" : "",
+            "Image Position":
+              isFirstOfColor && img ? String(imagePosition++) : "",
+            "Image Alt Text":
+              isFirstOfColor && img ? `${product.title} ${color.name}` : "",
+            "SEO Title": isFirst ? `${product.title} | Corners` : "",
+            "Google Shopping / MPN": isFirst ? product.model : "",
+            Status: isFirst ? "active" : "",
+          },
+          isFirst ? mf : null,
+        ),
       );
     }
   }
@@ -435,4 +450,6 @@ const rows = PRODUCTS.flatMap(productToRows);
 const csv = [HEADERS.join(","), ...rows].join("\n");
 const outPath = join(__dirname, "product-import-full.csv");
 writeFileSync(outPath, csv, "utf8");
-console.log(`Wrote ${rows.length} variant rows for ${PRODUCTS.length} products → ${outPath}`);
+console.log(
+  `Wrote ${rows.length} variant rows for ${PRODUCTS.length} products → ${outPath}`,
+);

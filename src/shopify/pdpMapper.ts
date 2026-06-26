@@ -94,8 +94,7 @@ export function shopifyToPdpBodyConfig(
   );
 
   const showDimensions =
-    metafieldBoolean(mf, PRODUCT_METAFIELD_KEYS.showDimensions) ??
-    !rug;
+    metafieldBoolean(mf, PRODUCT_METAFIELD_KEYS.showDimensions) ?? !rug;
 
   const madeToOrder =
     metafieldBoolean(mf, PRODUCT_METAFIELD_KEYS.madeToOrder) ??
@@ -123,17 +122,18 @@ export function shopifyToPdpBodyConfig(
             ],
     dimensions: {
       frontFt:
-        metafieldString(mf, PRODUCT_METAFIELD_KEYS.dimensionFrontFt) ||
-        "—",
+        metafieldString(mf, PRODUCT_METAFIELD_KEYS.dimensionFrontFt) || "—",
       sideFt:
         metafieldString(mf, PRODUCT_METAFIELD_KEYS.dimensionSideFt) || "—",
       depthFt:
         metafieldString(mf, PRODUCT_METAFIELD_KEYS.dimensionDepthFt) || "—",
+      diagramUrl:
+        metafieldImageUrl(mf, PRODUCT_METAFIELD_KEYS.dimensionDiagram) ||
+        undefined,
     },
     shippingBody: metafieldString(mf, PRODUCT_METAFIELD_KEYS.deliveryCopy),
     deliveryLeadTime:
-      metafieldString(mf, PRODUCT_METAFIELD_KEYS.deliveryLeadTime) ||
-      undefined,
+      metafieldString(mf, PRODUCT_METAFIELD_KEYS.deliveryLeadTime) || undefined,
     returnBody: metafieldString(mf, PRODUCT_METAFIELD_KEYS.returnCopy),
     gallery,
     showDimensions,

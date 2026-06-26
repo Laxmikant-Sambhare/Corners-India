@@ -27,6 +27,7 @@ const FILE_KEYS = [
   "gallery_bottom_left",
   "gallery_right_tall",
   "gallery_bottom_wide",
+  "dimension_diagram",
 ];
 
 const seed = JSON.parse(

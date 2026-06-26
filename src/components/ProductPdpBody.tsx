@@ -7,7 +7,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import type { CatalogProduct, ProductPdpBodyConfig } from "../catalog/catalogPageTypes";
+import type {
+  CatalogProduct,
+  ProductPdpBodyConfig,
+} from "../catalog/catalogPageTypes";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { formatPriceShort } from "./productDetailUtils";
 import { WishlistHeartButton } from "./WishlistHeartButton";
@@ -689,6 +692,22 @@ function ProductPdpDimensions({
 }: {
   dims: ProductPdpBodyConfig["dimensions"];
 }) {
+  if (dims.diagramUrl) {
+    return (
+      <Box
+        component="img"
+        src={dims.diagramUrl}
+        alt="Product dimensions"
+        sx={{
+          width: "100%",
+          height: "auto",
+          display: "block",
+          objectFit: "contain",
+        }}
+      />
+    );
+  }
+
   const dimLabelSx = {
     fontFamily: FONT_NAV,
     fontWeight: 500,

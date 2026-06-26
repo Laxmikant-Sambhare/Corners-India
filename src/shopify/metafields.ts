@@ -13,6 +13,7 @@ export const PRODUCT_METAFIELD_KEYS = {
   dimensionFrontFt: "dimension_front_ft",
   dimensionSideFt: "dimension_side_ft",
   dimensionDepthFt: "dimension_depth_ft",
+  dimensionDiagram: "dimension_diagram",
   materialBullets: "material_bullets",
   materialSwatches: "material_swatches",
   deliveryCopy: "delivery_copy",
@@ -86,10 +87,7 @@ export function metafieldImageUrl(
   return "";
 }
 
-export function metafieldString(
-  map: ShopifyMetafieldMap,
-  key: string,
-): string {
+export function metafieldString(map: ShopifyMetafieldMap, key: string): string {
   return map.get(key)?.value.trim() ?? "";
 }
 

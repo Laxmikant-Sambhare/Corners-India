@@ -25,13 +25,12 @@ FILES ONLY — PDP / marketing (NOT in product CSV; wire in catalogPageConfig)
 rug-hero-lifestyle.webp
 dunari-gallery-1.webp … dunari-gallery-4.webp
 lifestyle-1.webp … lifestyle-4.webp
+eira-chair-dimensions.webp
+eira-table-dimensions.webp
+dunari-chair-dimensions.webp
+dunari-table-dimensions.webp
+dunari-ottoman-dimensions.webp
 
-DIMENSION DRAWINGS — upload PDFs to Files; wire on PDP via catalogPageConfig
+DIMENSION DRAWINGS — set metafield custom.dimension_diagram (File) per product
 ────────────────────────────────────────────────────────────────────────────
-eira-chair-dimensions.pdf
-eira-table-dimensions.pdf
-dunari-chair-dimensions.pdf
-dunari-table-dimensions.pdf
-dunari-ottoman-dimensions.pdf
-
-Rename your local PDFs to match before upload (original paths were Windows cache URLs).
+See compressed/DIMENSION-MAPPING.md

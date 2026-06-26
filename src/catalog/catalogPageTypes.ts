@@ -90,6 +90,8 @@ export type ProductPdpBodyConfig = {
     frontFt: string;
     sideFt: string;
     depthFt: string;
+    /** Product-specific dimension drawing from Shopify Files. */
+    diagramUrl?: string;
   };
   shippingBody: string;
   deliveryLeadTime?: string;
