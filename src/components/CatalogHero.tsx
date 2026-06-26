@@ -9,7 +9,6 @@ import {
   furnitureHeroBodyMaxW,
   furnitureHeroBreadcrumbFontSize,
   furnitureHeroBreadcrumbToTitleGap,
-  furnitureHeroMinHeight,
   furnitureHeroTitleSize,
   furnitureHeroTitleToBodyGap,
   layoutMarginX,
@@ -33,7 +32,6 @@ export function CatalogHero({
   breadcrumbCurrent,
   description,
   heroImageSrc,
-  heroImageObjectPosition = "50% 42%",
 }: CatalogHeroProps) {
   return (
     <Box
@@ -42,55 +40,52 @@ export function CatalogHero({
       sx={{
         position: "relative",
         width: "100%",
-        minHeight: furnitureHeroMinHeight,
         overflow: "hidden",
       }}
     >
-      <Box
-        component="img"
-        src={heroImageSrc}
-        alt=""
-        fetchPriority="high"
-        loading="eager"
-        decoding="async"
-        sx={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: heroImageObjectPosition,
-          display: "block",
-        }}
-      />
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.28) 100%)",
-          pointerEvents: "none",
-        }}
-      />
+      <Box sx={{ position: "relative", width: "100%", lineHeight: 0 }}>
+        <Box
+          component="img"
+          src={heroImageSrc}
+          alt=""
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          sx={{
+            width: "100%",
+            height: "auto",
+            display: "block",
+          }}
+        />
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background:
+              "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.28) 100%)",
+            pointerEvents: "none",
+          }}
+        />
 
-      <Stack
-        sx={{
-          position: "relative",
-          zIndex: 1,
-          minHeight: furnitureHeroMinHeight,
-          px: {
-            xs: layoutPaddingX.xs,
-            sm: layoutPaddingX.sm,
-            md: layoutMarginX,
-          },
-          pt: { xs: 10, sm: 12, md: 14 },
-          pb: { xs: 6, md: 8 },
-          boxSizing: "border-box",
-          gap: furnitureHeroBreadcrumbToTitleGap,
-          alignItems: "flex-start",
-        }}
-      >
+        <Stack
+          sx={{
+            position: "absolute",
+            inset: 0,
+            zIndex: 1,
+            px: {
+              xs: layoutPaddingX.xs,
+              sm: layoutPaddingX.sm,
+              md: layoutMarginX,
+            },
+            pt: { xs: 10, sm: 12, md: 14 },
+            pb: { xs: 6, md: 8 },
+            boxSizing: "border-box",
+            gap: furnitureHeroBreadcrumbToTitleGap,
+            alignItems: "flex-start",
+            justifyContent: "flex-start",
+          }}
+        >
         <Stack
           direction="row"
           alignItems="center"
@@ -162,6 +157,7 @@ export function CatalogHero({
           </Typography>
         </Stack>
       </Stack>
+      </Box>
     </Box>
   );
 }

@@ -5,13 +5,13 @@ import { Link as RouterLink, useNavigate } from "@tanstack/react-router";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
 import { findCatalogProductByImage } from "../catalog/catalogPageConfig";
 import { isShopifyConfigured } from "../shopify/client";
-import { resolveProductImage } from "../shopify/cdnImages";
 import {
   useShopifyProductHandleMap,
   useShopifyProducts,
 } from "../shopify/hooks";
 import { isRugProduct, shopifyToCatalogProduct } from "../shopify/mappers";
 import { ProductDetailModal } from "./ProductDetailModal";
+import { WishlistHeartButton } from "./WishlistHeartButton";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FONT_NAV, FONT_NAV_SHOP } from "../fonts";
 import { CDN_LIFESTYLE, CDN_PRODUCTS } from "../shopify/cdnImages";
@@ -23,7 +23,6 @@ import {
   discoverCardRadius,
   discoverCardWidth,
   discoverCarouselGap,
-  discoverHeartIconSize,
   discoverImageBoxH,
   discoverMetaGap,
   discoverNavBtnSize,
@@ -75,8 +74,6 @@ const EDITORIAL_IMAGE_BY_HANDLE: Record<string, string> = {
   "eira-rug": CDN_PRODUCTS["eira-rug-navy"],
   "biophilic-rug": CDN_PRODUCTS["eira-rug-earth"],
 };
-
-const FALLBACK_IMAGE = CDN_LIFESTYLE["discover-product-1"];
 
 type CategoryId = "rugs" | "furniture" | "all";
 
@@ -162,7 +159,6 @@ export function DiscoverByCategoryCarousel() {
   const [category, setCategory] = useState<CategoryId>("furniture");
   /** Last Rugs / Furniture choice — drives "View All" + "See more" when tab is View All. */
   const [plpTarget, setPlpTarget] = useState<"rugs" | "furniture">("furniture");
-  const [hoveredIndex, setHoveredIndex] = useState<number | null>(null);
   const [canScrollLeft, setCanScrollLeft] = useState(false);
   const [canScrollRight, setCanScrollRight] = useState(false);
   const scrollerRef = useRef<HTMLDivElement>(null);
@@ -227,17 +223,12 @@ export function DiscoverByCategoryCarousel() {
 
     return filtered.map((p) => {
       const catalog = shopifyToCatalogProduct(p);
-      const image =
-        resolveProductImage(
-          p.handle,
-          p.featuredImage?.url ?? p.images.nodes[0]?.url,
-        ) || FALLBACK_IMAGE;
       return {
         handle: p.handle,
         name: p.title,
         price: catalog.price,
         badge: catalog.badge,
-        image,
+        image: catalog.image || "",
       };
     });
   }, [shopifyProducts, category, isSuccess, isLoading, isFetched]);
@@ -261,12 +252,6 @@ export function DiscoverByCategoryCarousel() {
         setDetailProduct({
           ...live,
           image: p.image,
-          detail: live.detail
-            ? {
-                ...live.detail,
-                gallery: [p.image, ...(live.detail.gallery ?? [])],
-              }
-            : undefined,
         });
         return;
       }
@@ -466,8 +451,7 @@ export function DiscoverByCategoryCarousel() {
           flexDirection: "row",
           gap: discoverCarouselGap,
           overflowX: "auto",
-          overflowY: "hidden",
-          pb: 1,
+          overflowY: "visible",
           scrollSnapType: "x mandatory",
           scrollPaddingLeft: discoverCarouselEdgePadX,
           scrollbarWidth: "none",
@@ -479,45 +463,65 @@ export function DiscoverByCategoryCarousel() {
           boxSizing: "border-box",
         }}
       >
-        {visibleProducts.map((p, i) => {
-          const borderActive = hoveredIndex === i;
-          return (
+        {visibleProducts.map((p) => (
             <Box
               key={p.handle}
-              role="button"
-              data-discover-card
-              onMouseEnter={() => setHoveredIndex(i)}
-              onMouseLeave={() => setHoveredIndex(null)}
-              onClick={() => openProductDetail(p)}
-              onKeyDown={(e) => {
-                if (e.key === "Enter" || e.key === " ") {
-                  e.preventDefault();
-                  openProductDetail(p);
-                }
-              }}
-              tabIndex={0}
-              aria-label={`${p.name}, ${p.price}. Open details.`}
               sx={{
                 flex: `0 0 ${discoverCardWidth}`,
                 maxWidth: discoverCardWidth,
                 minWidth: 0,
                 scrollSnapAlign: "start",
-                borderRadius: discoverCardRadius,
-                border: borderActive
-                  ? `${shopBorderWidth} solid ${TAN}`
-                  : `${shopBorderWidth} solid transparent`,
-                transition: "border-color 0.15s ease",
-                boxSizing: "border-box",
-                px: discoverCardPadX,
-                py: discoverCardPadY,
                 display: "flex",
                 flexDirection: "column",
-                alignItems: "stretch",
-                gap: discoverCardInnerGap,
-                bgcolor: "transparent",
-                cursor: "pointer",
+                boxSizing: "border-box",
               }}
             >
+              <Box aria-hidden sx={{ height: 10, flexShrink: 0 }} />
+              <Box
+                role="button"
+                data-discover-card
+                onClick={() => openProductDetail(p)}
+                onKeyDown={(e) => {
+                  if (e.key === "Enter" || e.key === " ") {
+                    e.preventDefault();
+                    openProductDetail(p);
+                  }
+                }}
+                tabIndex={0}
+                aria-label={`${p.name}, ${p.price}. Open details.`}
+                sx={{
+                  flex: 1,
+                  borderRadius: discoverCardRadius,
+                  border: `${shopBorderWidth} solid ${TAN}`,
+                  boxSizing: "border-box",
+                  px: discoverCardPadX,
+                  py: discoverCardPadY,
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "stretch",
+                  gap: discoverCardInnerGap,
+                  bgcolor: "transparent",
+                  cursor: "pointer",
+                  transition:
+                    "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
+                  "@media (hover: hover)": {
+                    "&:hover": {
+                      transform: "translateY(-6px)",
+                      borderColor: ACCENT,
+                      boxShadow: "0 14px 32px rgba(75, 74, 74, 0.12)",
+                      "& .discover-card-image": {
+                        transform: "scale(1.05)",
+                      },
+                      "& .discover-card-title": {
+                        color: ACCENT,
+                      },
+                    },
+                  },
+                  "&:active": {
+                    transform: "translateY(-2px)",
+                  },
+                }}
+              >
               <Box
                 sx={{
                   display: "flex",
@@ -542,22 +546,14 @@ export function DiscoverByCategoryCarousel() {
                 >
                   {p.badge}
                 </Box>
-                <Box
-                  component="span"
-                  onClick={(e) => e.stopPropagation()}
-                  sx={{ display: "inline-flex", flexShrink: 0 }}
-                >
-                  <Box
-                    component="img"
-                    src="/discover/heart.svg"
-                    alt=""
-                    sx={{
-                      width: discoverHeartIconSize,
-                      height: discoverHeartIconSize,
-                      display: "block",
-                    }}
-                  />
-                </Box>
+                <WishlistHeartButton
+                  product={{
+                    badge: p.badge,
+                    name: p.name,
+                    price: p.price,
+                    image: p.image,
+                  }}
+                />
               </Box>
 
               <Box
@@ -569,10 +565,12 @@ export function DiscoverByCategoryCarousel() {
                   justifyContent: "center",
                   position: "relative",
                   mx: "auto",
+                  overflow: "hidden",
                 }}
               >
                 <Box
                   component="img"
+                  className="discover-card-image"
                   src={p.image}
                   alt=""
                   sx={{
@@ -582,6 +580,7 @@ export function DiscoverByCategoryCarousel() {
                     height: "auto",
                     objectFit: "contain",
                     display: "block",
+                    transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
                   }}
                 />
               </Box>
@@ -596,6 +595,7 @@ export function DiscoverByCategoryCarousel() {
                 }}
               >
                 <Typography
+                  className="discover-card-title"
                   sx={{
                     fontFamily: FONT_NAV,
                     fontWeight: 600,
@@ -603,6 +603,7 @@ export function DiscoverByCategoryCarousel() {
                     textTransform: "uppercase",
                     color: MUTED,
                     lineHeight: 1.2,
+                    transition: "color 0.28s ease",
                   }}
                 >
                   {p.name}
@@ -619,9 +620,10 @@ export function DiscoverByCategoryCarousel() {
                   {p.price}
                 </Typography>
               </Box>
+              </Box>
+              <Box aria-hidden sx={{ height: 20, flexShrink: 0 }} />
             </Box>
-          );
-        })}
+        ))}
         {/* trailing spacer — browsers clip padding-right on overflow flex, use a child instead */}
         <Box
           aria-hidden

@@ -11,7 +11,6 @@ import {
   pdpHeroBadgeToTitleGap,
   pdpHeroBreadcrumbGap,
   pdpHeroBreadcrumbToContentGap,
-  pdpHeroDescMaxW,
   pdpHeroImgLeftLeft,
   pdpHeroImgLeftTop,
   pdpHeroImgLeftW,
@@ -22,10 +21,8 @@ import {
   pdpHeroPadTop,
   pdpHeroPadX,
   pdpHeroTitleSize,
-  pdpHeroTitleToDescGap,
   pdpHeroBadgeFontSize,
   furnitureHeroBreadcrumbFontSize,
-  furnitureHeroBodyFontSize,
 } from "../navDesignTokens";
 
 const TAN = "#ccbca6";
@@ -43,7 +40,6 @@ export function ProductDescriptionHero({
   categoryLabel,
   categoryPath,
   theme,
-  description,
   heroImages,
   heroBackgroundImage,
 }: ProductDescriptionHeroProps) {
@@ -147,7 +143,7 @@ export function ProductDescriptionHero({
           </Typography>
         </Stack>
 
-        {/* Badge + title + description */}
+        {/* Badge + title */}
         <Stack
           sx={{
             mt: pdpHeroBreadcrumbToContentGap,
@@ -180,34 +176,19 @@ export function ProductDescriptionHero({
             </Box>
           )}
 
-          <Stack sx={{ gap: pdpHeroTitleToDescGap, width: "100%" }}>
-            <Typography
-              component="h1"
-              sx={{
-                fontFamily: FONT_SURGENA,
-                fontWeight: 600,
-                fontSize: pdpHeroTitleSize,
-                lineHeight: 1,
-                textTransform: "uppercase",
-                color: ACCENT,
-              }}
-            >
-              {productName}
-            </Typography>
-            <Typography
-              sx={{
-                fontFamily: FONT_NAV,
-                fontWeight: 500,
-                fontSize: furnitureHeroBodyFontSize,
-                lineHeight: 1.4,
-                color: CREAM,
-                maxWidth: pdpHeroDescMaxW,
-                textTransform: "capitalize",
-              }}
-            >
-              {description}
-            </Typography>
-          </Stack>
+          <Typography
+            component="h1"
+            sx={{
+              fontFamily: FONT_SURGENA,
+              fontWeight: 600,
+              fontSize: pdpHeroTitleSize,
+              lineHeight: 1,
+              textTransform: "uppercase",
+              color: ACCENT,
+            }}
+          >
+            {productName}
+          </Typography>
         </Stack>
       </Stack>
 

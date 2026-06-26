@@ -30,7 +30,16 @@ import {
 import { FONT_NAV, FONT_NAV_SHOP } from "../fonts";
 import { layoutPaddingX } from "../layoutConstants";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
+import { useWishlistStore, wishlistTotalItems } from "../store/wishlistStore";
 import { CartDropdown } from "./CartDropdown";
+import {
+  navIconColor,
+  NavCartIcon,
+  NavHeartIcon,
+  NavSearchIcon,
+  NAV_CHROME_MUTED,
+} from "./NavChromeIcons";
+import { WishlistDropdown } from "./WishlistDropdown";
 import { NavbarShopLink } from "./NavbarShopLink";
 import { NavbarTextLink } from "./NavbarTextLink";
 import { SearchDropdown } from "./SearchDropdown";
@@ -39,11 +48,8 @@ import { UserAvatarButton, UserDropdownPanel } from "./UserDropdown";
 
 const LOGO_SRC = "/nav/logo.svg";
 
-
 const SCROLL_TOP_SHOW_PX = 32;
 const SCROLL_DIRECTION_DELTA = 6;
-
-const NAV_CHROME_MUTED = "#4b4a4a";
 
 function MenuHamburgerIcon() {
   return (
@@ -95,6 +101,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   const [navPinned, setNavPinned] = useState(true);
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
   const [cartOpen, setCartOpen] = useState(false);
+  const [wishlistOpen, setWishlistOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
@@ -124,6 +131,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
         setNavPinned(false);
         setShopMenuOpen(false);
         setCartOpen(false);
+        setWishlistOpen(false);
         setUserMenuOpen(false);
         setSearchOpen(false);
         setMobileMenuOpen(false);
@@ -138,11 +146,14 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
 
   const cartItems = useCartStore((s) => s.items);
   const totalUnits = cartTotalItems(cartItems);
+  const wishlistItems = useWishlistStore((s) => s.items);
+  const savedCount = wishlistTotalItems(wishlistItems);
 
   const handleShopClick: MouseEventHandler<HTMLAnchorElement> = (e) => {
     e.preventDefault();
     setShopMenuOpen((open) => !open);
     setCartOpen(false);
+    setWishlistOpen(false);
     setUserMenuOpen(false);
     setSearchOpen(false);
   };
@@ -150,6 +161,16 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   const handleCartClick = () => {
     setCartOpen((open) => !open);
     setShopMenuOpen(false);
+    setWishlistOpen(false);
+    setUserMenuOpen(false);
+    setSearchOpen(false);
+    setMobileMenuOpen(false);
+  };
+
+  const handleWishlistClick = () => {
+    setWishlistOpen((open) => !open);
+    setShopMenuOpen(false);
+    setCartOpen(false);
     setUserMenuOpen(false);
     setSearchOpen(false);
     setMobileMenuOpen(false);
@@ -159,6 +180,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
     setSearchOpen((open) => !open);
     setShopMenuOpen(false);
     setCartOpen(false);
+    setWishlistOpen(false);
     setUserMenuOpen(false);
     setMobileMenuOpen(false);
   };
@@ -167,6 +189,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
     e.preventDefault();
     setMobileMenuOpen(false);
     setCartOpen(false);
+    setWishlistOpen(false);
     setUserMenuOpen(false);
     setSearchOpen(false);
     setShopMenuOpen((open) => !open);
@@ -175,6 +198,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   const handleClickAway = () => {
     setShopMenuOpen(false);
     setCartOpen(false);
+    setWishlistOpen(false);
     setUserMenuOpen(false);
     setSearchOpen(false);
   };
@@ -292,6 +316,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                       setMobileMenuOpen(true);
                       setShopMenuOpen(false);
                       setCartOpen(false);
+                      setWishlistOpen(false);
                     }}
                     sx={{
                       minWidth: 44,
@@ -351,13 +376,45 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                         minWidth: 44,
                         minHeight: 44,
                         p: 1,
-                        color: searchOpen ? "#bc7e5a" : NAV_CHROME_MUTED,
-                        "& img": { display: "block", height: 20, width: "auto" },
+                        color: navIconColor(searchOpen),
                       }}
                     >
-                      <Box component="img" src="/nav/search.svg" alt="" aria-hidden />
+                      <NavSearchIcon height={20} />
                     </IconButton>
-                    <UserAvatarButton size="medium" open={userMenuOpen} onToggle={() => { setUserMenuOpen((v) => !v); setCartOpen(false); setShopMenuOpen(false); setSearchOpen(false); }} />
+                    <UserAvatarButton size="medium" open={userMenuOpen} onToggle={() => { setUserMenuOpen((v) => !v); setCartOpen(false); setWishlistOpen(false); setShopMenuOpen(false); setSearchOpen(false); }} />
+                    <IconButton
+                      type="button"
+                      aria-label="Saved products"
+                      aria-expanded={wishlistOpen}
+                      aria-controls={wishlistOpen ? "wishlist-dropdown" : undefined}
+                      size="medium"
+                      onClick={handleWishlistClick}
+                      sx={{
+                        minWidth: 44,
+                        minHeight: 44,
+                        p: 1,
+                        color: navIconColor(wishlistOpen),
+                      }}
+                    >
+                      <Badge
+                        badgeContent={savedCount || null}
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            bgcolor: "#bc7e5a",
+                            color: "#f3ede3",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            minWidth: "18px",
+                            height: "18px",
+                            borderRadius: "9px",
+                            top: 6,
+                            right: 4,
+                          },
+                        }}
+                      >
+                        <NavHeartIcon height={20} />
+                      </Badge>
+                    </IconButton>
                     <IconButton
                       type="button"
                       aria-label="Shopping cart"
@@ -370,12 +427,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                         minHeight: 44,
                         p: 1,
                         mr: -0.5,
-                        color: NAV_CHROME_MUTED,
-                        "& img": {
-                          display: "block",
-                          height: 20,
-                          width: "auto",
-                        },
+                        color: navIconColor(cartOpen),
                       }}
                     >
                       <Badge
@@ -394,12 +446,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                           },
                         }}
                       >
-                        <Box
-                          component="img"
-                          src="/nav/cart.svg"
-                          alt=""
-                          aria-hidden
-                        />
+                        <NavCartIcon height={20} />
                       </Badge>
                     </IconButton>
                   </Stack>
@@ -476,13 +523,43 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                       onClick={handleSearchClick}
                       sx={{
                         p: 0.75,
-                        color: searchOpen ? "#bc7e5a" : NAV_CHROME_MUTED,
-                        "& img": { display: "block", height: navIconSize, width: "auto" },
+                        color: navIconColor(searchOpen),
                       }}
                     >
-                      <Box component="img" src="/nav/search.svg" alt="" aria-hidden />
+                      <NavSearchIcon height={navIconSize} />
                     </IconButton>
-                    <UserAvatarButton size="small" open={userMenuOpen} onToggle={() => { setUserMenuOpen((v) => !v); setCartOpen(false); setShopMenuOpen(false); setSearchOpen(false); }} />
+                    <UserAvatarButton size="small" open={userMenuOpen} onToggle={() => { setUserMenuOpen((v) => !v); setCartOpen(false); setWishlistOpen(false); setShopMenuOpen(false); setSearchOpen(false); }} />
+                    <IconButton
+                      type="button"
+                      aria-label="Saved products"
+                      aria-expanded={wishlistOpen}
+                      aria-controls={wishlistOpen ? "wishlist-dropdown" : undefined}
+                      size="small"
+                      onClick={handleWishlistClick}
+                      sx={{
+                        p: 0.75,
+                        color: navIconColor(wishlistOpen),
+                      }}
+                    >
+                      <Badge
+                        badgeContent={savedCount || null}
+                        sx={{
+                          "& .MuiBadge-badge": {
+                            bgcolor: "#bc7e5a",
+                            color: "#f3ede3",
+                            fontSize: "10px",
+                            fontWeight: 700,
+                            minWidth: "18px",
+                            height: "18px",
+                            borderRadius: "9px",
+                            top: 2,
+                            right: 2,
+                          },
+                        }}
+                      >
+                        <NavHeartIcon height={navIconSize} />
+                      </Badge>
+                    </IconButton>
                     <IconButton
                       type="button"
                       aria-label="Shopping cart"
@@ -492,12 +569,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                       onClick={handleCartClick}
                       sx={{
                         p: 0.75,
-                        color: NAV_CHROME_MUTED,
-                        "& img": {
-                          display: "block",
-                          height: navIconSize,
-                          width: "auto",
-                        },
+                        color: navIconColor(cartOpen),
                       }}
                     >
                       <Badge
@@ -516,12 +588,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                           },
                         }}
                       >
-                        <Box
-                          component="img"
-                          src="/nav/cart.svg"
-                          alt=""
-                          aria-hidden
-                        />
+                        <NavCartIcon height={navIconSize} />
                       </Badge>
                     </IconButton>
                   </Stack>
@@ -570,6 +637,16 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                 <UserDropdownPanel
                   key="user-dropdown"
                   onClose={() => setUserMenuOpen(false)}
+                />
+              )}
+            </AnimatePresence>
+
+            {/* Wishlist dropdown */}
+            <AnimatePresence>
+              {wishlistOpen && (
+                <WishlistDropdown
+                  key="wishlist-dropdown"
+                  onClose={() => setWishlistOpen(false)}
                 />
               )}
             </AnimatePresence>

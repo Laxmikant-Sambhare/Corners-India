@@ -9,7 +9,11 @@ import { SiteFooter } from "../components/SiteFooter";
 import { DiscoverCollectionSection } from "../components/DiscoverCollectionSection";
 import { DiscoverPromoVideo } from "../components/DiscoverPromoVideo";
 import { HeroCarousel } from "../components/HeroCarousel";
-import { isCatalogLayoutPathname, isFullBleedHeroPathname, isPdpPathname } from "../catalog/catalogLayoutPaths";
+import {
+  isCatalogLayoutPathname,
+  isFullBleedHeroPathname,
+  isPdpPathname,
+} from "../catalog/catalogLayoutPaths";
 import { layoutMarginX } from "../navDesignTokens";
 import { layoutPaddingX } from "../layoutConstants";
 
@@ -55,28 +59,7 @@ export function AppLayout() {
     >
       {isHome ? (
         <Box sx={HERO_BLOCK_SX}>
-          <HeroCarousel>
-            <Box
-              component="main"
-              sx={{
-                px: {
-                  xs: layoutPaddingX.xs,
-                  sm: layoutPaddingX.sm,
-                  md: layoutMarginX,
-                },
-                pt: 0,
-                pb: pagePaddingY,
-                width: "100%",
-                maxWidth: "100%",
-                minWidth: 0,
-                boxSizing: "border-box",
-              }}
-            >
-              <Container maxWidth="xl" disableGutters sx={{ maxWidth: "100%" }}>
-                <Outlet />
-              </Container>
-            </Box>
-          </HeroCarousel>
+          <HeroCarousel />
           <DiscoverByCategoryCarousel />
           <DiscoverPromoVideo />
           <DiscoverCollectionSection />

@@ -1,0 +1,37 @@
+Upload these to Shopify Admin → Content → Files BEFORE importing product-import-full.csv.
+Image URLs in the CSV point to: https://cdn.shopify.com/s/files/1/0990/0464/5681/files/{filename}
+
+REQUIRED — variant / listing images (referenced in CSV)
+────────────────────────────────────────────────────────
+listing-eira-chair.webp
+listing-eira-table.webp
+listing-dunari-chair.webp
+listing-dunari-table.webp
+listing-dunari-ottoman.webp
+dunari-rug.webp
+eira-rug-navy.webp
+eira-rug-earth.webp
+biophilic-rug.webp          ← NEW — upload product flat shot for Biophilic Rug
+
+OPTIONAL — extra product angles (CSV adds as 2nd/3rd product media)
+──────────────────────────────────────────────────────────────────
+eira-chair-view1.webp
+eira-chair-view2.webp
+dunari-ottoman-view1.webp
+dunari-ottoman-view2.webp
+
+FILES ONLY — PDP / marketing (NOT in product CSV; wire in catalogPageConfig)
+────────────────────────────────────────────────────────────────────────────
+rug-hero-lifestyle.webp
+dunari-gallery-1.webp … dunari-gallery-4.webp
+lifestyle-1.webp … lifestyle-4.webp
+
+DIMENSION DRAWINGS — upload PDFs to Files; wire on PDP via catalogPageConfig
+────────────────────────────────────────────────────────────────────────────
+eira-chair-dimensions.pdf
+eira-table-dimensions.pdf
+dunari-chair-dimensions.pdf
+dunari-table-dimensions.pdf
+dunari-ottoman-dimensions.pdf
+
+Rename your local PDFs to match before upload (original paths were Windows cache URLs).

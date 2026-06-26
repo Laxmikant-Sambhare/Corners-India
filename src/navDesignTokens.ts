@@ -396,6 +396,14 @@ export const furnitureListingChevronW = fluid1920(15, { min: 12, max: 16 });
 export const furnitureListingChevronH = fluid1920(7, { min: 6, max: 9 });
 
 /** Open filter panel (990:6260) */
+export const furnitureFilterSectionDividerGap = fluid1920(22, {
+  min: 16,
+  max: 26,
+});
+export const furnitureFilterSectionHeaderPadY = fluid1920(10, {
+  min: 8,
+  max: 12,
+});
 export const furnitureFilterSectionStackGap = fluid1920(34, {
   min: 20,
   max: 36,

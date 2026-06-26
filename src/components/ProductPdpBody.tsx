@@ -7,10 +7,10 @@ import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
-import type { ProductPdpBodyConfig } from "../catalog/catalogPageTypes";
+import type { CatalogProduct, ProductPdpBodyConfig } from "../catalog/catalogPageTypes";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { formatPriceShort } from "./productDetailUtils";
-import { CDN_GALLERY } from "../shopify/cdnImages";
+import { WishlistHeartButton } from "./WishlistHeartButton";
 import {
   furnitureHeroBodyFontSize,
   navFontSize,
@@ -61,11 +61,16 @@ const MUTED = "#4b4a4a";
 
 type ProductPdpBodyProps = {
   config: ProductPdpBodyConfig;
+  wishlistProduct?: CatalogProduct;
   /** When true, skips the top bleed margin applied for furniture hero images. */
   noHeroBleed?: boolean;
 };
 
-export function ProductPdpBody({ config, noHeroBleed }: ProductPdpBodyProps) {
+export function ProductPdpBody({
+  config,
+  wishlistProduct,
+  noHeroBleed,
+}: ProductPdpBodyProps) {
   const [quantity, setQuantity] = useState(1);
   const [materialIndex, setMaterialIndex] = useState(0);
 
@@ -141,13 +146,17 @@ export function ProductPdpBody({ config, noHeroBleed }: ProductPdpBodyProps) {
               </Stack>
             )}
             <Stack direction="row" sx={{ gap: 2, alignItems: "center" }}>
-              <ButtonBase
-                type="button"
-                aria-label="Add to wishlist"
-                sx={{ p: 0.5 }}
-              >
-                <HeartIcon />
-              </ButtonBase>
+              {wishlistProduct ? (
+                <WishlistHeartButton product={wishlistProduct} size="36px" />
+              ) : (
+                <ButtonBase
+                  type="button"
+                  aria-label="Add to wishlist"
+                  sx={{ p: 0.5 }}
+                >
+                  <HeartIcon />
+                </ButtonBase>
+              )}
               <ButtonBase type="button" aria-label="Share" sx={{ p: 0.5 }}>
                 <ShareIcon />
               </ButtonBase>
@@ -194,77 +203,68 @@ export function ProductPdpBody({ config, noHeroBleed }: ProductPdpBodyProps) {
             </Stack>
           </Stack>
 
-          <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
-            <Typography
-              sx={{
-                fontFamily: FONT_NAV,
-                fontWeight: 500,
-                fontSize: furnitureHeroBodyFontSize,
-                lineHeight: 1.2,
-                textTransform: "capitalize",
-                color: TAN,
-              }}
-            >
-              Material
-            </Typography>
-            <Stack
-              direction="row"
-              sx={{
-                flexWrap: { xs: "wrap", md: "nowrap" },
-                gap: pdpBodySwatchGap,
-                width: "100%",
-                overflowX: { xs: "auto", md: "visible" },
-                pb: { xs: 0.5, md: 0 },
-              }}
-            >
-              {config.materialSwatches.map((label, i) => (
-                <ButtonBase
-                  key={`${label}-${i}`}
-                  type="button"
-                  onClick={() => setMaterialIndex(i)}
-                  sx={{
-                    position: "relative",
-                    width: pdpBodySwatchW,
-                    height: pdpBodySwatchH,
-                    minWidth: pdpBodySwatchW,
-                    borderRadius: pdpBodyBtnRadius,
-                    overflow: "hidden",
-                    flexShrink: 0,
-                    border:
-                      materialIndex === i
-                        ? `2px solid ${ACCENT}`
-                        : `1px solid rgba(75, 74, 74, 0.15)`,
-                    boxSizing: "border-box",
-                  }}
-                >
-                  <Box
+          {config.materialSwatches.length > 0 && (
+            <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 500,
+                  fontSize: furnitureHeroBodyFontSize,
+                  lineHeight: 1.2,
+                  textTransform: "capitalize",
+                  color: TAN,
+                }}
+              >
+                Material
+              </Typography>
+              <Stack
+                direction="row"
+                sx={{
+                  flexWrap: { xs: "wrap", md: "nowrap" },
+                  gap: pdpBodySwatchGap,
+                  width: "100%",
+                  overflowX: { xs: "auto", md: "visible" },
+                  pb: { xs: 0.5, md: 0 },
+                }}
+              >
+                {config.materialSwatches.map((label, i) => (
+                  <ButtonBase
+                    key={`${label}-${i}`}
+                    type="button"
+                    onClick={() => setMaterialIndex(i)}
                     sx={{
-                      position: "absolute",
-                      inset: 0,
-                      backgroundImage: `url(${CDN_GALLERY["fabric-swatches"]})`,
-                      backgroundSize: "cover",
-                      backgroundPosition: `${20 + i * 22}% center`,
-                    }}
-                  />
-                  <Typography
-                    sx={{
-                      position: "relative",
-                      zIndex: 1,
-                      fontFamily: FONT_NAV,
-                      fontWeight: 500,
-                      fontSize: furnitureHeroBodyFontSize,
-                      lineHeight: 1,
-                      textTransform: "uppercase",
-                      color: PAGE_BG,
-                      textShadow: "0 1px 2px rgba(0,0,0,0.35)",
+                      width: pdpBodySwatchW,
+                      height: pdpBodySwatchH,
+                      minWidth: pdpBodySwatchW,
+                      borderRadius: pdpBodyBtnRadius,
+                      flexShrink: 0,
+                      border:
+                        materialIndex === i
+                          ? `2px solid ${ACCENT}`
+                          : `1px solid rgba(75, 74, 74, 0.15)`,
+                      boxSizing: "border-box",
+                      bgcolor: materialIndex === i ? ACCENT : PAGE_BG,
+                      px: 1,
                     }}
                   >
-                    {label}
-                  </Typography>
-                </ButtonBase>
-              ))}
+                    <Typography
+                      sx={{
+                        fontFamily: FONT_NAV,
+                        fontWeight: 500,
+                        fontSize: furnitureHeroBodyFontSize,
+                        lineHeight: 1.2,
+                        textTransform: "capitalize",
+                        color: materialIndex === i ? PAGE_BG : MUTED,
+                        textAlign: "center",
+                      }}
+                    >
+                      {label}
+                    </Typography>
+                  </ButtonBase>
+                ))}
+              </Stack>
             </Stack>
-          </Stack>
+          )}
 
           <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
             <Typography

@@ -3,13 +3,14 @@ import ButtonBase from "@mui/material/ButtonBase";
 import Dialog from "@mui/material/Dialog";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
+import Tooltip from "@mui/material/Tooltip";
 import Typography from "@mui/material/Typography";
 import { useNavigate } from "@tanstack/react-router";
 import { useMemo, useState } from "react";
 import { useCartStore } from "../store/cartStore";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
 import { toProductSlug } from "../catalog/catalogPageConfig";
-import { formatPriceShort, resolveProductDetail } from "./productDetailUtils";
+import { formatPriceShort, inferGalleryOptionValueFromImage, resolveProductDetail, resolveGalleryForProduct } from "./productDetailUtils";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
   furnitureCustomisationTitleSize,
@@ -51,6 +52,7 @@ const PAGE_BG = "#f3ede3";
 const ACCENT = "#bc7e5a";
 const TAN = "#ccbca6";
 const MUTED = "#4b4a4a";
+const STORY_LINE_CLAMP = 3;
 
 type ProductDetailModalProps = {
   open: boolean;
@@ -70,27 +72,57 @@ export function ProductDetailModal({
     [product],
   );
 
-  const gallery = detail?.gallery ?? [];
   const [imageIndex, setImageIndex] = useState(0);
   const [sizeIndex, setSizeIndex] = useState(0);
+  const [colorIndex, setColorIndex] = useState(0);
   const [quantity, setQuantity] = useState(1);
+
+  const selectedSize = detail?.sizes[sizeIndex] ?? detail?.sizes[0] ?? "";
+  const selectedColor =
+    detail?.colors?.[colorIndex] ?? detail?.colors?.[0] ?? "";
+
+  const gallery = useMemo(() => {
+    if (!product || !detail) return [];
+    return resolveGalleryForProduct(
+      product,
+      detail,
+      selectedSize,
+      selectedColor || undefined,
+    );
+  }, [product, detail, selectedSize, selectedColor]);
 
   // Reset form state when the modal opens or the product changes.
   const productKey = open ? (product?.name ?? null) : null;
+  const galleryKey = gallery.join("|");
   const [prevProductKey, setPrevProductKey] = useState<string | null>(null);
+  const [prevGalleryKey, setPrevGalleryKey] = useState("");
   if (productKey !== prevProductKey) {
     setPrevProductKey(productKey);
-    if (productKey !== null) {
+    if (productKey !== null && product && detail) {
       setImageIndex(0);
       setQuantity(1);
-      // Auto-select the first available size, or fall back to index 0
-      const firstAvailableIdx = detail
-        ? detail.sizes.findIndex((s) =>
-            detail.availableSizes ? detail.availableSizes.includes(s) : true,
-          )
-        : 0;
+      const firstAvailableIdx = detail.sizes.findIndex((s) =>
+        detail.availableSizes ? detail.availableSizes.includes(s) : true,
+      );
       setSizeIndex(firstAvailableIdx >= 0 ? firstAvailableIdx : 0);
+
+      if (detail.colors?.length) {
+        const inferredColor = inferGalleryOptionValueFromImage(
+          product.image,
+          detail,
+        );
+        const colorIdx = inferredColor
+          ? detail.colors.indexOf(inferredColor)
+          : 0;
+        setColorIndex(colorIdx >= 0 ? colorIdx : 0);
+      } else {
+        setColorIndex(0);
+      }
     }
+  }
+  if (galleryKey !== prevGalleryKey) {
+    setPrevGalleryKey(galleryKey);
+    setImageIndex(0);
   }
 
   if (!product || !detail) {
@@ -100,10 +132,6 @@ export function ProductDetailModal({
   const mainSrc = gallery[imageIndex] ?? gallery[0] ?? product.image;
   const thumbSlots = gallery.length ? gallery : [product.image];
 
-  // Per-selected-size stock check:
-  // • Products with no size variants (furniture) → use product-level availableForSale
-  // • Products with sizes → check if the currently selected size has stock
-  const selectedSize = detail.sizes[sizeIndex] ?? detail.sizes[0] ?? "";
   const selectedSizeInStock = detail.availableSizes
     ? detail.availableSizes.includes(selectedSize)
     : (product.availableForSale ?? true);
@@ -310,37 +338,75 @@ export function ProductDetailModal({
                 </Stack>
               </Stack>
 
-              <Stack sx={{ gap: productDetailModalLabelGap }}>
-                <Typography
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: navFontSize,
-                    lineHeight: 1.2,
-                    color: TAN,
-                  }}
-                >
-                  {detail.storyTitle}
-                </Typography>
-                <Typography
+              {(detail.colors?.length ?? 0) > 1 ? (
+                <Stack sx={{ gap: productDetailModalLabelGap }}>
+                  <Typography
                     sx={{
                       fontFamily: FONT_NAV,
                       fontWeight: 500,
                       fontSize: navFontSize,
-                      lineHeight: 1.4,
-                      color: MUTED,
-                      display: "-webkit-box",
-                      WebkitLineClamp: { xs: 4, md: 999 },
-                      WebkitBoxOrient: "vertical",
-                      overflow: "hidden",
+                      lineHeight: 1.2,
+                      textTransform: "capitalize",
+                      color: TAN,
                     }}
                   >
-                    {detail.storyBody}
+                    Color
                   </Typography>
-              </Stack>
-            </Stack>
+                  <Box
+                    sx={{
+                      display: "flex",
+                      flexWrap: "wrap",
+                      gap: productDetailModalSizeChipGap,
+                      alignItems: "center",
+                    }}
+                  >
+                    {detail.colors!.map((label, i) => {
+                      const isColorAvailable = detail.availableColors
+                        ? detail.availableColors.includes(label)
+                        : true;
+                      const isSelected = colorIndex === i;
+                      return (
+                        <ButtonBase
+                          key={label}
+                          type="button"
+                          disabled={!isColorAvailable}
+                          onClick={() => isColorAvailable && setColorIndex(i)}
+                          sx={{
+                            px: productDetailModalSizeChipPadX,
+                            py: productDetailModalSizeChipPadY,
+                            borderRadius: productDetailModalChipRadius,
+                            border: isColorAvailable
+                              ? isSelected
+                                ? `2px solid ${ACCENT}`
+                                : `1px solid ${ACCENT}`
+                              : "1px solid rgba(75,74,74,0.2)",
+                            bgcolor: isColorAvailable
+                              ? isSelected
+                                ? "rgba(188, 126, 90, 0.08)"
+                                : "transparent"
+                              : "rgba(75,74,74,0.04)",
+                            fontFamily: FONT_NAV,
+                            fontWeight: 500,
+                            fontSize: navFontSize,
+                            lineHeight: 1,
+                            textTransform: "uppercase",
+                            color: isColorAvailable
+                              ? ACCENT
+                              : "rgba(75,74,74,0.3)",
+                            minWidth: { xs: "auto", sm: 77 },
+                            cursor: isColorAvailable ? "pointer" : "not-allowed",
+                          }}
+                        >
+                          {label}
+                        </ButtonBase>
+                      );
+                    })}
+                  </Box>
+                </Stack>
+              ) : null}
 
-            <Stack sx={{ gap: productDetailModalSectionGap, width: "100%" }}>
+              {detail.sizes.length > 0 &&
+              !(detail.sizes.length === 1 && detail.sizes[0] === "Standard") ? (
               <Stack sx={{ gap: productDetailModalLabelGap }}>
                 <Typography
                   sx={{
@@ -362,7 +428,7 @@ export function ProductDetailModal({
                     alignItems: "center",
                   }}
                 >
-                  {detail.sizes.slice(0, 4).map((label, i) => {
+                  {detail.sizes.map((label, i) => {
                     const isSizeAvailable = detail.availableSizes
                       ? detail.availableSizes.includes(label)
                       : true;
@@ -396,7 +462,6 @@ export function ProductDetailModal({
                           minWidth: { xs: "auto", sm: 77 },
                           position: "relative",
                           cursor: isSizeAvailable ? "pointer" : "not-allowed",
-                          // Strikethrough line for out-of-stock sizes
                           "&::after": isSizeAvailable
                             ? {}
                             : {
@@ -416,6 +481,7 @@ export function ProductDetailModal({
                   })}
                 </Box>
               </Stack>
+              ) : null}
 
               <Stack sx={{ gap: productDetailModalLabelGap, width: "100%" }}>
                 <Typography
@@ -438,7 +504,6 @@ export function ProductDetailModal({
                     flexWrap: "nowrap",
                   }}
                 >
-                  {/* Quantity stepper — hidden when selected size is out of stock */}
                   {selectedSizeInStock && (
                     <Stack
                       direction="row"
@@ -496,7 +561,6 @@ export function ProductDetailModal({
                     </Stack>
                   )}
 
-                  {/* Add to cart / Out of stock CTA */}
                   {selectedSizeInStock ? (
                     <ButtonBase
                       type="button"
@@ -549,34 +613,84 @@ export function ProductDetailModal({
                     </Box>
                   )}
                 </Stack>
+              </Stack>
 
-                <ButtonBase
-                  type="button"
-                  onClick={() => {
-                    onClose();
-                    navigate({
-                      to: "/product/$slug",
-                      params: { slug: toProductSlug(product.name) },
-                    });
-                  }}
+              <Stack sx={{ gap: productDetailModalLabelGap }}>
+                <Typography
                   sx={{
-                    width: "100%",
-                    bgcolor: ACCENT,
-                    color: PAGE_BG,
-                    py: productDetailModalCtaPadY,
-                    borderRadius: productDetailModalChipRadius,
                     fontFamily: FONT_NAV,
-                    fontWeight: 600,
+                    fontWeight: 500,
                     fontSize: navFontSize,
-                    lineHeight: 1,
-                    textTransform: "uppercase",
-                    "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
+                    lineHeight: 1.2,
+                    color: TAN,
                   }}
                 >
-                  View details
-                </ButtonBase>
+                  {detail.storyTitle}
+                </Typography>
+                <Tooltip
+                  title={detail.storyBody}
+                  placement="top-start"
+                  enterDelay={400}
+                  slotProps={{
+                    tooltip: {
+                      sx: {
+                        maxWidth: 320,
+                        bgcolor: MUTED,
+                        color: PAGE_BG,
+                        fontFamily: FONT_NAV,
+                        fontSize: navFontSize,
+                        lineHeight: 1.45,
+                        p: 1.25,
+                      },
+                    },
+                  }}
+                >
+                  <Typography
+                    component="span"
+                    sx={{
+                      fontFamily: FONT_NAV,
+                      fontWeight: 500,
+                      fontSize: navFontSize,
+                      lineHeight: 1.4,
+                      color: MUTED,
+                      display: "-webkit-box",
+                      WebkitLineClamp: STORY_LINE_CLAMP,
+                      WebkitBoxOrient: "vertical",
+                      overflow: "hidden",
+                      cursor: "help",
+                    }}
+                  >
+                    {detail.storyBody}
+                  </Typography>
+                </Tooltip>
               </Stack>
             </Stack>
+
+            <ButtonBase
+              type="button"
+              onClick={() => {
+                onClose();
+                navigate({
+                  to: "/product/$slug",
+                  params: { slug: toProductSlug(product.name) },
+                });
+              }}
+              sx={{
+                width: "100%",
+                bgcolor: ACCENT,
+                color: PAGE_BG,
+                py: productDetailModalCtaPadY,
+                borderRadius: productDetailModalChipRadius,
+                fontFamily: FONT_NAV,
+                fontWeight: 600,
+                fontSize: navFontSize,
+                lineHeight: 1,
+                textTransform: "uppercase",
+                "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
+              }}
+            >
+              View details
+            </ButtonBase>
           </Stack>
         </Stack>
       </Box>

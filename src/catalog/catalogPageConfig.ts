@@ -91,10 +91,13 @@ const RUGS_PRODUCTS: CatalogProduct[] = [
     detail: {
       gallery: [
         CDN_PRODUCTS["eira-rug-navy"],
-        CDN_PRODUCTS["eira-rug-earth"],
-        CDN_PRODUCTS["eira-rug-navy"],
-        CDN_PRODUCTS["eira-rug-earth"],
       ],
+      galleryOptionName: "Color",
+      galleryByOption: {
+        Navy: [CDN_PRODUCTS["eira-rug-navy"]],
+        Earth: [CDN_PRODUCTS["eira-rug-earth"]],
+      },
+      colors: ["Navy", "Earth"],
       storyTitle: "Story of Eira Rug",
       storyBody:
         "Deep navy ground with cream organic lines—this Eira rug layers pattern without overpowering the room. Pair with light woods and neutral upholstery from the Eira family.",
@@ -110,10 +113,13 @@ const RUGS_PRODUCTS: CatalogProduct[] = [
     detail: {
       gallery: [
         CDN_PRODUCTS["eira-rug-earth"],
-        CDN_PRODUCTS["eira-rug-navy"],
-        CDN_PRODUCTS["eira-rug-earth"],
-        CDN_PRODUCTS["eira-rug-navy"],
       ],
+      galleryOptionName: "Color",
+      galleryByOption: {
+        Navy: [CDN_PRODUCTS["eira-rug-navy"]],
+        Earth: [CDN_PRODUCTS["eira-rug-earth"]],
+      },
+      colors: ["Navy", "Earth"],
       storyTitle: "Story of Eira Rug",
       storyBody:
         "Earthy tones and organic veining bring quiet movement underfoot. Designed to bridge natural materials across the Corners range.",
@@ -205,10 +211,6 @@ const CATALOG_PAGES: Record<string, CatalogPageConfig> = {
     },
     products: RUGS_PRODUCTS,
     listingSectionAriaLabel: "Rugs products",
-    listingFilterThirdSection: {
-      title: "Size",
-      options: ["5×8 ft", "8×10 ft", "9×12 ft"],
-    },
     promo: {
       ...PROMO_VISUAL_BASE,
       title: "Made to live with your layout",
@@ -448,7 +450,7 @@ function buildDefaultPdpBody(
     madeToOrder: true,
     price: product?.price ?? "Rs. 50,000.00",
     mrpNote: detail?.mrpNote ?? "MRP incl. of all taxes",
-    materialSwatches: ["Material", "Material", "Material", "Material"],
+    materialSwatches: [],
     productDescription:
       detail?.storyBody ??
       `${hero.description} Explore finishes and lead times with our team.`,

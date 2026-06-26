@@ -1,15 +1,9 @@
 /**
- * Shopify Files CDN — all site images hosted on Shopify's global CDN.
- *
- * Base: https://cdn.shopify.com/s/files/1/0990/0464/5681/files/
- *
- * Upload images via: Shopify Admin → Content → Files → Upload files
- * All images from the /shopify-upload/ folder belong here.
+ * Shopify Files CDN — marketing & static page assets.
+ * Product images are served from Shopify product media + metafields.
  */
 
 const CDN_BASE = "https://cdn.shopify.com/s/files/1/0990/0464/5681/files/";
-
-/** Build a full CDN URL from a bare filename, e.g. "hero_img-1.webp" */
 export function cdnFile(filename: string): string {
   return `${CDN_BASE}${filename}`;
 }
@@ -59,7 +53,7 @@ export const CDN_HEROES = {
   "collection-dunari-hero": cdnFile("collection-dunari-hero.webp"),
   "discover-hero": cdnFile("discover_hero.webp"),
   "discover-hero-bg": cdnFile("hero-bg.webp"),
-  "customizations-hero": cdnFile("customizations-hero-bg.webp"),
+  "customizations-hero": cdnFile("lifestyle-3.webp"),
   "eira-collection-hero": cdnFile("hero-lifestyle.webp"),
   "dunari-collection-hero": cdnFile("hero-lifestyle-dunari.webp"),
 } as const;
@@ -83,46 +77,7 @@ export const CDN_LIFESTYLE = {
   "explore-rugs": cdnFile("rugs.webp"),
   "mega-menu-feature": cdnFile("mega-menu-feature.webp"),
   "customisation-cta": cdnFile("customisation-cta.webp"),
-  "how-it-works-photo": cdnFile("how-it-works-photo.webp"),
+  "how-it-works-photo": cdnFile("dunari-rug__lifestyle-texture-hand.webp"),
 } as const;
 
-// ─────────────────────────────────────────────────────────────────────────────
-// Legacy helpers — used by Shopify product mapper
-// ─────────────────────────────────────────────────────────────────────────────
-
-/** Product handle → primary listing image CDN URL */
-const PRIMARY_IMAGE_BY_HANDLE: Record<string, string> = {
-  "eira-chair": CDN_PRODUCTS["listing-eira-chair"],
-  "eira-table": CDN_PRODUCTS["listing-eira-table"],
-  "dunari-chair": CDN_PRODUCTS["listing-dunari-chair"],
-  "dunari-table": CDN_PRODUCTS["listing-dunari-table"],
-  "dunari-ottoman": CDN_PRODUCTS["listing-dunari-ottoman"],
-  "dunari-rug": CDN_PRODUCTS["dunari-rug"],
-  "eira-rug": CDN_PRODUCTS["eira-rug-navy"],
-  "biophilic-rug": CDN_PRODUCTS["rug-hero-lifestyle"],
-};
-
-export function resolveProductImage(
-  handle: string,
-  shopifyUrl?: string | null,
-): string {
-  if (shopifyUrl) return shopifyUrl;
-  return PRIMARY_IMAGE_BY_HANDLE[handle] ?? "";
-}
-
-export function resolveGalleryImages(
-  handle: string,
-  shopifyUrls: string[],
-): string[] {
-  const urls = shopifyUrls.filter(Boolean);
-  if (urls.length > 0) return urls;
-
-  const primary = resolveProductImage(handle, null);
-  if (!primary) return [];
-
-  const extras: string[] = [];
-  if (handle === "eira-chair") extras.push(CDN_PRODUCTS["eira-chair-view2"]);
-  if (handle === "dunari-ottoman")
-    extras.push(CDN_PRODUCTS["dunari-ottoman-view2"]);
-  return [primary, ...extras];
-}
+// Marketing / page assets only — product images come from Shopify API.

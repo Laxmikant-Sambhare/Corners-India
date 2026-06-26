@@ -1,0 +1,66 @@
+{
+  "_comment": "Fill one file per product handle. Upload images to Content → Files using the filenames below. Wire into the site via catalogPageConfig.ts today, or Shopify metafields later.",
+  "handle": "eira-chair",
+  "theme": "Japendi",
+  "categoryLabel": "Furniture",
+  "categoryPath": "/category/furniture",
+
+  "pdpHero": {
+    "description": "Short hero paragraph under the product name on the PDP.",
+    "heroImages": [
+      "eira-chair-view1.webp",
+      "eira-chair-view2.webp"
+    ],
+    "heroBackgroundImage": null
+  },
+
+  "pdpBody": {
+    "madeToOrder": true,
+    "mrpNote": "MRP incl. of all taxes",
+    "showDimensions": true,
+    "materialSwatches": ["Fabric A", "Fabric B", "Fabric C", "Fabric D"],
+    "productDescription": "Long copy for the Product description accordion.",
+    "materialBullets": [
+      "Fully upholstered in high-end fabric.",
+      "Solid wood base with hand-finished detail."
+    ],
+    "dimensions": {
+      "frontFt": "2.62 ft",
+      "sideFt": "2.39 ft",
+      "depthFt": "2.49 ft"
+    },
+    "shippingBody": "We deliver our pieces across India…",
+    "deliveryLeadTime": "5 weeks",
+    "returnBody": "Your satisfaction matters deeply to us…",
+    "expectedDelivery": "Monday, 29 April",
+    "gallery": {
+      "topLeft": "lifestyle-1.webp",
+      "bottomLeft": "lifestyle-2.webp",
+      "rightTall": "eira-chair-view2.webp",
+      "bottomWide": "lifestyle-4.webp"
+    }
+  },
+
+  "quickView": {
+    "storyTitle": "Story of Eira Chair",
+    "storyBody": "Optional — defaults to Shopify product description if omitted.",
+    "gallery": []
+  },
+
+  "_rugExample": {
+    "handle": "eira-rug",
+    "pdpHero": {
+      "heroImages": [],
+      "heroBackgroundImage": "rug-hero-lifestyle.webp"
+    },
+    "pdpBody": {
+      "showDimensions": false,
+      "gallery": {
+        "topLeft": "eira-rug-gallery-1.webp",
+        "bottomLeft": "eira-rug-gallery-2.webp",
+        "rightTall": "eira-rug-gallery-3.webp",
+        "bottomWide": "eira-rug-gallery-4.webp"
+      }
+    }
+  }
+}

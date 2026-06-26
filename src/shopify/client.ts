@@ -1,6 +1,7 @@
 import type { CustomerInfo, CustomerOrder } from "../store/authStore";
 import type {
   ProductsQueryData,
+  CatalogCollectionsQueryData,
   ShopifyGraphQLResponse,
   ShopifyProduct,
 } from "./types";
@@ -11,6 +12,7 @@ import {
   CUSTOMER_CREATE,
   CUSTOMER_UPDATE_MARKETING,
   GET_ALL_PRODUCTS,
+  GET_CATALOG_COLLECTIONS,
   GET_CUSTOMER,
   NEWSLETTER_SUBSCRIBE,
 } from "./queries";
@@ -93,6 +95,11 @@ export async function fetchAllProducts(): Promise<ShopifyProduct[]> {
     first: 50,
   });
   return data.products.nodes;
+}
+
+/** Fetch catalog collection metafields (furniture, rugs, dunari, eira). */
+export async function fetchCatalogCollections(): Promise<CatalogCollectionsQueryData> {
+  return shopifyFetch<CatalogCollectionsQueryData>(GET_CATALOG_COLLECTIONS);
 }
 
 /**

@@ -1,3 +1,21 @@
+import {
+  COLLECTION_METAFIELD_IDENTIFIERS,
+  PRODUCT_METAFIELD_IDENTIFIERS,
+} from "./metafields";
+
+const METAFIELD_FRAGMENT = `
+  key
+  value
+  type
+  reference {
+    ... on MediaImage {
+      image {
+        url
+      }
+    }
+  }
+`;
+
 // ── Customer auth ──────────────────────────────────────────────────────────
 
 export const CUSTOMER_ACCESS_TOKEN_CREATE = `
@@ -120,6 +138,8 @@ export const CART_CREATE = `
   }
 `;
 
+// ── Catalog ────────────────────────────────────────────────────────────────
+
 export const GET_ALL_PRODUCTS = `
   query GetAllProducts($first: Int!) {
     products(first: $first) {
@@ -129,6 +149,7 @@ export const GET_ALL_PRODUCTS = `
         handle
         productType
         description
+        descriptionHtml
         tags
         featuredImage {
           url
@@ -140,11 +161,17 @@ export const GET_ALL_PRODUCTS = `
             currencyCode
           }
         }
-        images(first: 8) {
+        images(first: 20) {
           nodes {
             url
             altText
           }
+        }
+        metafields(identifiers: [${PRODUCT_METAFIELD_IDENTIFIERS.map(
+          (id) =>
+            `{namespace: "${id.namespace}", key: "${id.key}"}`,
+        ).join(", ")}]) {
+          ${METAFIELD_FRAGMENT}
         }
         variants(first: 30) {
           nodes {
@@ -165,6 +192,51 @@ export const GET_ALL_PRODUCTS = `
             }
           }
         }
+      }
+    }
+  }
+`;
+
+export const GET_CATALOG_COLLECTIONS = `
+  query GetCatalogCollections {
+    furniture: collection(handle: "furniture") {
+      handle
+      title
+      metafields(identifiers: [${COLLECTION_METAFIELD_IDENTIFIERS.map(
+        (id) =>
+          `{namespace: "${id.namespace}", key: "${id.key}"}`,
+      ).join(", ")}]) {
+        ${METAFIELD_FRAGMENT}
+      }
+    }
+    rugs: collection(handle: "rugs") {
+      handle
+      title
+      metafields(identifiers: [${COLLECTION_METAFIELD_IDENTIFIERS.map(
+        (id) =>
+          `{namespace: "${id.namespace}", key: "${id.key}"}`,
+      ).join(", ")}]) {
+        ${METAFIELD_FRAGMENT}
+      }
+    }
+    dunari: collection(handle: "dunari") {
+      handle
+      title
+      metafields(identifiers: [${COLLECTION_METAFIELD_IDENTIFIERS.map(
+        (id) =>
+          `{namespace: "${id.namespace}", key: "${id.key}"}`,
+      ).join(", ")}]) {
+        ${METAFIELD_FRAGMENT}
+      }
+    }
+    eira: collection(handle: "eira") {
+      handle
+      title
+      metafields(identifiers: [${COLLECTION_METAFIELD_IDENTIFIERS.map(
+        (id) =>
+          `{namespace: "${id.namespace}", key: "${id.key}"}`,
+      ).join(", ")}]) {
+        ${METAFIELD_FRAGMENT}
       }
     }
   }

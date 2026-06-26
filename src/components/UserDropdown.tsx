@@ -4,7 +4,7 @@ import Divider from "@mui/material/Divider";
 import IconButton from "@mui/material/IconButton";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { Link as RouterLink, useNavigate } from "@tanstack/react-router";
+import { Link as RouterLink, useNavigate, useRouterState } from "@tanstack/react-router";
 import { motion, useReducedMotion } from "framer-motion";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
@@ -20,6 +20,10 @@ import {
   revokeCustomerToken,
 } from "../shopify/customerAccountAuth";
 import { useAuthStore } from "../store/authStore";
+import {
+  navIconColor,
+  NavUserIcon,
+} from "./NavChromeIcons";
 
 const PAGE_BG = "#f3ede3";
 const ACCENT = "#bc7e5a";
@@ -56,6 +60,14 @@ function buildUserDropdownVariants(reduceMotion: boolean | null) {
 
 /* ── Avatar trigger button ─────────────────────────────────────────────────── */
 
+const USER_ACCOUNT_PATHS = ["/login", "/orders", "/auth/callback"] as const;
+
+function isUserAccountPath(pathname: string): boolean {
+  return USER_ACCOUNT_PATHS.some(
+    (path) => pathname === path || pathname.startsWith(`${path}/`),
+  );
+}
+
 type TriggerProps = {
   size?: "medium" | "small";
   open: boolean;
@@ -63,9 +75,13 @@ type TriggerProps = {
 };
 
 export function UserAvatarButton({ size = "medium", open, onToggle }: TriggerProps) {
+  const pathname = useRouterState({ select: (s) => s.location.pathname });
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const loggedIn = isLoggedIn();
   const avatarSize = size === "medium" ? 34 : 28;
+  const iconHeight = size === "medium" ? 20 : navIconSize;
+  const onAccountPage = isUserAccountPath(pathname);
+  const isActive = open || onAccountPage;
 
   /* Not logged in — plain icon → /login */
   if (!loggedIn) {
@@ -75,14 +91,14 @@ export function UserAvatarButton({ size = "medium", open, onToggle }: TriggerPro
         to="/login"
         type="button"
         aria-label="Sign in"
+        aria-current={onAccountPage ? "page" : undefined}
         size={size}
         sx={{
           ...(size === "medium" ? { minWidth: 44, minHeight: 44, p: 1 } : { p: 0.75 }),
-          color: "#4b4a4a",
-          "& img": { display: "block", height: size === "medium" ? 20 : navIconSize, width: "auto" },
+          color: navIconColor(isActive),
         }}
       >
-        <Box component="img" src="/nav/user.svg" alt="" aria-hidden />
+        <NavUserIcon height={iconHeight} />
       </IconButton>
     );
   }
@@ -93,43 +109,37 @@ export function UserAvatarButton({ size = "medium", open, onToggle }: TriggerPro
       type="button"
       aria-label="Account menu"
       aria-expanded={open}
+      aria-current={onAccountPage ? "page" : undefined}
       size={size}
       onClick={onToggle}
       sx={{
-        ...(size === "medium" ? { minWidth: 44, minHeight: 44, p: "5px" } : { p: "4px" }),
+        ...(size === "medium"
+          ? { minWidth: 44, minHeight: 44, p: isActive ? 1 : "5px" }
+          : { p: isActive ? 0.75 : "4px" }),
+        color: navIconColor(isActive),
       }}
     >
-      <Box
-        sx={{
-          width: avatarSize,
-          height: avatarSize,
-          borderRadius: "50%",
-          background: open
-            ? `radial-gradient(circle at 35% 35%, #c98a62, #a06844)`
-            : `radial-gradient(circle at 35% 35%, #d4916a, ${ACCENT})`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          transition: "all 0.18s",
-          boxShadow: open
-            ? `0 0 0 2px ${ACCENT}, 0 2px 8px rgba(188,126,90,0.35)`
-            : `0 0 0 1.5px rgba(188,126,90,0.25)`,
-        }}
-      >
+      {isActive ? (
+        <NavUserIcon height={iconHeight} />
+      ) : (
         <Box
-          component="img"
-          src="/nav/user.svg"
-          alt=""
-          aria-hidden
           sx={{
-            width: avatarSize * 0.58,
-            height: avatarSize * 0.58,
-            filter: "brightness(0) invert(1)",
-            opacity: 0.95,
-            display: "block",
+            width: avatarSize,
+            height: avatarSize,
+            borderRadius: "50%",
+            background: `radial-gradient(circle at 35% 35%, #d4916a, ${ACCENT})`,
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            transition: "all 0.18s",
+            boxShadow: `0 0 0 1.5px rgba(188,126,90,0.25)`,
           }}
-        />
-      </Box>
+        >
+          <Box sx={{ color: "#fff", opacity: 0.95, display: "flex" }}>
+            <NavUserIcon height={avatarSize * 0.58} />
+          </Box>
+        </Box>
+      )}
     </IconButton>
   );
 }

@@ -1,0 +1,131 @@
+{
+  "_instructions": "Metafields use Shopify's default namespace `custom` (shows as custom.hero_image_1 in Admin). File fields: upload to Content → Files, then pick in metafield.",
+  "collections": {
+    "furniture": {
+      "hero_image": "furniture-hero.webp",
+      "hero_description": "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home.",
+      "hero_object_position": "50% 42%"
+    },
+    "rugs": {
+      "hero_image": "furniture-hero.webp",
+      "hero_description": "Discover rugs that ground a room—texture, warmth, and pattern chosen to live with you.",
+      "hero_object_position": "50% 48%"
+    },
+    "dunari": {
+      "hero_image": "collection-dunari-hero.webp",
+      "hero_description": "Dunari brings sculptural calm and tactile finishes.",
+      "hero_object_position": "50% 45%"
+    },
+    "eira": {
+      "hero_image": "furniture-hero.webp",
+      "hero_description": "Eira pairs clean lines with inviting materials.",
+      "hero_object_position": "50% 44%"
+    }
+  },
+  "products": {
+    "eira-chair": {
+      "theme": "Japendi",
+      "category_label": "Furniture",
+      "category_path": "/category/furniture",
+      "hero_image_1": "eira-chair-view1.webp",
+      "hero_image_2": "eira-chair-view2.webp",
+      "gallery_top_left": "lifestyle-1.webp",
+      "gallery_bottom_left": "lifestyle-2.webp",
+      "gallery_right_tall": "eira-chair-view2.webp",
+      "gallery_bottom_wide": "lifestyle-4.webp",
+      "dimension_front_ft": "2.62 ft",
+      "dimension_side_ft": "2.39 ft",
+      "dimension_depth_ft": "2.49 ft",
+      "material_bullets": ["Fully upholstered in high-end boucle fabric."],
+      "made_to_order": true,
+      "show_dimensions": true,
+      "delivery_lead_time": "5 weeks",
+      "delivery_copy": "We deliver our pieces across India, bringing Corners directly to your home. Shipping charges are calculated on volumetric weight, and an estimated cost will appear in your cart during checkout. Delivery Time: 5 weeks",
+      "return_copy": "Your satisfaction matters deeply to us. We encourage you to check your product upon delivery and report any concerns within 48 hours to our Customer Success team. Returns or exchanges are evaluated based on the condition of the item received. Since every piece is crafted to order, we're unable to accept cancellations or offer refunds for change of mind."
+    },
+    "eira-table": {
+      "theme": "Japendi",
+      "category_label": "Furniture",
+      "category_path": "/category/furniture",
+      "hero_image_1": "eira-chair-view1.webp",
+      "hero_image_2": "eira-chair-view2.webp",
+      "gallery_top_left": "lifestyle-1.webp",
+      "gallery_bottom_left": "lifestyle-2.webp",
+      "gallery_right_tall": "lifestyle-3.webp",
+      "gallery_bottom_wide": "lifestyle-4.webp",
+      "material_bullets": ["Italian Marble Top", "Legs in MDF and PU finish"],
+      "made_to_order": true,
+      "show_dimensions": true,
+      "delivery_lead_time": "5 weeks"
+    },
+    "dunari-chair": {
+      "theme": "Japendi",
+      "category_label": "Furniture",
+      "category_path": "/category/furniture",
+      "gallery_top_left": "lifestyle-1.webp",
+      "gallery_bottom_left": "lifestyle-2.webp",
+      "gallery_right_tall": "lifestyle-3.webp",
+      "gallery_bottom_wide": "lifestyle-4.webp",
+      "material_bullets": ["Fully upholstered in high-end fabric.", "Wooden carved leg."],
+      "made_to_order": true,
+      "show_dimensions": true
+    },
+    "dunari-table": {
+      "theme": "Japendi",
+      "category_label": "Furniture",
+      "category_path": "/category/furniture",
+      "gallery_top_left": "lifestyle-1.webp",
+      "gallery_bottom_left": "lifestyle-2.webp",
+      "gallery_right_tall": "lifestyle-3.webp",
+      "gallery_bottom_wide": "lifestyle-4.webp",
+      "material_bullets": ["High Density Fiberboard", "Top & Legs in PU finish", "Brass leg screw detail"],
+      "made_to_order": true,
+      "show_dimensions": true
+    },
+    "dunari-ottoman": {
+      "theme": "Japendi",
+      "category_label": "Furniture",
+      "category_path": "/category/furniture",
+      "hero_image_1": "dunari-ottoman-view1.webp",
+      "hero_image_2": "dunari-ottoman-view2.webp",
+      "gallery_top_left": "lifestyle-1.webp",
+      "gallery_bottom_left": "lifestyle-2.webp",
+      "gallery_right_tall": "dunari-ottoman-view2.webp",
+      "gallery_bottom_wide": "lifestyle-4.webp",
+      "material_bullets": ["Fully upholstered in high-end fabric.", "Powder coated Metal leg frame.", "IS 303 grade plywood internal framework."],
+      "made_to_order": true,
+      "show_dimensions": true
+    },
+    "dunari-rug": {
+      "theme": "Japendi",
+      "category_label": "Rugs",
+      "category_path": "/category/rugs",
+      "hero_background": "rug-hero-lifestyle.webp",
+      "gallery_top_left": "dunari-gallery-1.webp",
+      "gallery_bottom_left": "dunari-gallery-2.webp",
+      "gallery_right_tall": "dunari-gallery-3.webp",
+      "gallery_bottom_wide": "dunari-gallery-4.webp",
+      "material_bullets": ["Wool & Viscose Silk"],
+      "show_dimensions": false,
+      "made_to_order": true
+    },
+    "eira-rug": {
+      "theme": "Japendi",
+      "category_label": "Rugs",
+      "category_path": "/category/rugs",
+      "hero_background": "rug-hero-lifestyle.webp",
+      "material_bullets": ["Wool & Viscose Silk"],
+      "show_dimensions": false,
+      "made_to_order": true
+    },
+    "biophilic-rug": {
+      "theme": "Japendi",
+      "category_label": "Rugs",
+      "category_path": "/category/rugs",
+      "hero_background": "rug-hero-lifestyle.webp",
+      "material_bullets": ["Wool & viscose Silk"],
+      "show_dimensions": false,
+      "made_to_order": true
+    }
+  }
+}

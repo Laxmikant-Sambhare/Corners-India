@@ -1,3 +1,5 @@
+import type { ShopifyMetafield } from "./metafields";
+
 export type ShopifyMoney = {
   amount: string;
   currencyCode: string;
@@ -28,13 +30,28 @@ export type ShopifyProduct = {
   handle: string;
   productType: string;
   description: string;
+  descriptionHtml?: string;
   tags: string[];
   featuredImage: ShopifyImage | null;
   priceRange: {
     minVariantPrice: ShopifyMoney;
   };
   images: { nodes: ShopifyImage[] };
+  metafields: ShopifyMetafield[];
   variants: { nodes: ShopifyVariant[] };
+};
+
+export type ShopifyCollection = {
+  handle: string;
+  title: string;
+  metafields: ShopifyMetafield[];
+};
+
+export type CatalogCollectionsQueryData = {
+  furniture: ShopifyCollection | null;
+  rugs: ShopifyCollection | null;
+  dunari: ShopifyCollection | null;
+  eira: ShopifyCollection | null;
 };
 
 export type ShopifyGraphQLResponse<T> = {

@@ -1,21 +1,31 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
-import { fetchAllProducts, isShopifyConfigured } from "./client";
+import {
+  fetchAllProducts,
+  fetchCatalogCollections,
+  isShopifyConfigured,
+} from "./client";
+import {
+  buildCollectionsMap,
+  collectionHandleForPath,
+} from "./collectionMapper";
 import {
   buildProductHandleMap,
   buildProductNameMap,
   isRugProduct,
   shopifyToCatalogProduct,
 } from "./mappers";
+import {
+  shopifyToPdpBodyConfig,
+  shopifyToProductHeroConfig,
+} from "./pdpMapper";
 import type { ShopifyProduct } from "./types";
 
 const STALE_MS = 5 * 60 * 1000; // 5 minutes
 
 /**
  * Fetch all Shopify products. Only fires when both env vars are set.
- * Falls back gracefully — consumers always get `undefined` data when
- * Shopify is not configured, so static mock data stays as the fallback.
  */
 export function useShopifyProducts() {
   return useQuery({
@@ -25,6 +35,61 @@ export function useShopifyProducts() {
     enabled: isShopifyConfigured,
     retry: 2,
   });
+}
+
+export function useShopifyCollections() {
+  return useQuery({
+    queryKey: ["shopify", "collections"],
+    queryFn: fetchCatalogCollections,
+    staleTime: STALE_MS,
+    enabled: isShopifyConfigured,
+    retry: 2,
+  });
+}
+
+export function useShopifyCollectionsMap() {
+  const { data } = useShopifyCollections();
+  return useMemo(() => buildCollectionsMap(data ?? null), [data]);
+}
+
+export function useShopifyProductByHandle(handle: string | undefined) {
+  const { data, isLoading, isFetched, isError } = useShopifyProducts();
+
+  const product = useMemo(() => {
+    if (!handle || !data) return undefined;
+    return data.find((p) => p.handle === handle);
+  }, [data, handle]);
+
+  const heroConfig = useMemo(
+    () => (product ? shopifyToProductHeroConfig(product) : undefined),
+    [product],
+  );
+
+  const pdpBody = useMemo(
+    () => (product ? shopifyToPdpBodyConfig(product) : undefined),
+    [product],
+  );
+
+  const catalogProduct = useMemo(
+    () => (product ? shopifyToCatalogProduct(product) : undefined),
+    [product],
+  );
+
+  return {
+    product,
+    heroConfig,
+    pdpBody,
+    catalogProduct,
+    isLoading: isShopifyConfigured && !isFetched && isLoading,
+    isNotFound: isShopifyConfigured && isFetched && !product && !isError,
+    isConfigured: isShopifyConfigured,
+  };
+}
+
+export function useShopifyCollectionForPath(pathname: string) {
+  const handle = collectionHandleForPath(pathname);
+  const map = useShopifyCollectionsMap();
+  return handle ? map.get(handle) : undefined;
 }
 
 /** Returns CatalogProducts filtered by a predicate, or [] while loading. */

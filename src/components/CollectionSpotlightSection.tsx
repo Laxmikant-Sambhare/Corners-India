@@ -3,11 +3,11 @@ import Typography from "@mui/material/Typography";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import { useMemo, useState } from "react";
 import { FONT_NAV } from "../fonts";
-import { CDN_HEROES, CDN_LIFESTYLE, CDN_PRODUCTS } from "../shopify/cdnImages";
+import { CDN_HEROES } from "../shopify/cdnImages";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
-import { resolveProductImage } from "../shopify/cdnImages";
 import { useShopifyProductHandleMap } from "../shopify/hooks";
 import { ProductDetailModal } from "./ProductDetailModal";
+import { WishlistHeartButton } from "./WishlistHeartButton";
 import {
   collectionSpotlightFrameBarH,
   collectionSpotlightPadX,
@@ -48,7 +48,6 @@ const HERO_SRC: Record<"eira" | "dunari", string> = {
   dunari: CDN_HEROES["dunari-collection-hero"],
 };
 
-const CHAIR_SRC = CDN_LIFESTYLE["spotlight-chair"];
 const PRESS_STRIP_SRC = "/collections/press-as-seen.svg";
 const PRESS_STRIP_ASPECT_RATIO = "1345.87 / 44.8";
 
@@ -77,77 +76,27 @@ type HotspotLayout = {
     bottom?: string;
     transformOrigin: string;
   };
-  label: string;
   handle: string;
-  fallback: CatalogProduct;
 };
 
-type HotspotDef = HotspotLayout & { product: CatalogProduct };
-
-function resolveSpotlightProduct(
-  layout: HotspotLayout,
-  catalogByHandle: Map<string, CatalogProduct>,
-): CatalogProduct {
-  const live = catalogByHandle.get(layout.handle);
-  const image =
-    resolveProductImage(layout.handle, live?.image ?? null) ||
-    layout.fallback.image;
-
-  if (!live) {
-    return { ...layout.fallback, image };
-  }
-
-  return {
-    ...live,
-    image,
-    detail: live.detail
-      ? {
-          ...live.detail,
-          gallery: image
-            ? [image, ...live.detail.gallery.filter((u) => u !== image)]
-            : live.detail.gallery,
-        }
-      : undefined,
-  };
-}
+type HotspotDef = HotspotLayout & { label: string; product: CatalogProduct };
 
 /** Figma node 1189:7 — Eira lifestyle photo (1921 × 1085 px) */
 const EIRA_HOTSPOT_LAYOUTS: HotspotLayout[] = [
   {
     dot: { left: "36.0%", top: "43.1%" },
     card: { left: "37.8%", top: "16%", transformOrigin: "0% 72%" },
-    label: "View Eira Chair",
     handle: "eira-chair",
-    fallback: {
-      name: "Eira Chair",
-      price: "Rs. 50,000.00",
-      badge: "Chair",
-      image: CHAIR_SRC,
-    },
   },
   {
     dot: { left: "65.3%", top: "64.3%" },
     card: { right: "36.2%", top: "44%", transformOrigin: "100% 50%" },
-    label: "View Eira Table",
     handle: "eira-table",
-    fallback: {
-      name: "Eira Table",
-      price: "Rs. 50,000.00",
-      badge: "Table",
-      image: CDN_LIFESTYLE["discover-product-1"],
-    },
   },
   {
     dot: { left: "26.1%", top: "75.2%" },
     card: { left: "27.6%", bottom: "27%", transformOrigin: "0% 100%" },
-    label: "View Eira Rug",
     handle: "eira-rug",
-    fallback: {
-      name: "Eira Rug",
-      price: "Rs. 50,000.00",
-      badge: "Rug",
-      image: CDN_PRODUCTS["eira-rug-navy"],
-    },
   },
 ];
 
@@ -156,50 +105,22 @@ const DUNARI_HOTSPOT_LAYOUTS: HotspotLayout[] = [
   {
     dot: { left: "22.2%", top: "65.2%" },
     card: { left: "23.5%", top: "20%", transformOrigin: "0% 100%" },
-    label: "View Dunari Ottoman",
     handle: "dunari-ottoman",
-    fallback: {
-      name: "Dunari Ottoman",
-      price: "Rs. 50,000.00",
-      badge: "Ottoman",
-      image: CDN_LIFESTYLE["discover-product-5"],
-    },
   },
   {
-    dot: { left: "52.1%", top: "61.1%" },
+    dot: { left: "52.1%", top: "50%" },
     card: { right: "49.5%", top: "18%", transformOrigin: "100% 82%" },
-    label: "View Dunari Chair",
     handle: "dunari-chair",
-    fallback: {
-      name: "Dunari Chair",
-      price: "Rs. 50,000.00",
-      badge: "Chair",
-      image: CDN_LIFESTYLE["discover-product-4"],
-    },
   },
   {
-    dot: { left: "69.1%", top: "54.5%" },
+    dot: { left: "69.1%", top: "40%" },
     card: { right: "32.5%", top: "18%", transformOrigin: "100% 65%" },
-    label: "View Dunari Table",
     handle: "dunari-table",
-    fallback: {
-      name: "Dunari Table",
-      price: "Rs. 50,000.00",
-      badge: "Table",
-      image: CDN_LIFESTYLE["discover-product-3"],
-    },
   },
   {
     dot: { left: "60.5%", top: "80.2%" },
     card: { right: "41%", bottom: "22%", transformOrigin: "100% 100%" },
-    label: "View Dunari Rug",
-    handle: "dunari-rug",
-    fallback: {
-      name: "Dunari Rug",
-      price: "Rs. 50,000.00",
-      badge: "Rug",
-      image: CDN_PRODUCTS["dunari-rug"],
-    },
+    handle: "biophilic-rug",
   },
 ];
 
@@ -241,10 +162,17 @@ export function CollectionSpotlightSection() {
   const hotspots = useMemo((): HotspotDef[] => {
     const layouts =
       active === "dunari" ? DUNARI_HOTSPOT_LAYOUTS : EIRA_HOTSPOT_LAYOUTS;
-    return layouts.map((layout) => ({
-      ...layout,
-      product: resolveSpotlightProduct(layout, catalogByHandle),
-    }));
+    return layouts.flatMap((layout) => {
+      const product = catalogByHandle.get(layout.handle);
+      if (!product) return [];
+      return [
+        {
+          ...layout,
+          product,
+          label: `View ${product.name}`,
+        },
+      ];
+    });
   }, [active, catalogByHandle]);
 
   function switchCollection(collection: "eira" | "dunari") {
@@ -358,7 +286,7 @@ export function CollectionSpotlightSection() {
           {/* ── Hotspot dots ── */}
           {hotspots.map((hs, i) => (
             <HotspotDot
-              key={hs.label}
+              key={hs.handle}
               left={hs.dot.left}
               top={hs.dot.top}
               label={hs.label}
@@ -638,19 +566,7 @@ function ProductBubble({
           >
             {product.badge}
           </Box>
-          <Box
-            component="img"
-            src="/discover/heart.svg"
-            alt=""
-            sx={{
-              width: spotlightCardHeartW,
-              height: "auto",
-              aspectRatio: "22.3996 / 19.5999",
-              display: "block",
-              flexShrink: 0,
-              objectFit: "contain",
-            }}
-          />
+          <WishlistHeartButton product={product} size={spotlightCardHeartW} />
         </Box>
 
         {/* Product image */}

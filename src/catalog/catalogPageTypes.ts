@@ -10,6 +10,14 @@ export type CatalogProductDetail = {
    * When undefined, all sizes are treated as available (static / non-Shopify products).
    */
   availableSizes?: string[];
+  /** Option name used to group gallery images (e.g. Color, Size). */
+  galleryOptionName?: string;
+  /** Gallery images keyed by `galleryOptionName` value. */
+  galleryByOption?: Record<string, string[]>;
+  /** Color option values when the product has a Color variant axis. */
+  colors?: string[];
+  /** Subset of `colors` that have at least one variant with availableForSale: true. */
+  availableColors?: string[];
   mrpNote?: string;
 };
 

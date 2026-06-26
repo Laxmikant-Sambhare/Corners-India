@@ -1,4 +1,5 @@
 import Box from "@mui/material/Box";
+import Badge from "@mui/material/Badge";
 import Button from "@mui/material/Button";
 import ClickAwayListener from "@mui/material/ClickAwayListener";
 import Collapse from "@mui/material/Collapse";
@@ -7,12 +8,18 @@ import IconButton from "@mui/material/IconButton";
 import Slider from "@mui/material/Slider";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
+import { parsePriceValue, resolveProductDetail } from "./productDetailUtils";
 import { ProductDetailModal } from "./ProductDetailModal";
+import { WishlistHeartButton } from "./WishlistHeartButton";
 import {
   useCallback,
+  useEffect,
   useId,
+  useMemo,
   useState,
   type ChangeEventHandler,
   type FocusEventHandler,
@@ -22,8 +29,18 @@ import {
 } from "react";
 import { FONT_NAV } from "../fonts";
 import {
-  discoverHeartIconSize,
-  furnitureListingActionBtnGap,
+  discoverCardInnerGap,
+  discoverCardPadX,
+  discoverCardPadY,
+  discoverCardRadius,
+  discoverCardWidth,
+  discoverCarouselGap,
+  discoverImageBoxH,
+  discoverMetaGap,
+  discoverPriceSize,
+  discoverProductTitleSize,
+  discoverTagPadX,
+  discoverTagPadY,
   furnitureListingBadgeFontSize,
   furnitureListingBadgePadX,
   furnitureListingBadgePadY,
@@ -37,12 +54,12 @@ import {
   furnitureFilterChipStackGap,
   furnitureFilterInputPadX,
   furnitureFilterInputPadY,
-  furnitureFilterInputWidth,
   furnitureFilterPriceInputsGap,
+  furnitureFilterSectionDividerGap,
+  furnitureFilterSectionHeaderPadY,
   furnitureFilterSectionStackGap,
   furnitureFilterSliderThumbSize,
   furnitureFilterSliderTrackH,
-  furnitureFilterThemeHeaderToChipsGap,
   furnitureFilterToLabelSize,
   furnitureListingChevronH,
   furnitureListingChevronW,
@@ -132,12 +149,28 @@ const SORT_OPTIONS = [
 
 type SortOptionId = (typeof SORT_OPTIONS)[number]["id"];
 
-const THEME_OPTIONS = ["Japandi", "Eclectic", "Modern Contemporary"] as const;
-const PRODUCT_TYPE_OPTIONS = ["Chair", "Coffee Tables", "ottoman"] as const;
+type CatalogFilterMode = "productType" | "size";
 
 const PRICE_MIN = 0;
-const PRICE_MAX = 100000;
+const PRICE_MAX = 100_000;
+const DEFAULT_PRICE_RANGE: [number, number] = [PRICE_MIN, PRICE_MAX];
 const PRICE_STEP = 500;
+
+type ProductCardLayout = "grid" | "discover";
+
+function countActiveFilters(
+  priceRange: [number, number],
+  selectedChips: string[],
+): number {
+  let count = selectedChips.length;
+  if (
+    priceRange[0] !== DEFAULT_PRICE_RANGE[0] ||
+    priceRange[1] !== DEFAULT_PRICE_RANGE[1]
+  ) {
+    count += 1;
+  }
+  return count;
+}
 
 function formatInr(n: number) {
   return n.toLocaleString("en-IN");
@@ -148,16 +181,90 @@ function parseInr(s: string) {
   return Number.isFinite(n) ? n : 0;
 }
 
-function clampPrice(n: number) {
-  return Math.min(PRICE_MAX, Math.max(PRICE_MIN, n));
+function getProductTypeLabel(product: CatalogProduct): string {
+  const name = product.name.toLowerCase();
+  if (name.includes("chair")) return "Chair";
+  if (name.includes("ottoman")) return "Ottoman";
+  if (name.includes("table")) return "Table";
+  if (name.includes("rug")) return "Rug";
+
+  const badge = product.badge.trim();
+  if (badge && !["badging", "new"].includes(badge.toLowerCase())) {
+    return badge.charAt(0).toUpperCase() + badge.slice(1).toLowerCase();
+  }
+  return "Other";
+}
+
+function applyCatalogFilters(
+  products: readonly CatalogProduct[],
+  {
+    priceRange,
+    selectedChips,
+    filterMode,
+  }: {
+    priceRange: [number, number];
+    selectedChips: string[];
+    filterMode: CatalogFilterMode;
+  },
+): CatalogProduct[] {
+  return products.filter((product) => {
+    const price = parsePriceValue(product.price);
+    if (price > 0 && (price < priceRange[0] || price > priceRange[1])) {
+      return false;
+    }
+
+    if (selectedChips.length === 0) return true;
+
+    if (filterMode === "size") {
+      const sizes = resolveProductDetail(product).sizes;
+      return sizes.some((size) => selectedChips.includes(size));
+    }
+
+    const type = getProductTypeLabel(product);
+    return selectedChips.includes(type);
+  });
+}
+
+function sortCatalogProducts(
+  products: readonly CatalogProduct[],
+  sortBy: SortOptionId,
+): CatalogProduct[] {
+  const sorted = [...products];
+  if (sortBy === "priceLowHigh") {
+    sorted.sort((a, b) => parsePriceValue(a.price) - parsePriceValue(b.price));
+  } else if (sortBy === "priceHighLow") {
+    sorted.sort((a, b) => parsePriceValue(b.price) - parsePriceValue(a.price));
+  }
+  return sorted;
+}
+
+function buildChipOptions(
+  products: readonly CatalogProduct[],
+  filterMode: CatalogFilterMode,
+): string[] {
+  if (filterMode === "size") {
+    const sizes = new Set<string>();
+    for (const product of products) {
+      for (const size of resolveProductDetail(product).sizes) {
+        sizes.add(size);
+      }
+    }
+    return [...sizes];
+  }
+
+  const types = new Set<string>();
+  for (const product of products) {
+    const type = getProductTypeLabel(product);
+    if (type !== "Other") types.add(type);
+  }
+  return [...types].sort();
 }
 
 export type FurnitureCategoryListingProps = {
   products: readonly CatalogProduct[];
   sectionAriaLabel: string;
-  /** Third filter accordion label (default: Product Type). Figma rugs 990:6185: Size. */
-  filterThirdSectionTitle?: string;
-  filterThirdSectionOptions?: readonly string[];
+  /** Rugs PLP filters by size; furniture/collection routes filter by product type. */
+  filterMode?: CatalogFilterMode;
 };
 
 /**
@@ -166,14 +273,61 @@ export type FurnitureCategoryListingProps = {
 export function FurnitureCategoryListing({
   products,
   sectionAriaLabel,
-  filterThirdSectionTitle = "Product Type",
-  filterThirdSectionOptions = PRODUCT_TYPE_OPTIONS,
+  filterMode = "productType",
 }: FurnitureCategoryListingProps) {
   const [detailProduct, setDetailProduct] = useState<CatalogProduct | null>(
     null,
   );
-  const itemCount = products.length;
+  const [sortBy, setSortBy] = useState<SortOptionId>("bestSelling");
+  const [selectedChips, setSelectedChips] = useState<string[]>([]);
+  const [priceRange, setPriceRange] = useState<[number, number]>(
+    DEFAULT_PRICE_RANGE,
+  );
+  const [filtersOpen, setFiltersOpen] = useState(true);
+  const theme = useTheme();
+  const isMdUp = useMediaQuery(theme.breakpoints.up("md"));
+  const reduceMotion = useReducedMotion();
+
+  useEffect(() => {
+    setPriceRange(DEFAULT_PRICE_RANGE);
+    setSelectedChips([]);
+    setSortBy("bestSelling");
+  }, [products]);
+
+  const chipOptions = useMemo(
+    () => buildChipOptions(products, filterMode),
+    [products, filterMode],
+  );
+
+  const showChipFilter = chipOptions.length > 1;
+  const chipFilterTitle = filterMode === "size" ? "Size" : "Product Type";
+
+  const filteredProducts = useMemo(() => {
+    const filtered = applyCatalogFilters(products, {
+      priceRange,
+      selectedChips,
+      filterMode,
+    });
+    return sortCatalogProducts(filtered, sortBy);
+  }, [products, priceRange, selectedChips, filterMode, sortBy]);
+
+  const toggleChip = useCallback((label: string) => {
+    setSelectedChips((prev) =>
+      prev.includes(label)
+        ? prev.filter((value) => value !== label)
+        : [...prev, label],
+    );
+  }, []);
+
+  const clearFilters = useCallback(() => {
+    setPriceRange(DEFAULT_PRICE_RANGE);
+    setSelectedChips([]);
+  }, []);
+
+  const itemCount = filteredProducts.length;
   const itemLabel = `${itemCount} Item${itemCount === 1 ? "" : "s"}`;
+  const activeFilterCount = countActiveFilters(priceRange, selectedChips);
+  const cardLayout: ProductCardLayout = filtersOpen ? "grid" : "discover";
 
   return (
     <Box
@@ -192,22 +346,99 @@ export function FurnitureCategoryListing({
           alignItems: "stretch",
         }}
       >
-        <ToolbarRow itemLabel={itemLabel} />
+        <ToolbarRow
+          itemLabel={itemLabel}
+          sortBy={sortBy}
+          onSortChange={setSortBy}
+          filtersOpen={filtersOpen}
+          activeFilterCount={activeFilterCount}
+          onToggleFilters={() => setFiltersOpen((open) => !open)}
+        />
 
         <Stack
           direction={{ xs: "column", md: "row" }}
           sx={{
-            gap: furnitureListingSidebarGap,
+            gap: filtersOpen ? furnitureListingSidebarGap : 0,
             alignItems: "flex-start",
             width: "100%",
+            transition: reduceMotion
+              ? undefined
+              : "gap 0.35s cubic-bezier(0.32, 0.72, 0, 1)",
           }}
         >
-          <FilterSidebar
-            thirdSectionTitle={filterThirdSectionTitle}
-            thirdSectionOptions={filterThirdSectionOptions}
-          />
+          {isMdUp ? (
+            <AnimatePresence initial={false}>
+              {filtersOpen ? (
+                <Box
+                  key="catalog-filter-sidebar"
+                  component={motion.div}
+                  initial={
+                    reduceMotion ? false : { width: 0, opacity: 0 }
+                  }
+                  animate={
+                    reduceMotion
+                      ? undefined
+                      : { width: furnitureListingSidebarWidth, opacity: 1 }
+                  }
+                  exit={
+                    reduceMotion ? undefined : { width: 0, opacity: 0 }
+                  }
+                  transition={{
+                    duration: reduceMotion ? 0 : 0.35,
+                    ease: easeOutMenu,
+                  }}
+                  sx={{
+                    overflow: "hidden",
+                    flexShrink: 0,
+                    minWidth: 0,
+                  }}
+                >
+                  <Box
+                    sx={{
+                      width: furnitureListingSidebarWidth,
+                      maxWidth: "100%",
+                      boxSizing: "border-box",
+                      px: 1.5,
+                      py: 0.5,
+                      minWidth: 0,
+                    }}
+                  >
+                    <FilterSidebar
+                      showChipFilter={showChipFilter}
+                      chipFilterTitle={chipFilterTitle}
+                      chipOptions={chipOptions}
+                      priceRange={priceRange}
+                      onPriceRangeChange={setPriceRange}
+                      selectedChips={selectedChips}
+                      onToggleChip={toggleChip}
+                      onClearFilters={clearFilters}
+                    />
+                  </Box>
+                </Box>
+              ) : null}
+            </AnimatePresence>
+          ) : (
+            <Collapse in={filtersOpen} timeout={reduceMotion ? 0 : 350}>
+              <Box sx={{ width: "100%" }}>
+                <FilterSidebar
+                  showChipFilter={showChipFilter}
+                  chipFilterTitle={chipFilterTitle}
+                  chipOptions={chipOptions}
+                  priceRange={priceRange}
+                  onPriceRangeChange={setPriceRange}
+                  selectedChips={selectedChips}
+                  onToggleChip={toggleChip}
+                  onClearFilters={clearFilters}
+                />
+              </Box>
+            </Collapse>
+          )}
+
           <ProductGrid
-            products={products}
+            products={filteredProducts}
+            totalProductCount={products.length}
+            cardLayout={cardLayout}
+            onClearFilters={clearFilters}
             onOpenProduct={(p) => setDetailProduct(p)}
           />
         </Stack>
@@ -222,10 +453,23 @@ export function FurnitureCategoryListing({
   );
 }
 
-function ToolbarRow({ itemLabel }: { itemLabel: string }) {
+function ToolbarRow({
+  itemLabel,
+  sortBy,
+  onSortChange,
+  filtersOpen,
+  activeFilterCount,
+  onToggleFilters,
+}: {
+  itemLabel: string;
+  sortBy: SortOptionId;
+  onSortChange: (id: SortOptionId) => void;
+  filtersOpen: boolean;
+  activeFilterCount: number;
+  onToggleFilters: () => void;
+}) {
   const sortMenuId = useId();
   const [sortMenuOpen, setSortMenuOpen] = useState(false);
-  const [sortBy, setSortBy] = useState<SortOptionId>("bestSelling");
   const reduceMotion = useReducedMotion();
   const { menuContainer, menuItem } = buildSortMenuVariants(reduceMotion);
 
@@ -243,21 +487,48 @@ function ToolbarRow({ itemLabel }: { itemLabel: string }) {
         width: "100%",
       }}
     >
-      <IconButton
-        type="button"
-        aria-label="Open filters"
+      <Badge
+        badgeContent={activeFilterCount}
+        invisible={activeFilterCount === 0}
+        overlap="circular"
         sx={{
           alignSelf: { xs: "flex-start", sm: "center" },
-          width: furnitureListingFilterIconBox,
-          height: furnitureListingFilterIconBox,
-          borderRadius: shopRadius,
-          border: `${shopBorderWidth} solid ${BORDER_FILTER}`,
-          color: MUTED,
-          flexShrink: 0,
+          "& .MuiBadge-badge": {
+            bgcolor: ACCENT,
+            color: PAGE_BG,
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: "0.6875rem",
+            minWidth: 18,
+            height: 18,
+            padding: "0 4px",
+          },
         }}
       >
-        <FilterMenuIcon />
-      </IconButton>
+        <IconButton
+          type="button"
+          aria-label={
+            filtersOpen ? "Hide filters" : "Show filters"
+          }
+          aria-expanded={filtersOpen}
+          onClick={onToggleFilters}
+          sx={{
+            width: furnitureListingFilterIconBox,
+            height: furnitureListingFilterIconBox,
+            borderRadius: shopRadius,
+            border: `${shopBorderWidth} solid ${
+              filtersOpen ? ACCENT : BORDER_FILTER
+            }`,
+            color: filtersOpen ? ACCENT : MUTED,
+            flexShrink: 0,
+            bgcolor: filtersOpen ? "rgba(188, 126, 90, 0.08)" : "transparent",
+            transition:
+              "border-color 0.25s ease, color 0.25s ease, background-color 0.25s ease",
+          }}
+        >
+          <FilterMenuIcon />
+        </IconButton>
+      </Badge>
 
       <Stack
         direction="row"
@@ -371,7 +642,7 @@ function ToolbarRow({ itemLabel }: { itemLabel: string }) {
                         role="option"
                         aria-selected={sortBy === opt.id}
                         onClick={() => {
-                          setSortBy(opt.id);
+                          onSortChange(opt.id);
                           setSortMenuOpen(false);
                         }}
                         sx={{
@@ -406,50 +677,42 @@ function ToolbarRow({ itemLabel }: { itemLabel: string }) {
 }
 
 function FilterSidebar({
-  thirdSectionTitle,
-  thirdSectionOptions,
+  showChipFilter,
+  chipFilterTitle,
+  chipOptions,
+  priceRange,
+  onPriceRangeChange,
+  selectedChips,
+  onToggleChip,
+  onClearFilters,
 }: {
-  thirdSectionTitle: string;
-  thirdSectionOptions: readonly string[];
+  showChipFilter: boolean;
+  chipFilterTitle: string;
+  chipOptions: readonly string[];
+  priceRange: [number, number];
+  onPriceRangeChange: (value: [number, number]) => void;
+  selectedChips: string[];
+  onToggleChip: (label: string) => void;
+  onClearFilters: () => void;
 }) {
   const [open, setOpen] = useState({
     price: true,
-    theme: true,
-    productType: true,
+    chips: true,
   });
-  const [priceRange, setPriceRange] = useState<[number, number]>([1000, 50000]);
-  const [themes, setThemes] = useState<string[]>([]);
-  const [productTypes, setProductTypes] = useState<string[]>([]);
 
   const toggleSection = (key: keyof typeof open) => {
-    setOpen((o) => ({ ...o, [key]: !o[key] }));
+    setOpen((current) => ({ ...current, [key]: !current[key] }));
   };
-
-  const toggleTheme = useCallback((label: string) => {
-    setThemes((prev) =>
-      prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label],
-    );
-  }, []);
-
-  const toggleProductType = useCallback((label: string) => {
-    setProductTypes((prev) =>
-      prev.includes(label) ? prev.filter((t) => t !== label) : [...prev, label],
-    );
-  }, []);
-
-  const clearFilters = useCallback(() => {
-    setPriceRange([1000, 50000]);
-    setThemes([]);
-    setProductTypes([]);
-  }, []);
 
   return (
     <Box
       sx={{
         width: { xs: "100%", md: furnitureListingSidebarWidth },
         maxWidth: "100%",
+        minWidth: 0,
         flexShrink: 0,
         boxSizing: "border-box",
+        overflow: "visible",
       }}
     >
       <Stack
@@ -464,10 +727,11 @@ function FilterSidebar({
             <Divider
               sx={{
                 borderColor: BORDER_FILTER,
+                my: furnitureFilterSectionDividerGap,
               }}
             />
           }
-          sx={{ width: "100%" }}
+          sx={{ width: "100%", minWidth: 0 }}
         >
           <FilterAccordionBlock
             title="Price Range"
@@ -480,123 +744,91 @@ function FilterSidebar({
                   pt: furnitureFilterSectionStackGap,
                   pb: furnitureFilterSectionStackGap,
                   width: "100%",
+                  minWidth: 0,
+                  overflow: "visible",
                 }}
               >
                 <Stack
-                  sx={{ gap: furnitureFilterSectionStackGap, width: "100%" }}
+                  sx={{
+                    gap: furnitureFilterSectionStackGap,
+                    width: "100%",
+                    minWidth: 0,
+                  }}
                 >
-                  <PriceRangeSlider
-                    value={priceRange}
-                    onChange={setPriceRange}
-                  />
+                  <Box
+                    sx={{
+                      width: "100%",
+                      minWidth: 0,
+                      px: 0.75,
+                      boxSizing: "border-box",
+                    }}
+                  >
+                    <PriceRangeSlider
+                      value={priceRange}
+                      min={PRICE_MIN}
+                      max={PRICE_MAX}
+                      onChange={onPriceRangeChange}
+                    />
+                  </Box>
                   <PriceRangeInputs
                     value={priceRange}
-                    onChange={setPriceRange}
+                    min={PRICE_MIN}
+                    max={PRICE_MAX}
+                    onChange={onPriceRangeChange}
                   />
                 </Stack>
               </Box>
             </Collapse>
           </FilterAccordionBlock>
 
-          <FilterAccordionBlock
-            title="Theme"
-            expanded={open.theme}
-            onToggle={() => toggleSection("theme")}
-          >
-            <Collapse in={open.theme}>
-              <Box
-                sx={{
-                  pt: furnitureFilterThemeHeaderToChipsGap,
-                  pb: furnitureFilterSectionStackGap,
-                  width: "100%",
-                }}
-              >
-                <Stack
+          {showChipFilter ? (
+            <FilterAccordionBlock
+              title={chipFilterTitle}
+              expanded={open.chips}
+              onToggle={() => toggleSection("chips")}
+            >
+              <Collapse in={open.chips}>
+                <Box
                   sx={{
-                    gap: furnitureFilterChipStackGap,
-                    alignItems: "flex-start",
+                    pt: furnitureFilterSectionStackGap,
+                    pb: furnitureFilterSectionStackGap,
                     width: "100%",
                   }}
                 >
-                  {THEME_OPTIONS.map((label) => (
-                    <FilterChip
-                      key={label}
-                      label={label}
-                      selected={themes.includes(label)}
-                      onClick={() => toggleTheme(label)}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            </Collapse>
-          </FilterAccordionBlock>
-
-          <FilterAccordionBlock
-            title={thirdSectionTitle}
-            expanded={open.productType}
-            onToggle={() => toggleSection("productType")}
-          >
-            <Collapse in={open.productType}>
-              <Box
-                sx={{
-                  pt: furnitureFilterSectionStackGap,
-                  pb: furnitureFilterSectionStackGap,
-                  width: "100%",
-                }}
-              >
-                <Stack
-                  sx={{
-                    gap: furnitureFilterChipStackGap,
-                    alignItems: "flex-start",
-                    width: "100%",
-                  }}
-                >
-                  {thirdSectionOptions.map((label) => (
-                    <FilterChip
-                      key={label}
-                      label={label}
-                      selected={productTypes.includes(label)}
-                      onClick={() => toggleProductType(label)}
-                    />
-                  ))}
-                </Stack>
-              </Box>
-            </Collapse>
-          </FilterAccordionBlock>
+                  <Stack
+                    sx={{
+                      gap: furnitureFilterChipStackGap,
+                      alignItems: "flex-start",
+                      width: "100%",
+                    }}
+                  >
+                    {chipOptions.map((label) => (
+                      <FilterChip
+                        key={label}
+                        label={label}
+                        selected={selectedChips.includes(label)}
+                        onClick={() => onToggleChip(label)}
+                      />
+                    ))}
+                  </Stack>
+                </Box>
+              </Collapse>
+            </FilterAccordionBlock>
+          ) : null}
         </Stack>
 
-        <Stack
-          direction="row"
+        <Button
+          type="button"
+          variant="outlined"
+          onClick={onClearFilters}
           sx={{
-            gap: furnitureListingActionBtnGap,
-            flexWrap: "wrap",
-            width: "100%",
+            ...filterActionSx,
+            px: furnitureListingFilterActionPadX,
+            py: furnitureListingFilterActionPadY,
           }}
         >
-          <Button
-            type="button"
-            variant="outlined"
-            sx={{
-              ...filterActionSx,
-              px: furnitureListingFilterActionPadX,
-              py: furnitureListingFilterActionPadY,
-            }}
-          >
-            View
-          </Button>
-          <Button
-            type="button"
-            variant="outlined"
-            onClick={clearFilters}
-            sx={{
-              ...filterActionSx,
-              px: furnitureListingFilterActionPadX,
-              py: furnitureListingFilterActionPadY,
-            }}
-          >
-            Clear Filters
-          </Button>
-        </Stack>
+          Clear Filters
+        </Button>
       </Stack>
     </Box>
   );
@@ -624,7 +856,7 @@ function FilterAccordionBlock({
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
-          py: 0.5,
+          py: furnitureFilterSectionHeaderPadY,
           border: "none",
           background: "none",
           cursor: "pointer",
@@ -661,15 +893,19 @@ function FilterAccordionBlock({
 
 function PriceRangeSlider({
   value,
+  min,
+  max,
   onChange,
 }: {
   value: [number, number];
+  min: number;
+  max: number;
   onChange: (v: [number, number]) => void;
 }) {
   const handleChange = (_: Event, v: number | number[]) => {
     const [a, b] = v as [number, number];
-    const lo = clampPrice(a);
-    const hi = clampPrice(b);
+    const lo = Math.min(max, Math.max(min, a));
+    const hi = Math.min(max, Math.max(min, b));
     onChange([Math.min(lo, hi), Math.max(lo, hi)]);
   };
 
@@ -678,8 +914,8 @@ function PriceRangeSlider({
       value={value}
       onChange={handleChange}
       valueLabelDisplay="off"
-      min={PRICE_MIN}
-      max={PRICE_MAX}
+      min={min}
+      max={max}
       step={PRICE_STEP}
       disableSwap
       getAriaLabel={(index) =>
@@ -687,8 +923,12 @@ function PriceRangeSlider({
       }
       sx={{
         width: "100%",
+        minWidth: 0,
         mx: 0,
+        px: 0.5,
+        boxSizing: "border-box",
         height: furnitureFilterSliderTrackH,
+        overflow: "visible",
         "& .MuiSlider-rail": {
           opacity: 1,
           bgcolor: MUTED,
@@ -738,8 +978,8 @@ function PriceInputWithRupee({
       sx={{
         display: "flex",
         alignItems: "center",
-        width: { xs: "100%", sm: furnitureFilterInputWidth },
-        maxWidth: "100%",
+        width: "100%",
+        minWidth: 0,
         boxSizing: "border-box",
         border: `${shopBorderWidth} solid ${TAN}`,
         borderRadius: shopRadius,
@@ -787,6 +1027,9 @@ function PriceInputWithRupee({
           color: MUTED,
           textAlign: "right",
           p: 0,
+          width: "100%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
         }}
       />
     </Box>
@@ -795,9 +1038,13 @@ function PriceInputWithRupee({
 
 function PriceRangeInputs({
   value,
+  min,
+  max,
   onChange,
 }: {
   value: [number, number];
+  min: number;
+  max: number;
   onChange: (v: [number, number]) => void;
 }) {
   const [minEditing, setMinEditing] = useState(false);
@@ -809,14 +1056,14 @@ function PriceRangeInputs({
   const maxShown = maxEditing ? maxDraft : formatInr(value[1]);
 
   const commitMin = () => {
-    let next = clampPrice(parseInr(minDraft));
+    let next = Math.min(max, Math.max(min, parseInr(minDraft)));
     next = Math.min(next, value[1]);
     onChange([next, value[1]]);
     setMinEditing(false);
   };
 
   const commitMax = () => {
-    let next = clampPrice(parseInr(maxDraft));
+    let next = Math.min(max, Math.max(min, parseInr(maxDraft)));
     next = Math.max(next, value[0]);
     onChange([value[0], next]);
     setMaxEditing(false);
@@ -825,12 +1072,13 @@ function PriceRangeInputs({
   return (
     <Box
       sx={{
-        display: "flex",
-        flexDirection: { xs: "column", sm: "row" },
-        alignItems: { xs: "stretch", sm: "center" },
-        gap: furnitureFilterPriceInputsGap,
-        flexWrap: "wrap",
+        display: "grid",
+        gridTemplateColumns: "minmax(0, 1fr) auto minmax(0, 1fr)",
+        alignItems: "center",
+        columnGap: furnitureFilterPriceInputsGap,
+        rowGap: 1,
         width: "100%",
+        minWidth: 0,
       }}
     >
       <PriceInputWithRupee
@@ -857,6 +1105,7 @@ function PriceRangeInputs({
           color: MUTED,
           textAlign: "center",
           flexShrink: 0,
+          px: 0.25,
         }}
       >
         To
@@ -942,31 +1191,116 @@ const filterActionSx = {
 
 function ProductGrid({
   products,
+  totalProductCount,
+  cardLayout,
+  onClearFilters,
   onOpenProduct,
 }: {
   products: readonly CatalogProduct[];
+  totalProductCount: number;
+  cardLayout: ProductCardLayout;
+  onClearFilters: () => void;
   onOpenProduct: (p: CatalogProduct) => void;
 }) {
+  if (products.length === 0) {
+    const filteredOut = totalProductCount > 0;
+
+    return (
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          width: "100%",
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "center",
+          justifyContent: "center",
+          textAlign: "center",
+          px: { xs: 2, sm: 4 },
+          py: { xs: 6, sm: 8 },
+          borderRadius: furnitureListingCardRadius,
+          border: `${shopBorderWidth} solid ${BORDER_FILTER}`,
+          boxSizing: "border-box",
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: { xs: navFontSize, sm: furnitureListingProductTitleSize },
+            lineHeight: 1.3,
+            textTransform: "uppercase",
+            color: MUTED,
+            maxWidth: 420,
+          }}
+        >
+          {filteredOut ? "No products match your filters" : "No products here yet"}
+        </Typography>
+        <Typography
+          sx={{
+            mt: 1.5,
+            fontFamily: FONT_NAV,
+            fontWeight: 500,
+            fontSize: navFontSize,
+            lineHeight: 1.5,
+            color: TAN,
+            maxWidth: 460,
+          }}
+        >
+          {filteredOut
+            ? "Try widening the price range or clearing your selections to explore more from Corners."
+            : "Check back soon — new pieces are on their way."}
+        </Typography>
+        {filteredOut ? (
+          <Button
+            type="button"
+            variant="outlined"
+            onClick={onClearFilters}
+            sx={{
+              ...filterActionSx,
+              mt: 3,
+              px: furnitureListingFilterActionPadX,
+              py: furnitureListingFilterActionPadY,
+            }}
+          >
+            Clear all filters
+          </Button>
+        ) : null}
+      </Box>
+    );
+  }
+
   return (
     <Box
       sx={{
         flex: 1,
         minWidth: 0,
-        display: "grid",
-        gridTemplateColumns: {
-          xs: "1fr",
-          sm: "repeat(2, minmax(0, 1fr))",
-          lg: "repeat(3, minmax(0, 1fr))",
-        },
-        rowGap: furnitureListingGridRowGap,
-        columnGap: furnitureListingGridColGap,
         width: "100%",
+        overflow: "visible",
+        ...(cardLayout === "discover"
+          ? {
+              display: "flex",
+              flexWrap: "wrap",
+              alignItems: "stretch",
+              gap: discoverCarouselGap,
+            }
+          : {
+              display: "grid",
+              gridTemplateColumns: {
+                xs: "minmax(0, 1fr)",
+                sm: "repeat(2, minmax(0, 1fr))",
+                lg: "repeat(3, minmax(0, 1fr))",
+              },
+              rowGap: furnitureListingGridRowGap,
+              columnGap: furnitureListingGridColGap,
+            }),
       }}
     >
       {products.map((p) => (
         <ProductCard
           key={`${p.name}-${p.image}`}
           product={p}
+          layout={cardLayout}
           onOpen={() => onOpenProduct(p)}
         />
       ))}
@@ -976,100 +1310,120 @@ function ProductGrid({
 
 function ProductCard({
   product,
+  layout,
   onOpen,
 }: {
   product: CatalogProduct;
+  layout: ProductCardLayout;
   onOpen: () => void;
 }) {
   const { badge, name, price, image } = product;
+  const isDiscover = layout === "discover";
 
   return (
     <Box
-      role="button"
-      tabIndex={0}
-      onClick={onOpen}
-      onKeyDown={(e) => {
-        if (e.key === "Enter" || e.key === " ") {
-          e.preventDefault();
-          onOpen();
-        }
-      }}
       sx={{
-        borderRadius: furnitureListingCardRadius,
-        border: `${shopBorderWidth} solid transparent`,
-        px: furnitureListingCardPad,
-        py: furnitureListingCardPad,
-        boxSizing: "border-box",
         display: "flex",
         flexDirection: "column",
-        alignItems: "center",
-        gap: furnitureListingCardSectionGap,
-        cursor: "pointer",
-        transition: "border-color 0.15s ease",
-        width: "100%",
-        "@media (hover: hover)": {
-          "&:hover": {
-            borderColor: TAN,
-          },
-        },
+        width: isDiscover ? discoverCardWidth : "100%",
+        maxWidth: isDiscover ? discoverCardWidth : "100%",
+        minWidth: isDiscover ? discoverCardWidth : 0,
+        flex: isDiscover ? `0 0 ${discoverCardWidth}` : undefined,
+        boxSizing: "border-box",
       }}
     >
+      <Box aria-hidden sx={{ height: 10, flexShrink: 0 }} />
+      <Box
+        role="button"
+        tabIndex={0}
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        sx={{
+          flex: 1,
+          borderRadius: isDiscover
+            ? discoverCardRadius
+            : furnitureListingCardRadius,
+          border: `${shopBorderWidth} solid ${TAN}`,
+          boxSizing: "border-box",
+          px: isDiscover ? discoverCardPadX : furnitureListingCardPad,
+          py: isDiscover ? discoverCardPadY : furnitureListingCardPad,
+          display: "flex",
+          flexDirection: "column",
+          alignItems: isDiscover ? "stretch" : "center",
+          gap: isDiscover
+            ? discoverCardInnerGap
+            : furnitureListingCardSectionGap,
+          cursor: "pointer",
+          width: "100%",
+          transition:
+            "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
+          "@media (hover: hover)": {
+            "&:hover": {
+              transform: "translateY(-6px)",
+              borderColor: ACCENT,
+              boxShadow: "0 14px 32px rgba(75, 74, 74, 0.12)",
+              "& .catalog-card-image": {
+                transform: "scale(1.05)",
+              },
+              "& .catalog-card-title": {
+                color: ACCENT,
+              },
+            },
+          },
+          "&:active": {
+            transform: "translateY(-2px)",
+          },
+        }}
+      >
       <Box
         sx={{
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
           width: "100%",
-          maxWidth: furnitureListingCardHeaderMaxW,
+          maxWidth: isDiscover ? "100%" : furnitureListingCardHeaderMaxW,
         }}
       >
         <Box
           sx={{
             bgcolor: TAN,
             color: PAGE_BG,
-            px: furnitureListingBadgePadX,
-            py: furnitureListingBadgePadY,
+            px: isDiscover ? discoverTagPadX : furnitureListingBadgePadX,
+            py: isDiscover ? discoverTagPadY : furnitureListingBadgePadY,
             borderRadius: shopRadius,
             fontFamily: FONT_NAV,
             fontWeight: 600,
-            fontSize: furnitureListingBadgeFontSize,
+            fontSize: isDiscover ? navFontSize : furnitureListingBadgeFontSize,
             textTransform: "uppercase",
             lineHeight: 1,
           }}
         >
           {badge}
         </Box>
-        <Box
-          component="span"
-          onClick={(e) => e.stopPropagation()}
-          sx={{ display: "inline-flex", flexShrink: 0 }}
-        >
-          <Box
-            component="img"
-            src="/discover/heart.svg"
-            alt=""
-            sx={{
-              width: discoverHeartIconSize,
-              height: discoverHeartIconSize,
-              display: "block",
-            }}
-          />
-        </Box>
+        <WishlistHeartButton product={product} />
       </Box>
 
       <Box
         sx={{
           width: "100%",
-          maxWidth: furnitureListingCardImageMaxW,
-          height: furnitureListingImageH,
+          maxWidth: isDiscover ? "100%" : furnitureListingCardImageMaxW,
+          height: isDiscover ? discoverImageBoxH : furnitureListingImageH,
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           position: "relative",
+          mx: isDiscover ? 0 : "auto",
+          overflow: "hidden",
         }}
       >
         <Box
           component="img"
+          className="catalog-card-image"
           src={image}
           alt=""
           sx={{
@@ -1079,6 +1433,7 @@ function ProductCard({
             height: "auto",
             objectFit: "contain",
             display: "block",
+            transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
           }}
         />
       </Box>
@@ -1087,18 +1442,22 @@ function ProductCard({
         sx={{
           alignItems: "flex-start",
           width: "100%",
-          maxWidth: furnitureListingCardMetaMaxW,
-          gap: furnitureListingCardMetaGap,
+          maxWidth: isDiscover ? "100%" : furnitureListingCardMetaMaxW,
+          gap: isDiscover ? discoverMetaGap : furnitureListingCardMetaGap,
         }}
       >
         <Typography
+          className="catalog-card-title"
           sx={{
             fontFamily: FONT_NAV,
             fontWeight: 600,
-            fontSize: furnitureListingProductTitleSize,
-            lineHeight: 1,
+            fontSize: isDiscover
+              ? discoverProductTitleSize
+              : furnitureListingProductTitleSize,
+            lineHeight: isDiscover ? 1.2 : 1,
             textTransform: "uppercase",
             color: MUTED,
+            transition: "color 0.28s ease",
           }}
         >
           {name}
@@ -1107,7 +1466,7 @@ function ProductCard({
           sx={{
             fontFamily: FONT_NAV,
             fontWeight: 500,
-            fontSize: furnitureListingPriceSize,
+            fontSize: isDiscover ? discoverPriceSize : furnitureListingPriceSize,
             lineHeight: 1,
             textTransform: "capitalize",
             color: ACCENT,
@@ -1116,6 +1475,8 @@ function ProductCard({
           {price}
         </Typography>
       </Stack>
+      </Box>
+      <Box aria-hidden sx={{ height: 20, flexShrink: 0 }} />
     </Box>
   );
 }
