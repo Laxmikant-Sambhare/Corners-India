@@ -2,7 +2,7 @@
  * Shopify Customer Account API — OAuth 2.0 PKCE flow
  *
  * Required env vars:
- *   VITE_SHOPIFY_SHOP_ID                       – numeric shop ID (e.g. 99004645681)
+ *   VITE_SHOPIFY_SHOP_ID                       – numeric shop ID from Admin → Settings → General
  *   VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID    – from Headless sales channel
  *
  * In Shopify Admin → Sales Channels → Headless → Customer Account API:

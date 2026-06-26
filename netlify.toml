@@ -1,0 +1,12 @@
+[build]
+  command = "npm run build"
+  publish = "dist"
+
+[[redirects]]
+  from = "/*"
+  to = "/index.html"
+  status = 200
+
+# VITE_* vars are inlined into the client bundle by design — not server secrets.
+[build.environment]
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SHOPIFY_SHOP_ID,VITE_SHOPIFY_STORE_DOMAIN,VITE_SHOPIFY_STOREFRONT_TOKEN,VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID"
