@@ -6,7 +6,10 @@ import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { fluid1920 } from "../navDesignTokens";
-import type { OrderDetail } from "../shopify/customerAccountAuth";
+import {
+  isCustomerAccountAccessToken,
+  type OrderDetail,
+} from "../shopify/customerAccountAuth";
 import { useCustomerOrders } from "../shopify/hooks";
 import { useAuthStore } from "../store/authStore";
 
@@ -305,8 +308,13 @@ function OrderCard({ order }: { order: OrderDetail }) {
 
 export function OrdersPage() {
   const customer = useAuthStore((s) => s.customer);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const loggedIn = isLoggedIn();
+  const needsReauth =
+    loggedIn &&
+    Boolean(accessToken) &&
+    !isCustomerAccountAccessToken(accessToken!);
   const { data: orders, isLoading, isError, error, refetch, isFetching } =
     useCustomerOrders();
 
@@ -403,7 +411,44 @@ export function OrdersPage() {
         </Box>
       )}
 
-      {loggedIn && (
+      {loggedIn && needsReauth && (
+        <Box
+          sx={{
+            bgcolor: "rgba(188,126,90,0.08)",
+            border: `1px solid rgba(188,126,90,0.25)`,
+            borderRadius: "16px",
+            p: fluid1920(24, { min: 18, max: 28 }),
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontSize: fluid1920(14, { min: 13, max: 15 }),
+              color: DARK,
+              mb: 2,
+              lineHeight: 1.6,
+            }}
+          >
+            Your session needs to be refreshed. Sign out, then sign in again with
+            &ldquo;Continue with Shopify&rdquo; to load orders and tracking.
+          </Typography>
+          <ButtonBase
+            component={RouterLink}
+            to="/login?next=%2Forders"
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 600,
+              fontSize: fluid1920(12, { min: 11, max: 13 }),
+              color: ACCENT,
+              textTransform: "uppercase",
+            }}
+          >
+            Sign in again
+          </ButtonBase>
+        </Box>
+      )}
+
+      {loggedIn && !needsReauth && (
         <Stack gap={fluid1920(16, { min: 12, max: 20 })}>
           <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography

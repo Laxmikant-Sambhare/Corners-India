@@ -24,6 +24,18 @@ const CUSTOMER_API_URL = import.meta.env.DEV
   ? "/api/customer-graphql"
   : "/.netlify/functions/customer-graphql";
 
+const CUSTOMER_ACCOUNT_SCOPE = "openid email customer-account-api:full";
+
+/** Customer Account API tokens are prefixed with `shcat_`. */
+export function isCustomerAccountAccessToken(token: string): boolean {
+  return token.startsWith("shcat_");
+}
+
+/** Shopify expects the raw token in Authorization — not `Bearer …`. */
+function customerAccountAuthorization(token: string): string {
+  return token.startsWith("Bearer ") ? token.slice(7) : token;
+}
+
 export function isCustomerAccountConfigured(): boolean {
   return Boolean(SHOP_ID && CLIENT_ID);
 }
@@ -66,7 +78,7 @@ export async function initiateOAuthLogin(redirectAfter = "/"): Promise<void> {
     client_id: CLIENT_ID,
     response_type: "code",
     redirect_uri: redirectUri,
-    scope: "openid email",
+    scope: CUSTOMER_ACCOUNT_SCOPE,
     state,
     code_challenge: codeChallenge,
     code_challenge_method: "S256",
@@ -202,7 +214,7 @@ export async function fetchCustomerProfile(
       method: "POST",
       headers: {
         "Content-Type": "application/json",
-        Authorization: `Bearer ${accessToken}`,
+        Authorization: customerAccountAuthorization(accessToken),
       },
       body: JSON.stringify({ query }),
     });
@@ -365,7 +377,7 @@ export async function fetchCustomerOrders(
     method: "POST",
     headers: {
       "Content-Type": "application/json",
-      Authorization: `Bearer ${accessToken}`,
+      Authorization: customerAccountAuthorization(accessToken),
     },
     body: JSON.stringify({ query, variables: { first } }),
   });

@@ -9,6 +9,7 @@ import {
 } from "./client";
 import {
   fetchCustomerOrders,
+  isCustomerAccountAccessToken,
   isCustomerAccountConfigured,
   type OrderDetail,
 } from "./customerAccountAuth";
@@ -200,7 +201,10 @@ export function useCustomerOrders() {
     queryKey: ["customer", "orders", accessToken],
     queryFn: () => fetchCustomerOrders(accessToken!, 20),
     enabled:
-      isCustomerAccountConfigured() && isLoggedIn() && Boolean(accessToken),
+      isCustomerAccountConfigured() &&
+      isLoggedIn() &&
+      Boolean(accessToken) &&
+      isCustomerAccountAccessToken(accessToken!),
     staleTime: ORDERS_STALE_MS,
     retry: 1,
   });
