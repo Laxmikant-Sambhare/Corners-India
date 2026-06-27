@@ -305,11 +305,12 @@ export type OrderDetail = {
   id: string;
   orderNumber: number;
   processedAt: string;
-  statusUrl: string;
   financialStatus: string;
+  fulfillmentStatus: string;
   totalPrice: { amount: string; currencyCode: string };
   subtotalPrice: { amount: string; currencyCode: string } | null;
   totalShippingPrice: { amount: string; currencyCode: string } | null;
+  totalTaxPrice: { amount: string; currencyCode: string } | null;
   fulfillments: OrderFulfillment[];
   lineItems: OrderLineItem[];
   shippingAddress: {
@@ -339,9 +340,11 @@ export async function fetchCustomerOrders(
             processedAt
             statusPageUrl
             financialStatus
+            fulfillmentStatus
             totalPrice { amount currencyCode }
             subtotal { amount currencyCode }
             totalShipping { amount currencyCode }
+            totalTax { amount currencyCode }
             shippingAddress {
               firstName lastName
               address1 address2
@@ -392,9 +395,11 @@ export async function fetchCustomerOrders(
             processedAt: string;
             statusPageUrl: string;
             financialStatus: string;
+            fulfillmentStatus: string;
             totalPrice: { amount: string; currencyCode: string };
             subtotal: { amount: string; currencyCode: string } | null;
             totalShipping: { amount: string; currencyCode: string } | null;
+            totalTax: { amount: string; currencyCode: string } | null;
             shippingAddress: {
               firstName: string;
               lastName: string;
@@ -441,11 +446,12 @@ export async function fetchCustomerOrders(
     id: o.id,
     orderNumber: o.number,
     processedAt: o.processedAt,
-    statusUrl: o.statusPageUrl,
     financialStatus: o.financialStatus,
+    fulfillmentStatus: o.fulfillmentStatus,
     totalPrice: o.totalPrice,
     subtotalPrice: o.subtotal ?? null,
     totalShippingPrice: o.totalShipping ?? null,
+    totalTaxPrice: o.totalTax ?? null,
     shippingAddress: o.shippingAddress ?? null,
     lineItems: o.lineItems.nodes.map((li) => ({
       id: li.id,

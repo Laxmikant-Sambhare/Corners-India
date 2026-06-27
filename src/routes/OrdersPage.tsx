@@ -84,7 +84,76 @@ function StatusBadge({ label, tone }: { label: string; tone: "accent" | "muted" 
   );
 }
 
-function OrderCard({ order }: { order: OrderDetail }) {
+function fulfillmentStatusMessage(status: string): string {
+  const messages: Record<string, string> = {
+    UNFULFILLED: "Confirmed — we're preparing your items for shipping.",
+    IN_PROGRESS: "Confirmed — we're preparing your items for shipping.",
+    PARTIALLY_FULFILLED: "Part of your order has shipped.",
+    FULFILLED: "Your order has shipped.",
+    RESTOCKED: "This order was restocked.",
+    SCHEDULED: "Your order is scheduled.",
+    ON_HOLD: "Your order is on hold.",
+  };
+  return messages[status] ?? "Your order is being processed.";
+}
+
+function formatAddress(
+  address: NonNullable<OrderDetail["shippingAddress"]>,
+): string {
+  const lines = [
+    `${address.firstName} ${address.lastName}`.trim(),
+    address.address1,
+    address.address2,
+    [address.city, address.province, address.zip].filter(Boolean).join(", "),
+    address.country,
+  ].filter(Boolean);
+  return lines.join("\n");
+}
+
+function PriceRow({
+  label,
+  amount,
+  currencyCode,
+  bold,
+}: {
+  label: string;
+  amount: string;
+  currencyCode: string;
+  bold?: boolean;
+}) {
+  return (
+    <Stack direction="row" justifyContent="space-between" alignItems="center">
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: bold ? 600 : 400,
+          fontSize: fluid1920(13, { min: 12, max: 14 }),
+          color: bold ? DARK : MUTED,
+        }}
+      >
+        {label}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: bold ? 600 : 400,
+          fontSize: fluid1920(13, { min: 12, max: 14 }),
+          color: DARK,
+        }}
+      >
+        {formatOrderMoney(amount, currencyCode)}
+      </Typography>
+    </Stack>
+  );
+}
+
+function OrderCard({
+  order,
+  contactEmail,
+}: {
+  order: OrderDetail;
+  contactEmail?: string;
+}) {
   const primaryFulfillment = order.fulfillments[0];
   const trackingEntries = order.fulfillments.flatMap((f) => f.tracking).filter(
     (t) => t.number || t.url,
@@ -142,6 +211,49 @@ function OrderCard({ order }: { order: OrderDetail }) {
           )}
         </Stack>
       </Stack>
+
+      <Box
+        sx={{
+          display: "flex",
+          gap: fluid1920(12, { min: 10, max: 14 }),
+          alignItems: "flex-start",
+          bgcolor: "rgba(255,255,255,0.45)",
+          border: `1px solid ${BORDER}`,
+          borderRadius: "12px",
+          p: fluid1920(14, { min: 12, max: 16 }),
+        }}
+      >
+        <Box
+          component="span"
+          aria-hidden
+          sx={{
+            width: 22,
+            height: 22,
+            borderRadius: "50%",
+            bgcolor: "rgba(188,126,90,0.16)",
+            color: ACCENT,
+            display: "inline-flex",
+            alignItems: "center",
+            justifyContent: "center",
+            fontSize: 13,
+            flexShrink: 0,
+            mt: "1px",
+          }}
+        >
+          ✓
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 500,
+            fontSize: fluid1920(14, { min: 13, max: 15 }),
+            color: DARK,
+            lineHeight: 1.55,
+          }}
+        >
+          {fulfillmentStatusMessage(order.fulfillmentStatus)}
+        </Typography>
+      </Box>
 
       <Stack gap={fluid1920(12, { min: 10, max: 14 })}>
         {order.lineItems.map((item) => (
@@ -263,7 +375,150 @@ function OrderCard({ order }: { order: OrderDetail }) {
             </Stack>
           ))}
         </Stack>
-      ) : null}
+      ) : (
+        <Stack
+          gap={fluid1920(6, { min: 4, max: 8 })}
+          sx={{
+            pt: fluid1920(4, { min: 2, max: 6 }),
+            borderTop: `1px solid ${BORDER}`,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 600,
+              fontSize: fluid1920(11, { min: 10, max: 12 }),
+              color: MUTED,
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+            }}
+          >
+            Tracking
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontSize: fluid1920(13, { min: 12, max: 14 }),
+              color: MUTED,
+              lineHeight: 1.55,
+            }}
+          >
+            Tracking will appear here once your order ships.
+          </Typography>
+        </Stack>
+      )}
+
+      <Stack
+        gap={fluid1920(8, { min: 6, max: 10 })}
+        sx={{
+          pt: fluid1920(4, { min: 2, max: 6 }),
+          borderTop: `1px solid ${BORDER}`,
+        }}
+      >
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: fluid1920(11, { min: 10, max: 12 }),
+            color: MUTED,
+            textTransform: "uppercase",
+            letterSpacing: "0.07em",
+          }}
+        >
+          Order summary
+        </Typography>
+        {order.subtotalPrice ? (
+          <PriceRow
+            label="Subtotal"
+            amount={order.subtotalPrice.amount}
+            currencyCode={order.subtotalPrice.currencyCode}
+          />
+        ) : null}
+        {order.totalShippingPrice ? (
+          <PriceRow
+            label="Shipping"
+            amount={order.totalShippingPrice.amount}
+            currencyCode={order.totalShippingPrice.currencyCode}
+          />
+        ) : null}
+        {order.totalTaxPrice ? (
+          <PriceRow
+            label="Taxes"
+            amount={order.totalTaxPrice.amount}
+            currencyCode={order.totalTaxPrice.currencyCode}
+          />
+        ) : null}
+        <PriceRow
+          label="Total"
+          amount={order.totalPrice.amount}
+          currencyCode={order.totalPrice.currencyCode}
+          bold
+        />
+      </Stack>
+
+      {(contactEmail || order.shippingAddress) && (
+        <Stack
+          direction={{ xs: "column", sm: "row" }}
+          gap={fluid1920(20, { min: 14, max: 24 })}
+          sx={{
+            pt: fluid1920(4, { min: 2, max: 6 }),
+            borderTop: `1px solid ${BORDER}`,
+          }}
+        >
+          {contactEmail ? (
+            <Stack gap="6px" sx={{ flex: 1 }}>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: fluid1920(11, { min: 10, max: 12 }),
+                  color: MUTED,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                }}
+              >
+                Contact
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontSize: fluid1920(14, { min: 13, max: 15 }),
+                  color: DARK,
+                }}
+              >
+                {contactEmail}
+              </Typography>
+            </Stack>
+          ) : null}
+          {order.shippingAddress ? (
+            <Stack gap="6px" sx={{ flex: 1 }}>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: fluid1920(11, { min: 10, max: 12 }),
+                  color: MUTED,
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                }}
+              >
+                Ship to
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontSize: fluid1920(14, { min: 13, max: 15 }),
+                  color: DARK,
+                  lineHeight: 1.6,
+                  whiteSpace: "pre-line",
+                }}
+              >
+                {formatAddress(order.shippingAddress)}
+              </Typography>
+            </Stack>
+          ) : null}
+        </Stack>
+      )}
 
       <Stack
         direction={{ xs: "column", sm: "row" }}
@@ -274,33 +529,24 @@ function OrderCard({ order }: { order: OrderDetail }) {
       >
         <Typography
           sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 400,
+            fontSize: fluid1920(12, { min: 11, max: 13 }),
+            color: MUTED,
+          }}
+        >
+          Order #{order.orderNumber} · {formatOrderDate(order.processedAt)}
+        </Typography>
+        <Typography
+          sx={{
             fontFamily: FONT_SURGENA,
             fontWeight: 600,
             fontSize: fluid1920(18, { min: 15, max: 20 }),
             color: DARK,
           }}
         >
-          Total{" "}
           {formatOrderMoney(order.totalPrice.amount, order.totalPrice.currencyCode)}
         </Typography>
-        <Box
-          component="a"
-          href={order.statusUrl}
-          target="_blank"
-          rel="noopener noreferrer"
-          sx={{
-            fontFamily: FONT_NAV,
-            fontWeight: 600,
-            fontSize: fluid1920(12, { min: 11, max: 13 }),
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: ACCENT,
-            textDecoration: "none",
-            "&:hover": { opacity: 0.75 },
-          }}
-        >
-          Full order details ↗
-        </Box>
       </Stack>
     </Box>
   );
@@ -519,7 +765,13 @@ export function OrdersPage() {
               </ButtonBase>
             </Box>
           ) : orders && orders.length > 0 ? (
-            orders.map((order) => <OrderCard key={order.id} order={order} />)
+            orders.map((order) => (
+              <OrderCard
+                key={order.id}
+                order={order}
+                contactEmail={customer?.email}
+              />
+            ))
           ) : (
             <Box
               sx={{
