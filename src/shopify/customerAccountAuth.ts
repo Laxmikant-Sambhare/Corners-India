@@ -16,13 +16,10 @@ const SHOP_ID = import.meta.env.VITE_SHOPIFY_SHOP_ID ?? "";
 const CLIENT_ID = import.meta.env.VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID ?? "";
 
 /**
- * In dev, requests go to Vite's proxy at /api/customer-graphql which forwards
- * to Shopify server-side (bypassing browser CORS).
- * In production, point this to your own server proxy (e.g. Vercel API route).
+ * In dev, Vite proxies `/api/customer-graphql` to Shopify (see vite.config.ts).
+ * In production, Netlify function `customer-graphql` handles the same path.
  */
-const CUSTOMER_API_URL: string = import.meta.env.DEV
-  ? "/api/customer-graphql"
-  : "https://www.shopify.com/api/2024-10/graphql";
+const CUSTOMER_API_URL = "/api/customer-graphql";
 
 export function isCustomerAccountConfigured(): boolean {
   return Boolean(SHOP_ID && CLIENT_ID);
@@ -420,11 +417,10 @@ export async function fetchCustomerOrders(
     errors?: Array<{ message: string }>;
   };
 
-  console.log("[CustomerOrdersAPI] response:", JSON.stringify(json).slice(0, 300));
   if (json?.errors?.length) {
-    console.warn("[CustomerOrdersAPI] errors:", json.errors);
-    return [];
+    throw new Error(json.errors[0]?.message ?? "Could not load orders.");
   }
+
   const nodes = json?.data?.customer?.orders?.nodes ?? [];
   return nodes.map((o) => ({
     id: o.id,

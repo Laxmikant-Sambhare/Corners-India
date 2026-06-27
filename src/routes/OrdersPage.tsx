@@ -1,131 +1,291 @@
 import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
+import CircularProgress from "@mui/material/CircularProgress";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "@tanstack/react-router";
-import { useState, type FormEvent } from "react";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { fluid1920 } from "../navDesignTokens";
+import type { OrderDetail } from "../shopify/customerAccountAuth";
+import { useCustomerOrders } from "../shopify/hooks";
 import { useAuthStore } from "../store/authStore";
 
 const ACCENT = "#bc7e5a";
 const PAGE_BG = "#f3ede3";
 const DARK = "#1a1814";
 const MUTED = "#4b4a4a";
-const TAN = "#ccbca6";
 const BORDER = "rgba(204,188,166,0.45)";
 const CARD_BG = "rgba(204,188,166,0.13)";
 
-const SHOP_ID = import.meta.env.VITE_SHOPIFY_SHOP_ID ?? "";
-const CUSTOMER_PORTAL_URL = `https://shopify.com/${SHOP_ID}/account`;
+function formatOrderMoney(amount: string, currencyCode: string): string {
+  const n = parseFloat(amount);
+  if (!Number.isFinite(n)) return amount;
+  if (currencyCode === "INR") {
+    return `₹${n.toLocaleString("en-IN", { minimumFractionDigits: 2, maximumFractionDigits: 2 })}`;
+  }
+  return `${currencyCode} ${n.toLocaleString(undefined, { minimumFractionDigits: 2 })}`;
+}
 
-const labelSx = {
-  fontFamily: FONT_NAV,
-  fontWeight: 600,
-  fontSize: fluid1920(11, { min: 10, max: 12 }),
-  color: MUTED,
-  textTransform: "uppercase" as const,
-  letterSpacing: "0.07em",
-  mb: "6px",
-  display: "block",
-};
+function formatOrderDate(iso: string): string {
+  return new Date(iso).toLocaleDateString("en-IN", {
+    day: "numeric",
+    month: "short",
+    year: "numeric",
+  });
+}
 
-const inputSx = {
-  width: "100%",
-  bgcolor: PAGE_BG,
-  border: `1.5px solid ${BORDER}`,
-  borderRadius: "10px",
-  px: fluid1920(16, { min: 13, max: 18 }),
-  py: fluid1920(12, { min: 10, max: 14 }),
-  fontFamily: FONT_NAV,
-  fontWeight: 400,
-  fontSize: fluid1920(14, { min: 13, max: 15 }),
-  color: DARK,
-  outline: "none",
-  transition: "border-color 0.18s",
-  boxSizing: "border-box" as const,
-  "&:focus": { borderColor: ACCENT },
-  "&::placeholder": { color: TAN, opacity: 1 },
-};
+function fulfillmentLabel(status: string): string {
+  const labels: Record<string, string> = {
+    UNFULFILLED: "Processing",
+    FULFILLED: "Shipped",
+    IN_TRANSIT: "In transit",
+    DELIVERED: "Delivered",
+    OUT_FOR_DELIVERY: "Out for delivery",
+    ATTEMPTED_DELIVERY: "Delivery attempted",
+  };
+  return labels[status] ?? status.replace(/_/g, " ").toLowerCase();
+}
 
-/* ── Info card ── */
-function InfoCard({
-  icon,
-  title,
-  body,
-  cta,
-  ctaHref,
-  ctaExternal = true,
-}: {
-  icon: React.ReactNode;
-  title: string;
-  body: string;
-  cta: string;
-  ctaHref: string;
-  ctaExternal?: boolean;
-}) {
+function financialLabel(status: string): string {
+  const labels: Record<string, string> = {
+    PAID: "Paid",
+    PENDING: "Payment pending",
+    REFUNDED: "Refunded",
+    PARTIALLY_REFUNDED: "Partially refunded",
+    VOIDED: "Canceled",
+  };
+  return labels[status] ?? status.replace(/_/g, " ").toLowerCase();
+}
+
+function StatusBadge({ label, tone }: { label: string; tone: "accent" | "muted" }) {
+  return (
+    <Typography
+      component="span"
+      sx={{
+        display: "inline-block",
+        fontFamily: FONT_NAV,
+        fontWeight: 600,
+        fontSize: fluid1920(10, { min: 9, max: 11 }),
+        textTransform: "uppercase",
+        letterSpacing: "0.06em",
+        px: "10px",
+        py: "4px",
+        borderRadius: "999px",
+        bgcolor: tone === "accent" ? "rgba(188,126,90,0.14)" : "rgba(75,74,74,0.08)",
+        color: tone === "accent" ? ACCENT : MUTED,
+        border: `1px solid ${tone === "accent" ? "rgba(188,126,90,0.28)" : "rgba(75,74,74,0.12)"}`,
+      }}
+    >
+      {label}
+    </Typography>
+  );
+}
+
+function OrderCard({ order }: { order: OrderDetail }) {
+  const primaryFulfillment = order.fulfillments[0];
+  const trackingEntries = order.fulfillments.flatMap((f) => f.tracking).filter(
+    (t) => t.number || t.url,
+  );
+
   return (
     <Box
       sx={{
         bgcolor: CARD_BG,
         border: `1px solid ${BORDER}`,
-        borderRadius: "16px",
+        borderRadius: "20px",
         p: fluid1920(28, { min: 20, max: 32 }),
         display: "flex",
         flexDirection: "column",
-        gap: fluid1920(16, { min: 12, max: 18 }),
-        flex: 1,
+        gap: fluid1920(18, { min: 14, max: 22 }),
       }}
     >
-      <Box
-        sx={{
-          width: 48,
-          height: 48,
-          borderRadius: "12px",
-          bgcolor: "rgba(188,126,90,0.12)",
-          border: `1px solid rgba(188,126,90,0.2)`,
-          display: "flex",
-          alignItems: "center",
-          justifyContent: "center",
-          flexShrink: 0,
-        }}
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        gap={1.5}
       >
-        {icon}
-      </Box>
-      <Stack gap="6px" sx={{ flex: 1 }}>
+        <Stack gap="4px">
+          <Typography
+            sx={{
+              fontFamily: FONT_SURGENA,
+              fontWeight: 600,
+              fontSize: fluid1920(20, { min: 16, max: 22 }),
+              color: DARK,
+            }}
+          >
+            Order #{order.orderNumber}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 400,
+              fontSize: fluid1920(13, { min: 12, max: 14 }),
+              color: MUTED,
+            }}
+          >
+            Placed {formatOrderDate(order.processedAt)}
+          </Typography>
+        </Stack>
+        <Stack direction="row" gap={1} flexWrap="wrap">
+          <StatusBadge label={financialLabel(order.financialStatus)} tone="accent" />
+          {primaryFulfillment ? (
+            <StatusBadge
+              label={fulfillmentLabel(primaryFulfillment.status)}
+              tone="muted"
+            />
+          ) : (
+            <StatusBadge label="Processing" tone="muted" />
+          )}
+        </Stack>
+      </Stack>
+
+      <Stack gap={fluid1920(12, { min: 10, max: 14 })}>
+        {order.lineItems.map((item) => (
+          <Stack
+            key={item.id}
+            direction="row"
+            gap={fluid1920(14, { min: 10, max: 16 })}
+            alignItems="center"
+          >
+            <Box
+              sx={{
+                width: 64,
+                height: 64,
+                borderRadius: "10px",
+                overflow: "hidden",
+                bgcolor: "rgba(255,255,255,0.5)",
+                border: `1px solid ${BORDER}`,
+                flexShrink: 0,
+              }}
+            >
+              {item.imageUrl ? (
+                <Box
+                  component="img"
+                  src={item.imageUrl}
+                  alt={item.imageAlt ?? item.title}
+                  sx={{ width: "100%", height: "100%", objectFit: "cover" }}
+                />
+              ) : null}
+            </Box>
+            <Stack gap="2px" sx={{ flex: 1, minWidth: 0 }}>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: fluid1920(14, { min: 13, max: 15 }),
+                  color: DARK,
+                }}
+              >
+                {item.title}
+                {item.variantTitle ? ` · ${item.variantTitle}` : ""}
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 400,
+                  fontSize: fluid1920(12, { min: 11, max: 13 }),
+                  color: MUTED,
+                }}
+              >
+                Qty {item.quantity} ·{" "}
+                {formatOrderMoney(item.price.amount, item.price.currencyCode)}
+              </Typography>
+            </Stack>
+          </Stack>
+        ))}
+      </Stack>
+
+      {trackingEntries.length > 0 ? (
+        <Stack
+          gap={fluid1920(8, { min: 6, max: 10 })}
+          sx={{
+            pt: fluid1920(4, { min: 2, max: 6 }),
+            borderTop: `1px solid ${BORDER}`,
+          }}
+        >
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 600,
+              fontSize: fluid1920(11, { min: 10, max: 12 }),
+              color: MUTED,
+              textTransform: "uppercase",
+              letterSpacing: "0.07em",
+            }}
+          >
+            Tracking
+          </Typography>
+          {trackingEntries.map((track, i) => (
+            <Stack key={`${track.number ?? "track"}-${i}`} direction="row" gap={1} flexWrap="wrap">
+              {track.company ? (
+                <Typography
+                  sx={{
+                    fontFamily: FONT_NAV,
+                    fontSize: fluid1920(13, { min: 12, max: 14 }),
+                    color: MUTED,
+                  }}
+                >
+                  {track.company}
+                </Typography>
+              ) : null}
+              {track.url ? (
+                <Box
+                  component="a"
+                  href={track.url}
+                  target="_blank"
+                  rel="noopener noreferrer"
+                  sx={{
+                    fontFamily: FONT_NAV,
+                    fontWeight: 600,
+                    fontSize: fluid1920(13, { min: 12, max: 14 }),
+                    color: ACCENT,
+                    textDecoration: "none",
+                    "&:hover": { opacity: 0.8 },
+                  }}
+                >
+                  {track.number ?? "Track shipment"} ↗
+                </Box>
+              ) : track.number ? (
+                <Typography
+                  sx={{
+                    fontFamily: FONT_NAV,
+                    fontSize: fluid1920(13, { min: 12, max: 14 }),
+                    color: DARK,
+                  }}
+                >
+                  {track.number}
+                </Typography>
+              ) : null}
+            </Stack>
+          ))}
+        </Stack>
+      ) : null}
+
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        justifyContent="space-between"
+        alignItems={{ xs: "flex-start", sm: "center" }}
+        gap={1.5}
+        sx={{ borderTop: `1px solid ${BORDER}`, pt: fluid1920(14, { min: 10, max: 16 }) }}
+      >
         <Typography
           sx={{
             fontFamily: FONT_SURGENA,
             fontWeight: 600,
             fontSize: fluid1920(18, { min: 15, max: 20 }),
             color: DARK,
-            lineHeight: 1.2,
           }}
         >
-          {title}
+          Total{" "}
+          {formatOrderMoney(order.totalPrice.amount, order.totalPrice.currencyCode)}
         </Typography>
-        <Typography
-          sx={{
-            fontFamily: FONT_NAV,
-            fontWeight: 400,
-            fontSize: fluid1920(13, { min: 12, max: 14 }),
-            color: MUTED,
-            lineHeight: 1.65,
-          }}
-        >
-          {body}
-        </Typography>
-      </Stack>
-      {ctaExternal ? (
         <Box
           component="a"
-          href={ctaHref}
+          href={order.statusUrl}
           target="_blank"
           rel="noopener noreferrer"
           sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
             fontFamily: FONT_NAV,
             fontWeight: 600,
             fontSize: fluid1920(12, { min: 11, max: 13 }),
@@ -136,54 +296,22 @@ function InfoCard({
             "&:hover": { opacity: 0.75 },
           }}
         >
-          {cta}
-          <Box component="span" aria-hidden>↗</Box>
+          Full order details ↗
         </Box>
-      ) : (
-        <ButtonBase
-          component={RouterLink}
-          to={ctaHref}
-          sx={{
-            display: "inline-flex",
-            alignItems: "center",
-            gap: "6px",
-            fontFamily: FONT_NAV,
-            fontWeight: 600,
-            fontSize: fluid1920(12, { min: 11, max: 13 }),
-            textTransform: "uppercase",
-            letterSpacing: "0.07em",
-            color: ACCENT,
-            "&:hover": { opacity: 0.75 },
-          }}
-        >
-          {cta} →
-        </ButtonBase>
-      )}
+      </Stack>
     </Box>
   );
 }
 
-/* ════════════════════════════════════════════════════════
-   Main page
-════════════════════════════════════════════════════════ */
 export function OrdersPage() {
   const customer = useAuthStore((s) => s.customer);
   const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
   const loggedIn = isLoggedIn();
-
-  const [orderNo, setOrderNo] = useState("");
-  const [email, setEmail] = useState("");
-
-  function handleTrack(e: FormEvent) {
-    e.preventDefault();
-    if (!orderNo.trim()) return;
-    const base = `https://${import.meta.env.VITE_SHOPIFY_STORE_DOMAIN ?? ""}`;
-    window.open(`${base}/apps/track-order?order=${encodeURIComponent(orderNo)}&email=${encodeURIComponent(email)}`, "_blank");
-  }
+  const { data: orders, isLoading, isError, error, refetch, isFetching } =
+    useCustomerOrders();
 
   return (
-    <Stack gap={fluid1920(52, { min: 36, max: 60 })}>
-      {/* Header */}
+    <Stack gap={fluid1920(40, { min: 28, max: 48 })}>
       <Stack gap="6px">
         <Typography
           component="h1"
@@ -207,12 +335,11 @@ export function OrdersPage() {
           }}
         >
           {loggedIn
-            ? "Manage your orders and track deliveries below."
+            ? "Your order history and live tracking, updated from Shopify."
             : "Sign in to view your order history and track deliveries."}
         </Typography>
       </Stack>
 
-      {/* Not logged in CTA */}
       {!loggedIn && (
         <Box
           sx={{
@@ -248,12 +375,13 @@ export function OrdersPage() {
                 lineHeight: 1.65,
               }}
             >
-              View order history, track shipments and get delivery updates from your account.
+              View order history, track shipments, and get delivery updates on
+              your Corners account.
             </Typography>
           </Stack>
           <ButtonBase
             component={RouterLink}
-            to="/login"
+            to="/login?next=%2Forders"
             sx={{
               bgcolor: ACCENT,
               color: PAGE_BG,
@@ -275,215 +403,132 @@ export function OrdersPage() {
         </Box>
       )}
 
-      {/* Logged in — account portal + info cards */}
       {loggedIn && (
-        <Stack gap={fluid1920(14, { min: 10, max: 16 })}>
-          {/* Main CTA — Shopify Customer Portal */}
-          <Box
-            sx={{
-              bgcolor: DARK,
-              borderRadius: "20px",
-              p: fluid1920(36, { min: 24, max: 42 }),
-              display: "flex",
-              flexDirection: { xs: "column", sm: "row" },
-              alignItems: { sm: "center" },
-              justifyContent: "space-between",
-              gap: fluid1920(20, { min: 14, max: 24 }),
-              position: "relative",
-              overflow: "hidden",
-            }}
-          >
-            {/* Decorative circle */}
-            <Box sx={{ position: "absolute", width: 280, height: 280, borderRadius: "50%", border: "1px solid rgba(255,255,255,0.06)", right: -60, top: "50%", transform: "translateY(-50%)", pointerEvents: "none" }} />
-
-            <Stack gap="6px" sx={{ position: "relative", zIndex: 1 }}>
-              <Typography
-                sx={{
-                  fontFamily: FONT_SURGENA,
-                  fontWeight: 600,
-                  fontSize: fluid1920(24, { min: 18, max: 26 }),
-                  color: PAGE_BG,
-                  lineHeight: 1.2,
-                }}
-              >
-                View Order History
-              </Typography>
-              <Typography
-                sx={{
-                  fontFamily: FONT_NAV,
-                  fontWeight: 400,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  color: "rgba(243,237,227,0.55)",
-                  maxWidth: 360,
-                  lineHeight: 1.65,
-                }}
-              >
-                See all your past orders, invoices, and delivery status in your Shopify account portal.
-              </Typography>
-            </Stack>
-
-            <Box
-              component="a"
-              href={CUSTOMER_PORTAL_URL}
-              target="_blank"
-              rel="noopener noreferrer"
-              sx={{
-                bgcolor: ACCENT,
-                color: PAGE_BG,
-                fontFamily: FONT_NAV,
-                fontWeight: 700,
-                fontSize: fluid1920(13, { min: 12, max: 14 }),
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                px: fluid1920(28, { min: 20, max: 32 }),
-                py: fluid1920(14, { min: 11, max: 16 }),
-                borderRadius: "12px",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                textDecoration: "none",
-                display: "inline-block",
-                position: "relative",
-                zIndex: 1,
-                "&:hover": { opacity: 0.9 },
-              }}
-            >
-              My Orders ↗
-            </Box>
-          </Box>
-
-          {/* Info cards row */}
-          <Stack direction={{ xs: "column", sm: "row" }} gap={fluid1920(14, { min: 10, max: 16 })}>
-            <InfoCard
-              title="Track Delivery"
-              body="Get real-time delivery updates and estimated arrival directly from the carrier."
-              cta="Track on Shopify"
-              ctaHref={CUSTOMER_PORTAL_URL}
-              icon={
-                <Box component="svg" viewBox="0 0 24 24" fill="none" aria-hidden sx={{ width: 24, height: 24 }}>
-                  <path d="M3 9h12v11H3zM15 11l5 2.5V20h-5" stroke={ACCENT} strokeWidth="1.5" strokeLinejoin="round" />
-                  <circle cx="7" cy="21" r="2" stroke={ACCENT} strokeWidth="1.4" />
-                  <circle cx="18" cy="21" r="2" stroke={ACCENT} strokeWidth="1.4" />
-                </Box>
-              }
-            />
-            <InfoCard
-              title="Returns & Exchange"
-              body="Ordered the wrong size or changed your mind? Start a return or exchange request."
-              cta="Manage Return"
-              ctaHref={CUSTOMER_PORTAL_URL}
-              icon={
-                <Box component="svg" viewBox="0 0 24 24" fill="none" aria-hidden sx={{ width: 24, height: 24 }}>
-                  <path d="M3 10h13a5 5 0 0 1 0 10H9" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" />
-                  <path d="M6 7L3 10l3 3" stroke={ACCENT} strokeWidth="1.5" strokeLinecap="round" strokeLinejoin="round" />
-                </Box>
-              }
-            />
-            <InfoCard
-              title="Need Help?"
-              body="Have a question about your order, fabric, or customisation? Our team is here for you."
-              cta="Contact Us"
-              ctaHref="mailto:hello@cornersindia.com"
-              icon={
-                <Box component="svg" viewBox="0 0 24 24" fill="none" aria-hidden sx={{ width: 24, height: 24 }}>
-                  <circle cx="12" cy="12" r="9" stroke={ACCENT} strokeWidth="1.5" />
-                  <path d="M12 8v5M12 16h.01" stroke={ACCENT} strokeWidth="1.6" strokeLinecap="round" />
-                </Box>
-              }
-            />
-          </Stack>
-        </Stack>
-      )}
-
-      {/* Track order form — always visible */}
-      <Box
-        sx={{
-          bgcolor: CARD_BG,
-          border: `1px solid ${BORDER}`,
-          borderRadius: "20px",
-          p: fluid1920(36, { min: 24, max: 42 }),
-        }}
-      >
-        <Stack gap={fluid1920(20, { min: 16, max: 24 })}>
-          <Stack gap="4px">
+        <Stack gap={fluid1920(16, { min: 12, max: 20 })}>
+          <Stack direction="row" justifyContent="space-between" alignItems="center">
             <Typography
               sx={{
                 fontFamily: FONT_SURGENA,
                 fontWeight: 600,
-                fontSize: fluid1920(22, { min: 17, max: 24 }),
+                fontSize: fluid1920(24, { min: 18, max: 26 }),
                 color: DARK,
               }}
             >
-              Track an Order
+              Your orders
             </Typography>
-            <Typography
+            <ButtonBase
+              type="button"
+              onClick={() => void refetch()}
+              disabled={isFetching}
               sx={{
                 fontFamily: FONT_NAV,
-                fontWeight: 400,
-                fontSize: fluid1920(13, { min: 12, max: 14 }),
-                color: MUTED,
+                fontWeight: 600,
+                fontSize: fluid1920(12, { min: 11, max: 13 }),
+                textTransform: "uppercase",
+                letterSpacing: "0.07em",
+                color: ACCENT,
+                opacity: isFetching ? 0.5 : 1,
               }}
             >
-              Enter your order number and email to check delivery status.
-            </Typography>
+              {isFetching ? "Refreshing…" : "Refresh"}
+            </ButtonBase>
           </Stack>
 
-          <Box component="form" onSubmit={handleTrack}>
-            <Stack direction={{ xs: "column", sm: "row" }} gap={fluid1920(12, { min: 10, max: 14 })}>
-              <Box sx={{ flex: 1 }}>
-                <Typography component="label" htmlFor="orderNo" sx={labelSx}>
-                  Order Number
-                </Typography>
-                <Box
-                  component="input"
-                  id="orderNo"
-                  type="text"
-                  placeholder="#1001"
-                  value={orderNo}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setOrderNo(e.target.value)}
-                  required
-                  sx={inputSx}
-                />
-              </Box>
-              <Box sx={{ flex: 1 }}>
-                <Typography component="label" htmlFor="trackEmail" sx={labelSx}>
-                  Email Address
-                </Typography>
-                <Box
-                  component="input"
-                  id="trackEmail"
-                  type="email"
-                  placeholder="you@example.com"
-                  value={email}
-                  onChange={(e: React.ChangeEvent<HTMLInputElement>) => setEmail(e.target.value)}
-                  sx={inputSx}
-                />
-              </Box>
-              <Stack justifyContent="flex-end">
-                <ButtonBase
-                  type="submit"
-                  sx={{
-                    bgcolor: ACCENT,
-                    color: PAGE_BG,
-                    fontFamily: FONT_NAV,
-                    fontWeight: 700,
-                    fontSize: fluid1920(13, { min: 12, max: 14 }),
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                    px: fluid1920(28, { min: 20, max: 32 }),
-                    py: fluid1920(13, { min: 10, max: 15 }),
-                    borderRadius: "10px",
-                    whiteSpace: "nowrap",
-                    mt: { xs: "4px", sm: "22px" },
-                    "&:hover": { opacity: 0.9 },
-                  }}
-                >
-                  Track Order
-                </ButtonBase>
-              </Stack>
+          {isLoading ? (
+            <Stack alignItems="center" py={6}>
+              <CircularProgress sx={{ color: ACCENT }} size={32} />
             </Stack>
-          </Box>
+          ) : isError ? (
+            <Box
+              sx={{
+                bgcolor: "rgba(188,126,90,0.08)",
+                border: `1px solid rgba(188,126,90,0.25)`,
+                borderRadius: "16px",
+                p: fluid1920(24, { min: 18, max: 28 }),
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontSize: fluid1920(14, { min: 13, max: 15 }),
+                  color: DARK,
+                  mb: 2,
+                }}
+              >
+                {error instanceof Error
+                  ? error.message
+                  : "Could not load your orders. Try signing out and back in."}
+              </Typography>
+              <ButtonBase
+                type="button"
+                onClick={() => void refetch()}
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: fluid1920(12, { min: 11, max: 13 }),
+                  color: ACCENT,
+                  textTransform: "uppercase",
+                }}
+              >
+                Try again
+              </ButtonBase>
+            </Box>
+          ) : orders && orders.length > 0 ? (
+            orders.map((order) => <OrderCard key={order.id} order={order} />)
+          ) : (
+            <Box
+              sx={{
+                bgcolor: CARD_BG,
+                border: `1px solid ${BORDER}`,
+                borderRadius: "20px",
+                p: fluid1920(36, { min: 24, max: 42 }),
+                textAlign: "center",
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: FONT_SURGENA,
+                  fontWeight: 600,
+                  fontSize: fluid1920(20, { min: 16, max: 22 }),
+                  color: DARK,
+                  mb: 1,
+                }}
+              >
+                No orders yet
+              </Typography>
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontSize: fluid1920(14, { min: 13, max: 15 }),
+                  color: MUTED,
+                  mb: 3,
+                }}
+              >
+                When you place an order, it will show up here with live tracking.
+              </Typography>
+              <ButtonBase
+                component={RouterLink}
+                to="/"
+                sx={{
+                  bgcolor: ACCENT,
+                  color: PAGE_BG,
+                  fontFamily: FONT_NAV,
+                  fontWeight: 700,
+                  fontSize: fluid1920(13, { min: 12, max: 14 }),
+                  textTransform: "uppercase",
+                  letterSpacing: "0.07em",
+                  px: fluid1920(28, { min: 20, max: 32 }),
+                  py: fluid1920(13, { min: 10, max: 15 }),
+                  borderRadius: "12px",
+                  "&:hover": { opacity: 0.9 },
+                }}
+              >
+                Start shopping
+              </ButtonBase>
+            </Box>
+          )}
         </Stack>
-      </Box>
+      )}
     </Stack>
   );
 }

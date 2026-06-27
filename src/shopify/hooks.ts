@@ -1,11 +1,17 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
+import { useAuthStore } from "../store/authStore";
 import {
   fetchAllProducts,
   fetchCatalogCollections,
   isShopifyConfigured,
 } from "./client";
+import {
+  fetchCustomerOrders,
+  isCustomerAccountConfigured,
+  type OrderDetail,
+} from "./customerAccountAuth";
 import {
   buildCollectionsMap,
   collectionHandleForPath,
@@ -23,6 +29,7 @@ import {
 import type { ShopifyProduct } from "./types";
 
 const STALE_MS = 5 * 60 * 1000; // 5 minutes
+const ORDERS_STALE_MS = 60_000;
 
 /**
  * Fetch all Shopify products. Only fires when both env vars are set.
@@ -183,3 +190,20 @@ export function useShopifyVariantMap(): Map<string, string> {
     return map;
   }, [data]);
 }
+
+/** Live order list + tracking for the signed-in customer. */
+export function useCustomerOrders() {
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+
+  return useQuery({
+    queryKey: ["customer", "orders", accessToken],
+    queryFn: () => fetchCustomerOrders(accessToken!, 20),
+    enabled:
+      isCustomerAccountConfigured() && isLoggedIn() && Boolean(accessToken),
+    staleTime: ORDERS_STALE_MS,
+    retry: 1,
+  });
+}
+
+export type { OrderDetail };
