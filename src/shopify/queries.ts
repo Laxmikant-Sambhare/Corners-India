@@ -50,40 +50,6 @@ export const CUSTOMER_CREATE = `
   }
 `;
 
-export const NEWSLETTER_SUBSCRIBE = `
-  mutation NewsletterSubscribe($input: CustomerCreateInput!) {
-    customerCreate(input: $input) {
-      customer {
-        id
-        email
-        acceptsMarketing
-      }
-      customerUserErrors {
-        code
-        field
-        message
-      }
-    }
-  }
-`;
-
-export const CUSTOMER_UPDATE_MARKETING = `
-  mutation CustomerUpdateMarketing($customerAccessToken: String!, $customer: CustomerUpdateInput!) {
-    customerUpdate(customerAccessToken: $customerAccessToken, customer: $customer) {
-      customer {
-        id
-        email
-        acceptsMarketing
-      }
-      customerUserErrors {
-        code
-        field
-        message
-      }
-    }
-  }
-`;
-
 export const CUSTOMER_ACCESS_TOKEN_DELETE = `
   mutation CustomerAccessTokenDelete($customerAccessToken: String!) {
     customerAccessTokenDelete(customerAccessToken: $customerAccessToken) {

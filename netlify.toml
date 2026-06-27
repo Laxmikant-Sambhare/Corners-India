@@ -12,10 +12,16 @@
   force = true
 
 [[redirects]]
+  from = "/api/newsletter-subscribe"
+  to = "/.netlify/functions/newsletter-subscribe"
+  status = 200
+  force = true
+
+[[redirects]]
   from = "/*"
   to = "/index.html"
   status = 200
 
 # VITE_* vars are inlined into the client bundle by design — not server secrets.
 [build.environment]
-  SECRETS_SCAN_OMIT_KEYS = "VITE_SHOPIFY_SHOP_ID,VITE_SHOPIFY_STORE_DOMAIN,VITE_SHOPIFY_STOREFRONT_TOKEN,VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID"
+  SECRETS_SCAN_OMIT_KEYS = "VITE_SHOPIFY_SHOP_ID,VITE_SHOPIFY_STORE_DOMAIN,VITE_SHOPIFY_STOREFRONT_TOKEN,VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID,SHOPIFY_ADMIN_CLIENT_ID,SHOPIFY_ADMIN_CLIENT_SECRET,SHOPIFY_ADMIN_ACCESS_TOKEN"

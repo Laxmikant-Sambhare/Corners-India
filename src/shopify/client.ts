@@ -11,11 +11,9 @@ import {
   CUSTOMER_ACCESS_TOKEN_CREATE,
   CUSTOMER_ACCESS_TOKEN_DELETE,
   CUSTOMER_CREATE,
-  CUSTOMER_UPDATE_MARKETING,
   GET_ALL_PRODUCTS,
   GET_CATALOG_COLLECTIONS,
   GET_CUSTOMER,
-  NEWSLETTER_SUBSCRIBE,
 } from "./queries";
 
 // ── Cart types ─────────────────────────────────────────────────────────────
@@ -282,54 +280,20 @@ export async function logoutCustomer(token: string): Promise<void> {
 
 // ── Newsletter ──────────────────────────────────────────────────────────────
 
-type NewsletterSubscribeData = {
-  customerCreate: {
-    customer: { id: string; email: string; acceptsMarketing: boolean } | null;
-    customerUserErrors: Array<{ code: string; field: string[] | null; message: string }>;
-  };
-};
+const NEWSLETTER_SUBSCRIBE_URL = import.meta.env.DEV
+  ? "/api/newsletter-subscribe"
+  : "/.netlify/functions/newsletter-subscribe";
 
-type CustomerUpdateMarketingData = {
-  customerUpdate: {
-    customer: { id: string; email: string; acceptsMarketing: boolean } | null;
-    customerUserErrors: Array<{ code: string; field: string[] | null; message: string }>;
-  };
-};
-
-/**
- * Subscribe to Shopify marketing.
- * - If the user is already logged in, pass their `accessToken` — we simply
- *   flip acceptsMarketing on their existing account (no email sent).
- * - If they are a guest, we create a new customer record with
- *   acceptsMarketing = true.
- */
-export async function subscribeToNewsletter(
-  email: string,
-  accessToken?: string | null,
-): Promise<void> {
-  if (accessToken) {
-    const data = await shopifyFetch<CustomerUpdateMarketingData>(
-      CUSTOMER_UPDATE_MARKETING,
-      { customerAccessToken: accessToken, customer: { acceptsMarketing: true } },
-    );
-    const errors = data.customerUpdate.customerUserErrors;
-    if (errors.length > 0) {
-      throw new Error(errors.map((e) => e.message).join("; "));
-    }
-    return;
-  }
-
-  const randomPassword = `NL-${crypto.randomUUID()}-${Date.now()}`;
-  const data = await shopifyFetch<NewsletterSubscribeData>(NEWSLETTER_SUBSCRIBE, {
-    input: { email, password: randomPassword, acceptsMarketing: true },
+/** Subscribe to Shopify Email marketing (no account / activation email). */
+export async function subscribeToNewsletter(email: string): Promise<void> {
+  const res = await fetch(NEWSLETTER_SUBSCRIBE_URL, {
+    method: "POST",
+    headers: { "Content-Type": "application/json" },
+    body: JSON.stringify({ email: email.trim() }),
   });
 
-  const errors = data.customerCreate.customerUserErrors;
-
-  // Non-blocking: customer is already in Shopify with acceptsMarketing true
-  const nonBlocking = new Set(["TAKEN", "CUSTOMER_DISABLED"]);
-  const blocking = errors.filter((e) => !nonBlocking.has(e.code));
-  if (blocking.length > 0) {
-    throw new Error(blocking.map((e) => e.message).join("; "));
+  const json = (await res.json().catch(() => ({}))) as { error?: string };
+  if (!res.ok) {
+    throw new Error(json.error ?? "Could not subscribe to the newsletter.");
   }
 }

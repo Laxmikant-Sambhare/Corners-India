@@ -13,10 +13,10 @@ function readRequestBody(req: IncomingMessage): Promise<string> {
   });
 }
 
-/** Dev-only proxy for Customer Account API GraphQL (same path as Netlify function). */
-function customerGraphqlProxy(domain: string): Plugin {
+/** Dev-only proxies matching Netlify function paths. */
+function shopifyDevProxies(domain: string, env: Record<string, string>): Plugin {
   return {
-    name: "customer-graphql-proxy",
+    name: "shopify-dev-proxies",
     configureServer(server) {
       server.middlewares.use("/api/customer-graphql", async (req, res, next) => {
         if (req.method !== "POST") {
@@ -71,6 +71,42 @@ function customerGraphqlProxy(domain: string): Plugin {
           );
         }
       });
+
+      server.middlewares.use("/api/newsletter-subscribe", async (req, res, next) => {
+        if (req.method !== "POST") {
+          next();
+          return;
+        }
+
+        try {
+          for (const [key, value] of Object.entries(env)) {
+            if (value && !process.env[key]) process.env[key] = value;
+          }
+
+          const body = await readRequestBody(req);
+          const { email } = JSON.parse(body || "{}") as { email?: string };
+          const { subscribeEmailToMarketing } = await import(
+            // @ts-expect-error dev-only dynamic import of server .mjs module
+            "./shopify/newsletter-subscribe.mjs"
+          );
+          await subscribeEmailToMarketing(email);
+
+          res.statusCode = 200;
+          res.setHeader("Content-Type", "application/json");
+          res.end(JSON.stringify({ ok: true }));
+        } catch (err) {
+          res.statusCode = 400;
+          res.setHeader("Content-Type", "application/json");
+          res.end(
+            JSON.stringify({
+              error:
+                err instanceof Error
+                  ? err.message
+                  : "Newsletter subscribe failed.",
+            }),
+          );
+        }
+      });
     },
   };
 }
@@ -84,7 +120,7 @@ export default defineConfig(({ mode }) => {
     plugins: [
       react(),
       ...(mode === "development" && shopDomain
-        ? [customerGraphqlProxy(shopDomain)]
+        ? [shopifyDevProxies(shopDomain, env)]
         : []),
     ],
 

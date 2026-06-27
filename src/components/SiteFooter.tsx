@@ -102,7 +102,6 @@ const footerImgContain = {
  */
 export function SiteFooter() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const accessToken = useAuthStore((s) => s.accessToken);
   const customer = useAuthStore((s) => s.customer);
   const loggedIn = useAuthStore(selectIsLoggedIn);
 
@@ -116,13 +115,12 @@ export function SiteFooter() {
     setStatus("loading");
     setErrorMsg("");
     try {
-      if (loggedIn) {
-        await subscribeToNewsletter(customer?.email ?? "", accessToken);
-      } else {
-        const trimmed = email.trim();
-        if (!trimmed) { setStatus("idle"); return; }
-        await subscribeToNewsletter(trimmed, null);
+      const address = loggedIn ? (customer?.email ?? "") : email.trim();
+      if (!address) {
+        setStatus("idle");
+        return;
       }
+      await subscribeToNewsletter(address);
       setStatus("success");
       setEmail("");
     } catch (err) {
