@@ -9,7 +9,13 @@ import { useEffect, useState, type FormEvent } from "react";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { fluid1920 } from "../navDesignTokens";
 import { createShopifyCart, isShopifyConfigured } from "../shopify/client";
-import { markCheckoutPending, clearCheckoutPending } from "../shopify/checkoutReturn";
+import { verifyCheckoutCompleted } from "../shopify/checkoutCompletion";
+import {
+  clearCheckoutPending,
+  getPendingCheckout,
+  markCheckoutPending,
+} from "../shopify/checkoutReturn";
+import { isCustomerAccountAccessToken } from "../shopify/customerAccountAuth";
 import { useShopifyProducts, useShopifyVariantMap, variantMapKey } from "../shopify/hooks";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
 import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
@@ -357,6 +363,7 @@ export function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const customer = useAuthStore((s) => s.customer);
+  const accessToken = useAuthStore((s) => s.accessToken);
   const loggedIn = useAuthStore(selectIsLoggedIn);
 
   /** Shopify variant map: "product title lower__size" → variantId */
@@ -367,14 +374,31 @@ export function CheckoutPage() {
   /* Detect return from Shopify checkout (?order=success) */
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
-    if (params.get("order") === "success") {
+    if (params.get("order") !== "success") return;
+
+    const pending = getPendingCheckout();
+
+    void (async () => {
+      // Signed-in: require a new order — don't trust the URL alone (avoids false
+      // success when checkout was abandoned or another tab triggered a sync).
+      if (
+        accessToken &&
+        isCustomerAccountAccessToken(accessToken) &&
+        pending
+      ) {
+        const completed = await verifyCheckoutCompleted(pending, accessToken);
+        if (!completed) {
+          window.history.replaceState({}, "", "/checkout");
+          return;
+        }
+      }
+
       clearCheckoutPending();
       clearCart();
       setConfirmed(true);
-      // Clean up the URL without a full reload
       window.history.replaceState({}, "", "/checkout");
       window.scrollTo({ top: 0, behavior: "smooth" });
-    }
+    })();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
