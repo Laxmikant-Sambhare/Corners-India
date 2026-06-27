@@ -17,9 +17,12 @@ const CLIENT_ID = import.meta.env.VITE_SHOPIFY_CUSTOMER_ACCOUNT_CLIENT_ID ?? "";
 
 /**
  * In dev, Vite proxies `/api/customer-graphql` to Shopify (see vite.config.ts).
- * In production, Netlify function `customer-graphql` handles the same path.
+ * In production, call the Netlify function directly — the `/api/*` redirect can lose
+ * to the SPA catch-all without `force = true`.
  */
-const CUSTOMER_API_URL = "/api/customer-graphql";
+const CUSTOMER_API_URL = import.meta.env.DEV
+  ? "/api/customer-graphql"
+  : "/.netlify/functions/customer-graphql";
 
 export function isCustomerAccountConfigured(): boolean {
   return Boolean(SHOP_ID && CLIENT_ID);

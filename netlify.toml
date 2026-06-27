@@ -9,6 +9,7 @@
   from = "/api/customer-graphql"
   to = "/.netlify/functions/customer-graphql"
   status = 200
+  force = true
 
 [[redirects]]
   from = "/*"
