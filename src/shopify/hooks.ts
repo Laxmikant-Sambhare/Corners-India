@@ -138,6 +138,19 @@ export function useShopifyProductHandleMap(): Map<string, CatalogProduct> {
   }, [data]);
 }
 
+/** Normalize size strings so cart + Shopify option values match (e.g. × vs x). */
+export function normalizeVariantSize(size: string): string {
+  return size
+    .replace(/\u00d7/g, "x")
+    .replace(/\s+/g, " ")
+    .trim();
+}
+
+/** Build the variant-map lookup key used at checkout. */
+export function variantMapKey(productTitle: string, size: string): string {
+  return `${productTitle.toLowerCase()}__${normalizeVariantSize(size)}`;
+}
+
 /**
  * Returns a lookup map used at checkout to resolve cart items → Shopify variant IDs.
  *
@@ -157,7 +170,7 @@ export function useShopifyVariantMap(): Map<string, string> {
     for (const p of data) {
       for (const v of p.variants.nodes) {
         const sizeOpt = v.selectedOptions.find((o) => o.name === "Size");
-        const key = `${p.title.toLowerCase()}__${sizeOpt?.value ?? ""}`;
+        const key = variantMapKey(p.title, sizeOpt?.value ?? "");
         // First pass: store any variant; second preference: available variants win
         if (!map.has(key) || v.availableForSale) {
           map.set(key, v.id);

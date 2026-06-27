@@ -9,7 +9,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { fluid1920 } from "../navDesignTokens";
 import { createShopifyCart, isShopifyConfigured } from "../shopify/client";
-import { useShopifyVariantMap } from "../shopify/hooks";
+import { useShopifyProducts, useShopifyVariantMap, variantMapKey } from "../shopify/hooks";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
 import {
@@ -360,6 +360,8 @@ export function CheckoutPage() {
 
   /** Shopify variant map: "product title lower__size" → variantId */
   const variantMap = useShopifyVariantMap();
+  const { isLoading: productsLoading, isFetched: productsFetched } =
+    useShopifyProducts();
 
   /* Detect return from Shopify checkout (?order=success) */
   useEffect(() => {
@@ -401,69 +403,92 @@ export function CheckoutPage() {
     e.preventDefault();
     setSubmitError(null);
 
-    // ── Shopify checkout redirect ──────────────────────────────────────────
-    if (isShopifyConfigured && variantMap.size > 0) {
-      const lines = items.flatMap((item) => {
-        const key = `${item.product.name.toLowerCase()}__${item.size}`;
-        const variantId = variantMap.get(key);
-        if (!variantId) return [];
-        return [{ merchandiseId: variantId, quantity: item.quantity }];
-      });
-
-      if (lines.length > 0) {
-        setIsSubmitting(true);
-        try {
-          // Split name into first / last for Shopify address pre-fill
-          const nameParts = fields.name.trim().split(" ");
-          const firstName = nameParts[0] ?? "";
-          const lastName = nameParts.slice(1).join(" ");
-
-          const checkoutUrl = await createShopifyCart(lines, {
-            email: fields.email || undefined,
-            phone: fields.phone || undefined,
-            deliveryAddressPreferences: [
-              {
-                deliveryAddress: {
-                  firstName,
-                  lastName,
-                  address1: fields.address1 || undefined,
-                  address2: fields.address2 || undefined,
-                  city: fields.city || undefined,
-                  province: fields.state || undefined,
-                  zip: fields.pin || undefined,
-                  country: "India",
-                  phone: fields.phone || undefined,
-                },
-              },
-            ],
-          });
-
-          // Redirect to Shopify hosted checkout.
-          // return_url points back to /checkout?order=success so we can
-          // detect the return, clear the cart, and show order confirmation.
-          const url = new URL(checkoutUrl);
-          url.searchParams.set(
-            "return_url",
-            `${window.location.origin}/checkout?order=success`,
-          );
-          window.location.href = url.toString();
-          return;
-        } catch (err) {
-          const msg =
-            err instanceof Error
-              ? err.message
-              : "Could not connect to checkout. Please try again.";
-          setSubmitError(msg);
-          setIsSubmitting(false);
-          return;
-        }
-      }
+    if (!isShopifyConfigured) {
+      setSubmitError(
+        "Checkout is not connected to Shopify on this deployment. " +
+          "Add VITE_SHOPIFY_STORE_DOMAIN and VITE_SHOPIFY_STOREFRONT_TOKEN in Netlify, then redeploy.",
+      );
+      return;
     }
 
-    // ── Fallback: Shopify not configured or no variant IDs matched ─────────
-    clearCart();
-    setConfirmed(true);
-    window.scrollTo({ top: 0, behavior: "smooth" });
+    if (productsLoading || !productsFetched) {
+      setSubmitError("Products are still loading. Please wait a moment and try again.");
+      return;
+    }
+
+    if (variantMap.size === 0) {
+      setSubmitError(
+        "No Shopify products are available for checkout. " +
+          "In Shopify Admin, publish products to your Headless sales channel.",
+      );
+      return;
+    }
+
+    const lines = items.flatMap((item) => {
+      const key = variantMapKey(item.product.name, item.size);
+      const variantId = variantMap.get(key);
+      if (!variantId) return [];
+      return [{ merchandiseId: variantId, quantity: item.quantity }];
+    });
+
+    if (lines.length === 0) {
+      setSubmitError(
+        "Cart items couldn't be matched to Shopify. Clear your cart, add products again from the shop, then retry.",
+      );
+      return;
+    }
+
+    if (lines.length < items.length) {
+      setSubmitError(
+        "Some cart items couldn't be checked out. Remove them or re-add from the product page.",
+      );
+      return;
+    }
+
+    setIsSubmitting(true);
+    try {
+      // Split name into first / last for Shopify address pre-fill
+      const nameParts = fields.name.trim().split(" ");
+      const firstName = nameParts[0] ?? "";
+      const lastName = nameParts.slice(1).join(" ");
+
+      const checkoutUrl = await createShopifyCart(lines, {
+        email: fields.email || undefined,
+        phone: fields.phone || undefined,
+        deliveryAddressPreferences: [
+          {
+            deliveryAddress: {
+              firstName,
+              lastName,
+              address1: fields.address1 || undefined,
+              address2: fields.address2 || undefined,
+              city: fields.city || undefined,
+              province: fields.state || undefined,
+              zip: fields.pin || undefined,
+              country: "India",
+              phone: fields.phone || undefined,
+            },
+          },
+        ],
+      });
+
+      // Redirect to Shopify hosted checkout.
+      // return_url points back to /checkout?order=success so we can
+      // detect the return, clear the cart, and show order confirmation.
+      const url = new URL(checkoutUrl);
+      url.searchParams.set(
+        "return_url",
+        `${window.location.origin}/checkout?order=success`,
+      );
+      window.location.href = url.toString();
+    } catch (err) {
+      const msg =
+        err instanceof Error
+          ? err.message
+          : "Could not connect to checkout. Please try again.";
+      setSubmitError(msg);
+      setIsSubmitting(false);
+    }
   }
 
   if (confirmed) {
