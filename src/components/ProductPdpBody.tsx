@@ -5,14 +5,17 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
-import { Link as RouterLink } from "@tanstack/react-router";
+import { Link as RouterLink, useNavigate } from "@tanstack/react-router";
 import { useState, type ReactNode } from "react";
 import type {
   CatalogProduct,
   ProductPdpBodyConfig,
 } from "../catalog/catalogPageTypes";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
+import { useCartStore } from "../store/cartStore";
+import { ProductVariantPickers } from "./ProductVariantPickers";
 import { formatPriceShort } from "./productDetailUtils";
+import { useProductVariantSelection } from "./useProductVariantSelection";
 import { WishlistHeartButton } from "./WishlistHeartButton";
 import {
   furnitureHeroBodyFontSize,
@@ -74,10 +77,37 @@ export function ProductPdpBody({
   wishlistProduct,
   noHeroBleed,
 }: ProductPdpBodyProps) {
-  const [quantity, setQuantity] = useState(1);
+  const navigate = useNavigate();
+  const addToCart = useCartStore((s) => s.addToCart);
+  const clearCart = useCartStore((s) => s.clearCart);
   const [materialIndex, setMaterialIndex] = useState(0);
 
+  const {
+    detail,
+    sizeIndex,
+    setSizeIndex,
+    colorIndex,
+    setColorIndex,
+    quantity,
+    setQuantity,
+    selectedSizeInStock,
+    sizeForCart,
+    showSizePicker,
+  } = useProductVariantSelection(wishlistProduct ?? null);
+
   const priceDisplay = formatPriceShort(config.price);
+
+  function handleAddToCart() {
+    if (!wishlistProduct || !selectedSizeInStock) return;
+    addToCart(wishlistProduct, sizeForCart, quantity);
+  }
+
+  function handleBuyNow() {
+    if (!wishlistProduct || !selectedSizeInStock) return;
+    clearCart();
+    addToCart(wishlistProduct, sizeForCart, quantity);
+    void navigate({ to: "/checkout" });
+  }
 
   return (
     <Box
@@ -269,6 +299,18 @@ export function ProductPdpBody({
             </Stack>
           )}
 
+          {detail ? (
+            <ProductVariantPickers
+              detail={detail}
+              sizeIndex={sizeIndex}
+              colorIndex={colorIndex}
+              onSizeIndexChange={setSizeIndex}
+              onColorIndexChange={setColorIndex}
+              showSizePicker={showSizePicker}
+              variant="pdp"
+            />
+          ) : null}
+
           <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
             <Typography
               sx={{
@@ -342,27 +384,78 @@ export function ProductPdpBody({
                   +
                 </ButtonBase>
               </Stack>
+              {selectedSizeInStock ? (
+                <>
+                  <ButtonBase
+                    type="button"
+                    onClick={handleAddToCart}
+                    sx={{
+                      flex: { sm: "1 1 0" },
+                      minWidth: 0,
+                      minHeight: pdpBodyQtyRowMinH,
+                      bgcolor: ACCENT,
+                      color: PAGE_BG,
+                      px: productDetailModalCtaPadX,
+                      py: productDetailModalCtaPadY,
+                      borderRadius: pdpBodyBtnRadius,
+                      fontFamily: FONT_NAV,
+                      fontWeight: 600,
+                      fontSize: navFontSize,
+                      textTransform: "uppercase",
+                      "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
+                    }}
+                  >
+                    Add to cart
+                  </ButtonBase>
+                </>
+              ) : (
+                <Box
+                  sx={{
+                    flex: { sm: "1 1 0" },
+                    minWidth: 0,
+                    minHeight: pdpBodyQtyRowMinH,
+                    bgcolor: "rgba(75,74,74,0.08)",
+                    color: "rgba(75,74,74,0.45)",
+                    px: productDetailModalCtaPadX,
+                    py: productDetailModalCtaPadY,
+                    borderRadius: pdpBodyBtnRadius,
+                    fontFamily: FONT_NAV,
+                    fontWeight: 600,
+                    fontSize: navFontSize,
+                    textTransform: "uppercase",
+                    textAlign: "center",
+                    display: "flex",
+                    alignItems: "center",
+                    justifyContent: "center",
+                    border: "1px solid rgba(75,74,74,0.15)",
+                  }}
+                >
+                  Out of stock
+                </Box>
+              )}
+            </Stack>
+            {selectedSizeInStock ? (
               <ButtonBase
                 type="button"
+                onClick={handleBuyNow}
                 sx={{
-                  flex: { sm: "1 1 0" },
-                  minWidth: 0,
+                  width: "100%",
                   minHeight: pdpBodyQtyRowMinH,
-                  bgcolor: ACCENT,
-                  color: PAGE_BG,
-                  px: productDetailModalCtaPadX,
+                  bgcolor: "transparent",
+                  color: ACCENT,
                   py: productDetailModalCtaPadY,
                   borderRadius: pdpBodyBtnRadius,
+                  border: `2px solid ${ACCENT}`,
                   fontFamily: FONT_NAV,
                   fontWeight: 600,
                   fontSize: navFontSize,
                   textTransform: "uppercase",
-                  "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
+                  "&:hover": { bgcolor: "rgba(188, 126, 90, 0.08)" },
                 }}
               >
-                Add to cart
+                Buy now
               </ButtonBase>
-            </Stack>
+            ) : null}
             <ButtonBase
               component={RouterLink}
               to="/customizations"

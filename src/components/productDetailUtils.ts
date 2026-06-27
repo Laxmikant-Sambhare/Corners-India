@@ -28,6 +28,11 @@ function fallbackSizes(product: CatalogProduct): string[] {
   return isRugProduct(product) ? [...DEFAULT_SIZES] : ["Standard"];
 }
 
+/** Map UI size labels to cart keys (furniture uses "Standard" when Shopify has no Size). */
+export function sizeLabelForCart(rawSize: string): string {
+  return rawSize.toLowerCase() === "standard" ? "" : rawSize;
+}
+
 function normalizeToken(value: string): string {
   return value.toLowerCase().replace(/[^a-z0-9]+/g, "-");
 }
