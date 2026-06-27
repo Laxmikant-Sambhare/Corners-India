@@ -340,8 +340,8 @@ export async function fetchCustomerOrders(
             statusPageUrl
             financialStatus
             totalPrice { amount currencyCode }
-            subtotalPrice { amount currencyCode }
-            totalShippingPrice { amount currencyCode }
+            subtotal { amount currencyCode }
+            totalShipping { amount currencyCode }
             shippingAddress {
               firstName lastName
               address1 address2
@@ -360,7 +360,7 @@ export async function fetchCustomerOrders(
             fulfillments(first: 5) {
               nodes {
                 status
-                trackingInfo {
+                trackingInformation {
                   number
                   url
                   company
@@ -393,8 +393,8 @@ export async function fetchCustomerOrders(
             statusPageUrl: string;
             financialStatus: string;
             totalPrice: { amount: string; currencyCode: string };
-            subtotalPrice: { amount: string; currencyCode: string };
-            totalShippingPrice: { amount: string; currencyCode: string };
+            subtotal: { amount: string; currencyCode: string } | null;
+            totalShipping: { amount: string; currencyCode: string } | null;
             shippingAddress: {
               firstName: string;
               lastName: string;
@@ -418,7 +418,7 @@ export async function fetchCustomerOrders(
             fulfillments: {
               nodes: Array<{
                 status: string;
-                trackingInfo: Array<{
+                trackingInformation: Array<{
                   number: string | null;
                   url: string | null;
                   company: string | null;
@@ -444,8 +444,8 @@ export async function fetchCustomerOrders(
     statusUrl: o.statusPageUrl,
     financialStatus: o.financialStatus,
     totalPrice: o.totalPrice,
-    subtotalPrice: o.subtotalPrice ?? null,
-    totalShippingPrice: o.totalShippingPrice ?? null,
+    subtotalPrice: o.subtotal ?? null,
+    totalShippingPrice: o.totalShipping ?? null,
     shippingAddress: o.shippingAddress ?? null,
     lineItems: o.lineItems.nodes.map((li) => ({
       id: li.id,
@@ -458,7 +458,7 @@ export async function fetchCustomerOrders(
     })),
     fulfillments: o.fulfillments.nodes.map((f) => ({
       status: f.status,
-      tracking: f.trackingInfo,
+      tracking: f.trackingInformation,
     })),
   }));
 }
