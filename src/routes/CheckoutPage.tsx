@@ -9,6 +9,7 @@ import { useEffect, useState, type FormEvent } from "react";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import { fluid1920 } from "../navDesignTokens";
 import { createShopifyCart, isShopifyConfigured } from "../shopify/client";
+import { markCheckoutPending, clearCheckoutPending } from "../shopify/checkoutReturn";
 import { useShopifyProducts, useShopifyVariantMap, variantMapKey } from "../shopify/hooks";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
 import { useAuthStore } from "../store/authStore";
@@ -367,6 +368,7 @@ export function CheckoutPage() {
   useEffect(() => {
     const params = new URLSearchParams(window.location.search);
     if (params.get("order") === "success") {
+      clearCheckoutPending();
       clearCart();
       setConfirmed(true);
       // Clean up the URL without a full reload
@@ -480,6 +482,7 @@ export function CheckoutPage() {
         "return_url",
         `${window.location.origin}/checkout?order=success`,
       );
+      markCheckoutPending();
       window.location.href = url.toString();
     } catch (err) {
       const msg =

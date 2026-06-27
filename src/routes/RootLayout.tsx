@@ -1,4 +1,5 @@
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { PostCheckoutReturnHandler } from "../components/PostCheckoutReturnHandler";
 import { AppLayout } from "../layouts/AppLayout";
 
 /**
@@ -7,6 +8,7 @@ import { AppLayout } from "../layouts/AppLayout";
 export function RootLayout() {
   return (
     <>
+      <PostCheckoutReturnHandler />
       <AppLayout />
       {import.meta.env.DEV ? (
         <TanStackRouterDevtools position="bottom-right" />
