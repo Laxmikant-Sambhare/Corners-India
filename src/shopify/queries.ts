@@ -138,6 +138,15 @@ export const CART_CREATE = `
   }
 `;
 
+export const GET_CART = `
+  query GetCart($id: ID!) {
+    cart(id: $id) {
+      id
+      totalQuantity
+    }
+  }
+`;
+
 // ── Catalog ────────────────────────────────────────────────────────────────
 
 export const GET_ALL_PRODUCTS = `

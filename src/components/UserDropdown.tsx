@@ -19,7 +19,7 @@ import {
   isCustomerAccountConfigured,
   revokeCustomerToken,
 } from "../shopify/customerAccountAuth";
-import { useAuthStore } from "../store/authStore";
+import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 import {
   navIconColor,
   NavUserIcon,
@@ -76,8 +76,7 @@ type TriggerProps = {
 
 export function UserAvatarButton({ size = "medium", open, onToggle }: TriggerProps) {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const loggedIn = isLoggedIn();
+  const loggedIn = useAuthStore(selectIsLoggedIn);
   const avatarSize = size === "medium" ? 34 : 28;
   const iconHeight = size === "medium" ? 20 : navIconSize;
   const onAccountPage = isUserAccountPath(pathname);
@@ -163,15 +162,20 @@ export function UserDropdownPanel({ onClose }: PanelProps) {
 
   async function handleLogout() {
     onClose();
-    if (accessToken) {
-      if (isCustomerAccountConfigured()) {
-        await revokeCustomerToken(accessToken);
-      } else {
-        await logoutCustomer(accessToken);
+    try {
+      if (accessToken) {
+        if (isCustomerAccountConfigured()) {
+          await revokeCustomerToken(accessToken);
+        } else {
+          await logoutCustomer(accessToken);
+        }
       }
+    } catch {
+      // Always clear local session even if Shopify revoke fails.
+    } finally {
+      logout();
+      void navigate({ to: "/" });
     }
-    logout();
-    void navigate({ to: "/" });
   }
 
   return (

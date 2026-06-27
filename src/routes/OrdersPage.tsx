@@ -37,7 +37,7 @@ import {
   type OrderDetail,
 } from "../shopify/customerAccountAuth";
 import { useCustomerOrders } from "../shopify/hooks";
-import { useAuthStore } from "../store/authStore";
+import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 
 const ACCENT = "#bc7e5a";
 const PAGE_BG = "#f3ede3";
@@ -269,8 +269,7 @@ function OrderCard({
 export function OrdersPage() {
   const customer = useAuthStore((s) => s.customer);
   const accessToken = useAuthStore((s) => s.accessToken);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
-  const loggedIn = isLoggedIn();
+  const loggedIn = useAuthStore(selectIsLoggedIn);
   const [selectedOrder, setSelectedOrder] = useState<OrderDetail | null>(null);
   const needsReauth =
     loggedIn &&

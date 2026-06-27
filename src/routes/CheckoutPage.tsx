@@ -12,7 +12,7 @@ import { createShopifyCart, isShopifyConfigured } from "../shopify/client";
 import { markCheckoutPending, clearCheckoutPending } from "../shopify/checkoutReturn";
 import { useShopifyProducts, useShopifyVariantMap, variantMapKey } from "../shopify/hooks";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
-import { useAuthStore } from "../store/authStore";
+import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 import {
   formatPriceShort,
   parsePriceValue,
@@ -357,7 +357,7 @@ export function CheckoutPage() {
   const [submitError, setSubmitError] = useState<string | null>(null);
 
   const customer = useAuthStore((s) => s.customer);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const loggedIn = useAuthStore(selectIsLoggedIn);
 
   /** Shopify variant map: "product title lower__size" → variantId */
   const variantMap = useShopifyVariantMap();
@@ -454,7 +454,7 @@ export function CheckoutPage() {
       const firstName = nameParts[0] ?? "";
       const lastName = nameParts.slice(1).join(" ");
 
-      const checkoutUrl = await createShopifyCart(lines, {
+      const { checkoutUrl, cartId } = await createShopifyCart(lines, {
         email: fields.email || undefined,
         phone: fields.phone || undefined,
         deliveryAddressPreferences: [
@@ -482,7 +482,7 @@ export function CheckoutPage() {
         "return_url",
         `${window.location.origin}/checkout?order=success`,
       );
-      markCheckoutPending();
+      markCheckoutPending(cartId);
       window.location.href = url.toString();
     } catch (err) {
       const msg =
@@ -503,7 +503,7 @@ export function CheckoutPage() {
   }
 
   /* ── Login gate ── */
-  if (!isLoggedIn()) {
+  if (!loggedIn) {
     return (
       <Stack
         alignItems="center"

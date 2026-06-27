@@ -1,27 +1,47 @@
 import { useNavigate } from "@tanstack/react-router";
 import { useEffect, useRef } from "react";
+import { verifyCheckoutCompleted } from "../shopify/checkoutCompletion";
 import {
   clearCheckoutPending,
-  shouldShowCheckoutSuccessReturn,
+  getPendingCheckout,
+  likelyReturnedFromShopifyCheckout,
 } from "../shopify/checkoutReturn";
+import { useAuthStore } from "../store/authStore";
+import { useCartStore } from "../store/cartStore";
 
 /**
- * After Shopify checkout, "Continue shopping" lands on myshopify.com unless the
- * Hydrogen redirect theme is installed. When it is, customers arrive on `/` from
- * Shopify — this sends them to our order confirmation screen.
+ * When a customer returns from Shopify checkout (any page), verify completion
+ * and send them to the order confirmation screen.
  */
 export function PostCheckoutReturnHandler() {
   const navigate = useNavigate();
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const clearCart = useCartStore((s) => s.clearCart);
   const handled = useRef(false);
 
   useEffect(() => {
     if (handled.current) return;
-    if (!shouldShowCheckoutSuccessReturn()) return;
+
+    const params = new URLSearchParams(window.location.search);
+    if (params.get("order") === "success") return;
+
+    const pending = getPendingCheckout();
+    if (!pending || !likelyReturnedFromShopifyCheckout()) return;
 
     handled.current = true;
-    clearCheckoutPending();
-    void navigate({ to: "/checkout", search: { order: "success" } });
-  }, [navigate]);
+
+    void (async () => {
+      const completed = await verifyCheckoutCompleted(pending, accessToken);
+      if (!completed) {
+        handled.current = false;
+        return;
+      }
+
+      clearCheckoutPending();
+      clearCart();
+      void navigate({ to: "/checkout", search: { order: "success" } });
+    })();
+  }, [accessToken, clearCart, navigate]);
 
   return null;
 }

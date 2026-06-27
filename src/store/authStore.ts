@@ -28,6 +28,16 @@ type AuthStore = {
   isLoggedIn: () => boolean;
 };
 
+/** Use with `useAuthStore(selectIsLoggedIn)` so components re-render on logout. */
+export function selectIsLoggedIn(state: {
+  accessToken: string | null;
+  expiresAt: string | null;
+}): boolean {
+  if (!state.accessToken) return false;
+  if (state.expiresAt && new Date(state.expiresAt) < new Date()) return false;
+  return true;
+}
+
 export const useAuthStore = create<AuthStore>()(
   persist(
     (set, get) => ({
@@ -49,10 +59,7 @@ export const useAuthStore = create<AuthStore>()(
       },
 
       isLoggedIn() {
-        const { accessToken, expiresAt } = get();
-        if (!accessToken) return false;
-        if (expiresAt && new Date(expiresAt) < new Date()) return false;
-        return true;
+        return selectIsLoggedIn(get());
       },
     }),
     { name: "corners-auth" },

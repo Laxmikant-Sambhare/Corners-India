@@ -1,4 +1,5 @@
 import { TanStackRouterDevtools } from "@tanstack/react-router-devtools";
+import { CheckoutCompletionSync } from "../components/CheckoutCompletionSync";
 import { PostCheckoutReturnHandler } from "../components/PostCheckoutReturnHandler";
 import { AppLayout } from "../layouts/AppLayout";
 
@@ -9,6 +10,7 @@ export function RootLayout() {
   return (
     <>
       <PostCheckoutReturnHandler />
+      <CheckoutCompletionSync />
       <AppLayout />
       {import.meta.env.DEV ? (
         <TanStackRouterDevtools position="bottom-right" />

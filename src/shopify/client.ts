@@ -7,6 +7,7 @@ import type {
 } from "./types";
 import {
   CART_CREATE,
+  GET_CART,
   CUSTOMER_ACCESS_TOKEN_CREATE,
   CUSTOMER_ACCESS_TOKEN_DELETE,
   CUSTOMER_CREATE,
@@ -107,10 +108,15 @@ export async function fetchCatalogCollections(): Promise<CatalogCollectionsQuery
  * (pre-fills shipping info on the hosted checkout page).
  * Returns the Shopify-hosted checkout URL to redirect the customer to.
  */
+export type ShopifyCheckoutSession = {
+  checkoutUrl: string;
+  cartId: string;
+};
+
 export async function createShopifyCart(
   lines: CartLineInput[],
   buyerIdentity?: CartBuyerIdentityInput,
-): Promise<string> {
+): Promise<ShopifyCheckoutSession> {
   const data = await shopifyFetch<CartCreateData>(CART_CREATE, {
     lines,
     buyerIdentity,
@@ -120,7 +126,18 @@ export async function createShopifyCart(
     const errs = data.cartCreate.userErrors.map((e) => e.message).join("; ");
     throw new Error(errs || "Shopify cart creation failed");
   }
-  return cart.checkoutUrl;
+  return { checkoutUrl: cart.checkoutUrl, cartId: cart.id };
+}
+
+/** Returns null when Shopify deleted the cart after checkout completed. */
+export async function fetchCartById(
+  cartId: string,
+): Promise<{ id: string; totalQuantity: number } | null> {
+  const data = await shopifyFetch<{ cart: { id: string; totalQuantity: number } | null }>(
+    GET_CART,
+    { id: cartId },
+  );
+  return data.cart;
 }
 
 // ── Customer auth ──────────────────────────────────────────────────────────

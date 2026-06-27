@@ -6,7 +6,7 @@ import { Link as RouterLink, useRouterState } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { FONT_NAV } from "../fonts";
 import { subscribeToNewsletter } from "../shopify/client";
-import { useAuthStore } from "../store/authStore";
+import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 import {
   faqAnswerSize,
   faqFooterInnerMaxW,
@@ -102,8 +102,9 @@ const footerImgContain = {
  */
 export function SiteFooter() {
   const pathname = useRouterState({ select: (s) => s.location.pathname });
-  const { accessToken, customer, isLoggedIn } = useAuthStore();
-  const loggedIn = isLoggedIn();
+  const accessToken = useAuthStore((s) => s.accessToken);
+  const customer = useAuthStore((s) => s.customer);
+  const loggedIn = useAuthStore(selectIsLoggedIn);
 
   const [email, setEmail] = useState("");
   const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");

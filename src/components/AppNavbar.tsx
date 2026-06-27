@@ -29,6 +29,7 @@ import {
 } from "../navDesignTokens";
 import { FONT_NAV, FONT_NAV_SHOP } from "../fonts";
 import { layoutPaddingX } from "../layoutConstants";
+import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 import { cartTotalItems, useCartStore } from "../store/cartStore";
 import { useWishlistStore, wishlistTotalItems } from "../store/wishlistStore";
 import { CartDropdown } from "./CartDropdown";
@@ -103,6 +104,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   const [cartOpen, setCartOpen] = useState(false);
   const [wishlistOpen, setWishlistOpen] = useState(false);
   const [userMenuOpen, setUserMenuOpen] = useState(false);
+  const loggedIn = useAuthStore(selectIsLoggedIn);
   const [searchOpen, setSearchOpen] = useState(false);
   const [mobileMenuOpen, setMobileMenuOpen] = useState(false);
   const lastScrollY = useRef(
@@ -115,6 +117,10 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
     });
     return () => cancelAnimationFrame(id);
   }, [pathname]);
+
+  useEffect(() => {
+    if (!loggedIn) setUserMenuOpen(false);
+  }, [loggedIn]);
 
   useEffect(() => {
     const onScroll = () => {
@@ -633,7 +639,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
 
             {/* User dropdown */}
             <AnimatePresence>
-              {userMenuOpen && (
+              {userMenuOpen && loggedIn && (
                 <UserDropdownPanel
                   key="user-dropdown"
                   onClose={() => setUserMenuOpen(false)}

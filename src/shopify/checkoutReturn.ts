@@ -1,48 +1,108 @@
 const PENDING_CHECKOUT_KEY = "corners_checkout_pending";
-const PENDING_TTL_MS = 2 * 60 * 60 * 1000; // 2 hours
+/** Keep pending checkout long enough for customers who close the tab after paying. */
+const PENDING_TTL_MS = 7 * 24 * 60 * 60 * 1000;
 
-/** Mark that the customer was sent to Shopify checkout (used on return). */
-export function markCheckoutPending(): void {
-  sessionStorage.setItem(PENDING_CHECKOUT_KEY, String(Date.now()));
+export type PendingCheckout = {
+  startedAt: number;
+  cartId: string | null;
+};
+
+function readRawPending(): string | null {
+  try {
+    return localStorage.getItem(PENDING_CHECKOUT_KEY);
+  } catch {
+    return null;
+  }
+}
+
+function writeRawPending(value: string | null): void {
+  try {
+    if (value === null) localStorage.removeItem(PENDING_CHECKOUT_KEY);
+    else localStorage.setItem(PENDING_CHECKOUT_KEY, value);
+  } catch {
+    // ignore quota / private mode
+  }
+}
+
+/** Mark that the customer was sent to Shopify checkout. */
+export function markCheckoutPending(cartId?: string): void {
+  const payload: PendingCheckout = {
+    startedAt: Date.now(),
+    cartId: cartId ?? null,
+  };
+  writeRawPending(JSON.stringify(payload));
+  // Legacy sessionStorage key (older builds)
+  try {
+    sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+  } catch {
+    // ignore
+  }
 }
 
 export function clearCheckoutPending(): void {
-  sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+  writeRawPending(null);
+  try {
+    sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+  } catch {
+    // ignore
+  }
 }
 
-function hasRecentCheckoutPending(): boolean {
-  const raw = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
-  if (!raw) return false;
-  const started = Number(raw);
-  if (!Number.isFinite(started)) return false;
-  return Date.now() - started < PENDING_TTL_MS;
+export function getPendingCheckout(): PendingCheckout | null {
+  const raw = readRawPending();
+  if (raw) {
+    try {
+      const parsed = JSON.parse(raw) as PendingCheckout;
+      if (
+        typeof parsed.startedAt === "number" &&
+        Number.isFinite(parsed.startedAt) &&
+        Date.now() - parsed.startedAt < PENDING_TTL_MS
+      ) {
+        return {
+          startedAt: parsed.startedAt,
+          cartId: parsed.cartId ?? null,
+        };
+      }
+      clearCheckoutPending();
+      return null;
+    } catch {
+      clearCheckoutPending();
+      return null;
+    }
+  }
+
+  // Migrate legacy sessionStorage timestamp-only pending entries.
+  try {
+    const legacy = sessionStorage.getItem(PENDING_CHECKOUT_KEY);
+    if (!legacy) return null;
+    const startedAt = Number(legacy);
+    if (!Number.isFinite(startedAt) || Date.now() - startedAt >= PENDING_TTL_MS) {
+      sessionStorage.removeItem(PENDING_CHECKOUT_KEY);
+      return null;
+    }
+    return { startedAt, cartId: null };
+  } catch {
+    return null;
+  }
 }
 
-function isShopifyCheckoutReferrer(referrer: string): boolean {
+export function isShopifyCheckoutReferrer(referrer: string): boolean {
   try {
     const host = new URL(referrer).hostname;
     return (
       host.endsWith(".myshopify.com") ||
       host === "shopify.com" ||
-      host.endsWith(".shopify.com")
+      host.endsWith(".shopify.com") ||
+      host === "checkout.shopify.com"
     );
   } catch {
     return false;
   }
 }
 
-/** True when the customer likely completed checkout and returned from Shopify. */
-export function shouldShowCheckoutSuccessReturn(): boolean {
+/** True when the customer likely returned from Shopify checkout (referrer hint only). */
+export function likelyReturnedFromShopifyCheckout(): boolean {
   if (typeof window === "undefined") return false;
-
-  const params = new URLSearchParams(window.location.search);
-  if (params.get("order") === "success") return false;
-
-  const path = window.location.pathname;
-  if (path !== "/" && path !== "/checkout") return false;
-
   const ref = document.referrer;
-  if (ref && isShopifyCheckoutReferrer(ref)) return true;
-
-  return hasRecentCheckoutPending();
+  return Boolean(ref && isShopifyCheckoutReferrer(ref));
 }

@@ -1,7 +1,7 @@
 import { useQuery } from "@tanstack/react-query";
 import { useMemo } from "react";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
-import { useAuthStore } from "../store/authStore";
+import { useAuthStore, selectIsLoggedIn } from "../store/authStore";
 import {
   fetchAllProducts,
   fetchCatalogCollections,
@@ -195,14 +195,14 @@ export function useShopifyVariantMap(): Map<string, string> {
 /** Live order list + tracking for the signed-in customer. */
 export function useCustomerOrders() {
   const accessToken = useAuthStore((s) => s.accessToken);
-  const isLoggedIn = useAuthStore((s) => s.isLoggedIn);
+  const loggedIn = useAuthStore(selectIsLoggedIn);
 
   return useQuery({
     queryKey: ["customer", "orders", accessToken],
     queryFn: () => fetchCustomerOrders(accessToken!, 20),
     enabled:
       isCustomerAccountConfigured() &&
-      isLoggedIn() &&
+      loggedIn &&
       Boolean(accessToken) &&
       isCustomerAccountAccessToken(accessToken!),
     staleTime: ORDERS_STALE_MS,
