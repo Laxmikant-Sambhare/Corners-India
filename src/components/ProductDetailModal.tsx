@@ -565,11 +565,11 @@ export function ProductDetailModal({
                     <ButtonBase
                       type="button"
                       onClick={() => {
-                        addToCart(
-                          product,
-                          detail.sizes[sizeIndex] ?? detail.sizes[0] ?? "",
-                          quantity,
-                        );
+                        const rawSize =
+                          detail.sizes[sizeIndex] ?? detail.sizes[0] ?? "";
+                        const sizeForCart =
+                          rawSize.toLowerCase() === "standard" ? "" : rawSize;
+                        addToCart(product, sizeForCart, quantity);
                         onClose();
                       }}
                       sx={{
