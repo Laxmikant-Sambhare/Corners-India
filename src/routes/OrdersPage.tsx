@@ -9,7 +9,8 @@ import {
   OrderDetailModal,
   formatOrderDate,
   formatOrderMoney,
-  fulfillmentLabel,
+  isOrderCancelled,
+  orderStatusLabel,
 } from "../components/OrderDetailModal";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
@@ -63,7 +64,8 @@ function OrderCard({
   onOpen: () => void;
 }) {
   const heroItem = order.lineItems[0];
-  const statusLabel = fulfillmentLabel(order.fulfillmentStatus);
+  const cancelled = isOrderCancelled(order);
+  const statusLabel = orderStatusLabel(order);
 
   return (
     <Box
@@ -101,6 +103,7 @@ function OrderCard({
           cursor: "pointer",
           width: "100%",
           bgcolor: PAGE_BG,
+          opacity: cancelled ? 0.72 : 1,
           transition:
             "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
           "@media (hover: hover)": {
@@ -132,8 +135,8 @@ function OrderCard({
         >
           <Box
             sx={{
-              bgcolor: TAN,
-              color: PAGE_BG,
+              bgcolor: cancelled ? "rgba(75,74,74,0.14)" : TAN,
+              color: cancelled ? MUTED : PAGE_BG,
               px: furnitureListingBadgePadX,
               py: furnitureListingBadgePadY,
               borderRadius: shopRadius,
@@ -142,6 +145,7 @@ function OrderCard({
               fontSize: furnitureListingBadgeFontSize,
               textTransform: "uppercase",
               lineHeight: 1,
+              border: cancelled ? `1px solid rgba(75,74,74,0.18)` : "none",
             }}
           >
             {statusLabel}

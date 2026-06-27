@@ -305,6 +305,7 @@ export type OrderDetail = {
   id: string;
   orderNumber: number;
   processedAt: string;
+  cancelledAt: string | null;
   financialStatus: string;
   fulfillmentStatus: string;
   totalPrice: { amount: string; currencyCode: string };
@@ -338,7 +339,7 @@ export async function fetchCustomerOrders(
             id
             number
             processedAt
-            statusPageUrl
+            cancelledAt
             financialStatus
             fulfillmentStatus
             totalPrice { amount currencyCode }
@@ -393,7 +394,7 @@ export async function fetchCustomerOrders(
             id: string;
             number: number;
             processedAt: string;
-            statusPageUrl: string;
+            cancelledAt: string | null;
             financialStatus: string;
             fulfillmentStatus: string;
             totalPrice: { amount: string; currencyCode: string };
@@ -446,6 +447,7 @@ export async function fetchCustomerOrders(
     id: o.id,
     orderNumber: o.number,
     processedAt: o.processedAt,
+    cancelledAt: o.cancelledAt ?? null,
     financialStatus: o.financialStatus,
     fulfillmentStatus: o.fulfillmentStatus,
     totalPrice: o.totalPrice,

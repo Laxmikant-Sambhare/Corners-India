@@ -61,8 +61,38 @@ export function financialLabel(status: string): string {
     REFUNDED: "Refunded",
     PARTIALLY_REFUNDED: "Partially refunded",
     VOIDED: "Canceled",
+    AUTHORIZED: "Authorized",
+    EXPIRED: "Expired",
+    PARTIALLY_PAID: "Partially paid",
   };
   return labels[status] ?? status.replace(/_/g, " ").toLowerCase();
+}
+
+export function isOrderCancelled(
+  order: Pick<OrderDetail, "cancelledAt" | "financialStatus">,
+): boolean {
+  return Boolean(order.cancelledAt) || order.financialStatus === "VOIDED";
+}
+
+/** Primary customer-facing status — cancellation overrides fulfillment. */
+export function orderStatusLabel(order: OrderDetail): string {
+  if (isOrderCancelled(order)) return "Canceled";
+  if (order.financialStatus === "REFUNDED") return "Refunded";
+  if (order.financialStatus === "PARTIALLY_REFUNDED") return "Partially refunded";
+  return fulfillmentLabel(order.fulfillmentStatus);
+}
+
+export function orderStatusMessage(order: OrderDetail): string {
+  if (isOrderCancelled(order)) {
+    return "This order was canceled and won't be shipped.";
+  }
+  if (order.financialStatus === "REFUNDED") {
+    return "This order was fully refunded.";
+  }
+  if (order.financialStatus === "PARTIALLY_REFUNDED") {
+    return "This order was partially refunded.";
+  }
+  return fulfillmentStatusMessage(order.fulfillmentStatus);
 }
 
 function fulfillmentStatusMessage(status: string): string {
@@ -169,6 +199,9 @@ export function OrderDetailModal({
   if (!order) return null;
 
   const heroItem = order.lineItems[0];
+  const cancelled = isOrderCancelled(order);
+  const statusLabel = orderStatusLabel(order);
+  const statusMessage = orderStatusMessage(order);
   const trackingEntries = order.fulfillments
     .flatMap((f) => f.tracking)
     .filter((t) => t.number || t.url);
@@ -349,8 +382,8 @@ export function OrderDetailModal({
               <Stack direction="row" gap={1} flexWrap="wrap" sx={{ mt: 0.5 }}>
                 <Box
                   sx={{
-                    bgcolor: TAN,
-                    color: PAGE_BG,
+                    bgcolor: cancelled ? "rgba(75,74,74,0.12)" : TAN,
+                    color: cancelled ? MUTED : PAGE_BG,
                     px: 1.5,
                     py: 0.75,
                     borderRadius: "999px",
@@ -358,26 +391,29 @@ export function OrderDetailModal({
                     fontWeight: 600,
                     fontSize: 12,
                     textTransform: "uppercase",
+                    border: cancelled ? `1px solid rgba(75,74,74,0.18)` : "none",
                   }}
                 >
-                  {financialLabel(order.financialStatus)}
+                  {statusLabel}
                 </Box>
-                <Box
-                  sx={{
-                    bgcolor: "rgba(75,74,74,0.08)",
-                    color: MUTED,
-                    px: 1.5,
-                    py: 0.75,
-                    borderRadius: "999px",
-                    fontFamily: FONT_NAV,
-                    fontWeight: 600,
-                    fontSize: 12,
-                    textTransform: "uppercase",
-                    border: `1px solid rgba(75,74,74,0.12)`,
-                  }}
-                >
-                  {fulfillmentLabel(order.fulfillmentStatus)}
-                </Box>
+                {!cancelled && order.financialStatus !== "PAID" ? (
+                  <Box
+                    sx={{
+                      bgcolor: "rgba(75,74,74,0.08)",
+                      color: MUTED,
+                      px: 1.5,
+                      py: 0.75,
+                      borderRadius: "999px",
+                      fontFamily: FONT_NAV,
+                      fontWeight: 600,
+                      fontSize: 12,
+                      textTransform: "uppercase",
+                      border: `1px solid rgba(75,74,74,0.12)`,
+                    }}
+                  >
+                    {financialLabel(order.financialStatus)}
+                  </Box>
+                ) : null}
               </Stack>
             </Stack>
 
@@ -386,8 +422,8 @@ export function OrderDetailModal({
                 display: "flex",
                 gap: 1.5,
                 alignItems: "flex-start",
-                bgcolor: "rgba(255,255,255,0.45)",
-                border: `1px solid ${BORDER}`,
+                bgcolor: cancelled ? "rgba(75,74,74,0.06)" : "rgba(255,255,255,0.45)",
+                border: `1px solid ${cancelled ? "rgba(75,74,74,0.16)" : BORDER}`,
                 borderRadius: "12px",
                 p: 2,
               }}
@@ -399,16 +435,16 @@ export function OrderDetailModal({
                   width: 22,
                   height: 22,
                   borderRadius: "50%",
-                  bgcolor: "rgba(188,126,90,0.16)",
-                  color: ACCENT,
+                  bgcolor: cancelled ? "rgba(75,74,74,0.12)" : "rgba(188,126,90,0.16)",
+                  color: cancelled ? MUTED : ACCENT,
                   display: "inline-flex",
                   alignItems: "center",
                   justifyContent: "center",
-                  fontSize: 13,
+                  fontSize: cancelled ? 11 : 13,
                   flexShrink: 0,
                 }}
               >
-                ✓
+                {cancelled ? "×" : "✓"}
               </Box>
               <Typography
                 sx={{
@@ -419,7 +455,10 @@ export function OrderDetailModal({
                   lineHeight: 1.55,
                 }}
               >
-                {fulfillmentStatusMessage(order.fulfillmentStatus)}
+                {statusMessage}
+                {cancelled && order.cancelledAt
+                  ? ` Canceled on ${formatOrderDate(order.cancelledAt)}.`
+                  : null}
               </Typography>
             </Box>
 
@@ -502,6 +541,7 @@ export function OrderDetailModal({
               />
             </Stack>
 
+            {!cancelled ? (
             <Stack gap={1}>
               <SectionLabel>Tracking</SectionLabel>
               {trackingEntries.length > 0 ? (
@@ -555,6 +595,7 @@ export function OrderDetailModal({
                 </Typography>
               )}
             </Stack>
+            ) : null}
 
             {(contactEmail || order.shippingAddress) && (
               <Stack
