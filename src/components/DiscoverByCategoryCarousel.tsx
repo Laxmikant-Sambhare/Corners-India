@@ -14,6 +14,7 @@ import { ProductDetailModal } from "./ProductDetailModal";
 import { WishlistHeartButton } from "./WishlistHeartButton";
 import { useCallback, useLayoutEffect, useMemo, useRef, useState } from "react";
 import { FONT_NAV, FONT_NAV_SHOP } from "../fonts";
+import { layoutPaddingX } from "../layoutConstants";
 import { CDN_LIFESTYLE, CDN_PRODUCTS } from "../shopify/cdnImages";
 import {
   carouselChevronSize,
@@ -54,6 +55,25 @@ const PAGE_BG = "#f3ede3";
 const MUTED = "#4b4a4a";
 const ACCENT = "#bc7e5a";
 const TAN = "#ccbca6";
+
+/** Responsive card width — peek of next card on small screens. */
+const cardWidthSx = {
+  flex: {
+    xs: "0 0 min(84vw, 300px)",
+    sm: "0 0 min(58vw, 340px)",
+    md: `0 0 ${discoverCardWidth}`,
+  },
+  width: {
+    xs: "min(84vw, 300px)",
+    sm: "min(58vw, 340px)",
+    md: discoverCardWidth,
+  },
+  maxWidth: {
+    xs: "min(84vw, 300px)",
+    sm: "min(58vw, 340px)",
+    md: discoverCardWidth,
+  },
+} as const;
 
 type DiscoverCarouselProduct = {
   handle: string;
@@ -277,6 +297,46 @@ export function DiscoverByCategoryCarousel() {
     el.scrollBy({ left: dir * step, behavior: "smooth" });
   }, []);
 
+  const isLoadingProducts =
+    isShopifyConfigured && (!isFetched || isLoading);
+
+  const renderNavButton = (
+    dir: -1 | 1,
+    disabled: boolean,
+    variant: "header" | "overlay",
+  ) => {
+    const isPrev = dir === -1;
+    const label = isPrev ? "Previous products" : "Next products";
+    return (
+      <IconButton
+        type="button"
+        aria-label={label}
+        disabled={disabled}
+        onClick={() => scrollByDir(dir)}
+        sx={{
+          ...discoverNavIconBaseSx,
+          ...(variant === "overlay"
+            ? {
+                display: { xs: "inline-flex", md: "none" },
+                position: "absolute",
+                top: "50%",
+                transform: "translateY(-50%)",
+                zIndex: 2,
+                ...(isPrev ? { left: { xs: 4, sm: 8 } } : { right: { xs: 4, sm: 8 } }),
+                boxShadow: "0 4px 16px rgba(75, 74, 74, 0.14)",
+              }
+            : {
+                display: { xs: "none", md: "inline-flex" },
+                flexShrink: 0,
+              }),
+          ...discoverNavIconVariantSx(disabled),
+        }}
+      >
+        {isPrev ? <ChevronLeft filled={disabled} /> : <ChevronRight filled={disabled} />}
+      </IconButton>
+    );
+  };
+
   return (
     <Box
       component="section"
@@ -286,9 +346,8 @@ export function DiscoverByCategoryCarousel() {
         width: "100%",
         maxWidth: "100%",
         bgcolor: PAGE_BG,
-        /** Full-bleed horizontally; inset only on heading + tabs (see inner wrappers). */
         px: 0,
-        py: discoverSectionPadY,
+        py: { xs: 5, sm: 6, md: discoverSectionPadY },
         display: "flex",
         flexDirection: "column",
         alignItems: "center",
@@ -298,7 +357,7 @@ export function DiscoverByCategoryCarousel() {
       <Box
         sx={{
           width: "100%",
-          px: discoverSectionPadX,
+          px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: discoverSectionPadX },
           boxSizing: "border-box",
           display: "flex",
           flexDirection: "column",
@@ -310,117 +369,82 @@ export function DiscoverByCategoryCarousel() {
           sx={{
             fontFamily: FONT_NAV_SHOP,
             fontWeight: 600,
-            fontSize: { xs: 28, sm: 40, md: 52, lg: exploreHeadingFontSize },
+            fontSize: { xs: 26, sm: 36, md: 48, lg: exploreHeadingFontSize },
             lineHeight: 1.2,
             textAlign: "center",
             textTransform: "uppercase",
             color: MUTED,
-            whiteSpace: { xs: "normal", sm: "nowrap" },
-            maxWidth: { xs: "100%", sm: discoverTitleMaxWidth },
-            px: { xs: 0.5, sm: 0 },
+            whiteSpace: { xs: "normal", md: "nowrap" },
+            maxWidth: { xs: "100%", md: discoverTitleMaxWidth },
             wordBreak: "break-word",
+            letterSpacing: { xs: "0.02em", md: 0 },
           }}
         >
           Discover by Category
         </Typography>
 
+        {/* Desktop: prev | tabs | next */}
         <Box
           sx={{
             width: "100%",
-            mt: discoverTitleToTabsGap,
-            display: "flex",
-            flexDirection: { xs: "column", sm: "row" },
+            mt: { xs: 2.5, sm: 3, md: discoverTitleToTabsGap },
+            display: { xs: "none", md: "flex" },
+            flexDirection: "row",
             alignItems: "center",
             justifyContent: "space-between",
-            gap: { xs: 2, sm: 2 },
+            gap: 2,
           }}
         >
-          <IconButton
-            type="button"
-            aria-label="Previous products"
-            disabled={!canScrollLeft}
-            onClick={() => scrollByDir(-1)}
-            sx={{
-              ...discoverNavIconBaseSx,
-              order: { xs: 2, sm: 0 },
-              alignSelf: { xs: "center", sm: "auto" },
-              ...discoverNavIconVariantSx(!canScrollLeft),
-            }}
-          >
-            <ChevronLeft filled={!canScrollLeft} />
-          </IconButton>
+          {renderNavButton(-1, !canScrollLeft, "header")}
 
-          <Box
-            sx={{
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: discoverTabGap,
-              flex: 1,
-              order: { xs: 0, sm: 1 },
+          <CategoryTabs
+            category={category}
+            onSelect={(id) => {
+              if (id === "all") {
+                navigate({ to: `/category/${plpTarget}` });
+                return;
+              }
+              setCategory(id);
+              setPlpTarget(id);
             }}
-          >
-            {CATEGORIES.map(({ id, label }) => {
-              const isActive = category === id;
-              return (
-                <Box
-                  key={id}
-                  component="button"
-                  type="button"
-                  onClick={() => {
-                    if (id === "all") {
-                      navigate({ to: `/category/${plpTarget}` });
-                      return;
-                    }
-                    setCategory(id);
-                    setPlpTarget(id);
-                  }}
-                  sx={{
-                    cursor: "pointer",
-                    border: isActive
-                      ? "none"
-                      : `${shopBorderWidth} solid ${TAN}`,
-                    bgcolor: isActive ? ACCENT : "transparent",
-                    color: isActive ? PAGE_BG : TAN,
-                    px: discoverTagPadX,
-                    py: discoverTagPadY,
-                    borderRadius: shopRadius,
-                    fontFamily: isActive ? FONT_NAV_SHOP : FONT_NAV,
-                    fontWeight: 600,
-                    fontSize: navFontSize,
-                    textTransform: "uppercase",
-                    lineHeight: 1,
-                    transition: "background-color 0.2s, color 0.2s",
-                  }}
-                >
-                  {label}
-                </Box>
-              );
-            })}
-          </Box>
+          />
 
-          <IconButton
-            type="button"
-            aria-label="Next products"
-            disabled={!canScrollRight}
-            onClick={() => scrollByDir(1)}
-            sx={{
-              ...discoverNavIconBaseSx,
-              order: { xs: 3, sm: 2 },
-              alignSelf: { xs: "center", sm: "auto" },
-              ...discoverNavIconVariantSx(!canScrollRight),
+          {renderNavButton(1, !canScrollRight, "header")}
+        </Box>
+
+        {/* Mobile / tablet: scrollable tabs */}
+        <Box
+          sx={{
+            display: { xs: "block", md: "none" },
+            width: "100%",
+            mt: { xs: 2.5, sm: 3 },
+            overflowX: "auto",
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            "&::-webkit-scrollbar": { display: "none" },
+            WebkitOverflowScrolling: "touch",
+          }}
+        >
+          <CategoryTabs
+            category={category}
+            centered={false}
+            onSelect={(id) => {
+              if (id === "all") {
+                navigate({ to: `/category/${plpTarget}` });
+                return;
+              }
+              setCategory(id);
+              setPlpTarget(id);
             }}
-          >
-            <ChevronRight filled={!canScrollRight} />
-          </IconButton>
+          />
         </Box>
       </Box>
 
       {showHeadlessEmptyHint ? (
         <Typography
           sx={{
-            mt: discoverTabsToCarouselGap,
-            px: discoverSectionPadX,
+            mt: { xs: 2.5, md: discoverTabsToCarouselGap },
+            px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: discoverSectionPadX },
             fontFamily: FONT_NAV,
             fontWeight: 500,
             fontSize: navFontSize,
@@ -440,207 +464,76 @@ export function DiscoverByCategoryCarousel() {
       ) : null}
 
       <Box
-        ref={scrollerRef}
-        role="group"
-        aria-label="Product carousel"
         sx={{
+          position: "relative",
           width: "100%",
-          maxWidth: "100%",
-          mt: discoverTabsToCarouselGap,
-          display: "flex",
-          flexDirection: "row",
-          gap: discoverCarouselGap,
-          overflowX: "auto",
-          overflowY: "visible",
-          scrollSnapType: "x mandatory",
-          scrollPaddingLeft: discoverCarouselEdgePadX,
-          scrollbarWidth: "none",
-          msOverflowStyle: "none",
-          "&::-webkit-scrollbar": { display: "none" },
-          WebkitOverflowScrolling: "touch",
-          pl: discoverCarouselEdgePadX,
-          pr: 0,
-          boxSizing: "border-box",
+          mt: { xs: 2.5, sm: 3, md: discoverTabsToCarouselGap },
         }}
       >
-        {visibleProducts.map((p) => (
-            <Box
-              key={p.handle}
-              sx={{
-                flex: `0 0 ${discoverCardWidth}`,
-                maxWidth: discoverCardWidth,
-                minWidth: 0,
-                scrollSnapAlign: "start",
-                display: "flex",
-                flexDirection: "column",
-                boxSizing: "border-box",
-              }}
-            >
-              <Box aria-hidden sx={{ height: 10, flexShrink: 0 }} />
-              <Box
-                role="button"
-                data-discover-card
-                onClick={() => openProductDetail(p)}
-                onKeyDown={(e) => {
-                  if (e.key === "Enter" || e.key === " ") {
-                    e.preventDefault();
-                    openProductDetail(p);
-                  }
-                }}
-                tabIndex={0}
-                aria-label={`${p.name}, ${p.price}. Open details.`}
-                sx={{
-                  flex: 1,
-                  borderRadius: discoverCardRadius,
-                  border: `${shopBorderWidth} solid ${TAN}`,
-                  boxSizing: "border-box",
-                  px: discoverCardPadX,
-                  py: discoverCardPadY,
-                  display: "flex",
-                  flexDirection: "column",
-                  alignItems: "stretch",
-                  gap: discoverCardInnerGap,
-                  bgcolor: "transparent",
-                  cursor: "pointer",
-                  transition:
-                    "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
-                  "@media (hover: hover)": {
-                    "&:hover": {
-                      transform: "translateY(-6px)",
-                      borderColor: ACCENT,
-                      boxShadow: "0 14px 32px rgba(75, 74, 74, 0.12)",
-                      "& .discover-card-image": {
-                        transform: "scale(1.05)",
-                      },
-                      "& .discover-card-title": {
-                        color: ACCENT,
-                      },
-                    },
-                  },
-                  "&:active": {
-                    transform: "translateY(-2px)",
-                  },
-                }}
-              >
-              <Box
-                sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "space-between",
-                  width: "100%",
-                }}
-              >
-                <Box
-                  sx={{
-                    bgcolor: TAN,
-                    color: PAGE_BG,
-                    px: discoverTagPadX,
-                    py: discoverTagPadY,
-                    borderRadius: shopRadius,
-                    fontFamily: FONT_NAV,
-                    fontWeight: 600,
-                    fontSize: navFontSize,
-                    textTransform: "uppercase",
-                    lineHeight: 1,
-                  }}
-                >
-                  {p.badge}
-                </Box>
-                <WishlistHeartButton
-                  product={{
-                    badge: p.badge,
-                    name: p.name,
-                    price: p.price,
-                    image: p.image,
-                  }}
-                />
-              </Box>
+        {renderNavButton(-1, !canScrollLeft, "overlay")}
+        {renderNavButton(1, !canScrollRight, "overlay")}
 
-              <Box
-                sx={{
-                  width: "100%",
-                  height: discoverImageBoxH,
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  position: "relative",
-                  mx: "auto",
-                  overflow: "hidden",
-                }}
-              >
-                <Box
-                  component="img"
-                  className="discover-card-image"
-                  src={p.image}
-                  alt=""
-                  sx={{
-                    maxWidth: "100%",
-                    maxHeight: "100%",
-                    width: "auto",
-                    height: "auto",
-                    objectFit: "contain",
-                    display: "block",
-                    transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
-                  }}
-                />
-              </Box>
-
-              <Box
-                sx={{
-                  display: "flex",
-                  flexDirection: "column",
-                  gap: discoverMetaGap,
-                  alignItems: "flex-start",
-                  width: "100%",
-                }}
-              >
-                <Typography
-                  className="discover-card-title"
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 600,
-                    fontSize: discoverProductTitleSize,
-                    textTransform: "uppercase",
-                    color: MUTED,
-                    lineHeight: 1.2,
-                    transition: "color 0.28s ease",
-                  }}
-                >
-                  {p.name}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: discoverPriceSize,
-                    textTransform: "capitalize",
-                    color: ACCENT,
-                  }}
-                >
-                  {p.price}
-                </Typography>
-              </Box>
-              </Box>
-              <Box aria-hidden sx={{ height: 20, flexShrink: 0 }} />
-            </Box>
-        ))}
-        {/* trailing spacer — browsers clip padding-right on overflow flex, use a child instead */}
         <Box
-          aria-hidden
+          ref={scrollerRef}
+          role="group"
+          aria-label="Product carousel"
+          aria-busy={isLoadingProducts}
           sx={{
-            flexShrink: 0,
-            width: discoverCarouselEdgePadX,
-            minWidth: discoverCarouselEdgePadX,
-            height: 1,
+            width: "100%",
+            maxWidth: "100%",
+            display: "flex",
+            flexDirection: "row",
+            gap: { xs: 2, sm: 2.5, md: discoverCarouselGap },
+            overflowX: "auto",
+            overflowY: "visible",
+            scrollSnapType: "x mandatory",
+            scrollPaddingLeft: {
+              xs: 16,
+              sm: 24,
+              md: discoverCarouselEdgePadX,
+            },
+            scrollPaddingRight: {
+              xs: 16,
+              sm: 24,
+              md: discoverCarouselEdgePadX,
+            },
+            scrollbarWidth: "none",
+            msOverflowStyle: "none",
+            "&::-webkit-scrollbar": { display: "none" },
+            WebkitOverflowScrolling: "touch",
+            pl: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: discoverCarouselEdgePadX },
+            pr: 0,
+            boxSizing: "border-box",
           }}
-        />
+        >
+          {isLoadingProducts
+            ? Array.from({ length: 3 }, (_, i) => (
+                <DiscoverCardSkeleton key={`skeleton-${i}`} />
+              ))
+            : visibleProducts.map((p) => (
+                <DiscoverProductCard
+                  key={p.handle}
+                  product={p}
+                  onOpen={() => openProductDetail(p)}
+                />
+              ))}
+          <Box
+            aria-hidden
+            sx={{
+              flexShrink: 0,
+              width: { xs: 16, sm: 24, md: discoverCarouselEdgePadX },
+              minWidth: { xs: 16, sm: 24, md: discoverCarouselEdgePadX },
+              height: 1,
+            }}
+          />
+        </Box>
       </Box>
 
       <Box
         sx={{
-          mt: discoverTabsToCarouselGap,
+          mt: { xs: 3, sm: 3.5, md: discoverTabsToCarouselGap },
           width: "100%",
-          px: discoverSectionPadX,
+          px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: discoverSectionPadX },
           boxSizing: "border-box",
           display: "flex",
           justifyContent: "center",
@@ -656,6 +549,8 @@ export function DiscoverByCategoryCarousel() {
             gap: discoverSeeMoreGap,
             px: discoverSeeMorePadX,
             py: discoverSeeMorePadY,
+            width: { xs: "100%", sm: "auto" },
+            maxWidth: { xs: 360, sm: "none" },
             borderRadius: discoverSeeMoreRadius,
             border: `${shopBorderWidth} solid ${TAN}`,
             color: TAN,
@@ -663,8 +558,14 @@ export function DiscoverByCategoryCarousel() {
             fontFamily: FONT_NAV,
             fontWeight: 600,
             fontSize: discoverPriceSize,
-            transition: "opacity 0.2s",
-            "&:hover": { opacity: 0.85 },
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            transition: "opacity 0.2s, border-color 0.2s, color 0.2s",
+            "&:hover": {
+              opacity: 0.9,
+              borderColor: ACCENT,
+              color: ACCENT,
+            },
           }}
         >
           See More Product
@@ -676,6 +577,7 @@ export function DiscoverByCategoryCarousel() {
               width: discoverSeeMoreArrowWidth,
               height: discoverSeeMoreArrowHeight,
               display: "block",
+              flexShrink: 0,
             }}
           />
         </Box>
@@ -686,6 +588,279 @@ export function DiscoverByCategoryCarousel() {
         onClose={() => setDetailProduct(null)}
         product={detailProduct}
       />
+    </Box>
+  );
+}
+
+function CategoryTabs({
+  category,
+  onSelect,
+  centered = true,
+}: {
+  category: CategoryId;
+  onSelect: (id: CategoryId) => void;
+  centered?: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        flexWrap: { xs: "nowrap", md: "wrap" },
+        justifyContent: centered ? "center" : "flex-start",
+        gap: { xs: 1, sm: 1.5, md: discoverTabGap },
+        flex: centered ? 1 : undefined,
+        minWidth: centered ? 0 : "max-content",
+        px: centered ? 0 : { xs: 0.5, sm: 0 },
+      }}
+    >
+      {CATEGORIES.map(({ id, label }) => {
+        const isActive = category === id;
+        return (
+          <Box
+            key={id}
+            component="button"
+            type="button"
+            onClick={() => onSelect(id)}
+            sx={{
+              cursor: "pointer",
+              flexShrink: 0,
+              border: isActive ? "none" : `${shopBorderWidth} solid ${TAN}`,
+              bgcolor: isActive ? ACCENT : "transparent",
+              color: isActive ? PAGE_BG : TAN,
+              px: discoverTagPadX,
+              py: discoverTagPadY,
+              minHeight: { xs: 44, md: "auto" },
+              borderRadius: shopRadius,
+              fontFamily: isActive ? FONT_NAV_SHOP : FONT_NAV,
+              fontWeight: 600,
+              fontSize: navFontSize,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              transition: "background-color 0.2s, color 0.2s, border-color 0.2s",
+              "&:active": {
+                transform: "scale(0.98)",
+              },
+            }}
+          >
+            {label}
+          </Box>
+        );
+      })}
+    </Box>
+  );
+}
+
+function DiscoverProductCard({
+  product: p,
+  onOpen,
+}: {
+  product: DiscoverCarouselProduct;
+  onOpen: () => void;
+}) {
+  return (
+    <Box
+      sx={{
+        ...cardWidthSx,
+        minWidth: 0,
+        scrollSnapAlign: { xs: "center", md: "start" },
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+      }}
+    >
+      <Box aria-hidden sx={{ height: { xs: 6, md: 10 }, flexShrink: 0 }} />
+      <Box
+        role="button"
+        data-discover-card
+        onClick={onOpen}
+        onKeyDown={(e) => {
+          if (e.key === "Enter" || e.key === " ") {
+            e.preventDefault();
+            onOpen();
+          }
+        }}
+        tabIndex={0}
+        aria-label={`${p.name}, ${p.price}. Open details.`}
+        sx={{
+          flex: 1,
+          borderRadius: discoverCardRadius,
+          border: `${shopBorderWidth} solid ${TAN}`,
+          boxSizing: "border-box",
+          px: { xs: 2, sm: 2.5, md: discoverCardPadX },
+          py: { xs: 2.5, sm: 3, md: discoverCardPadY },
+          display: "flex",
+          flexDirection: "column",
+          alignItems: "stretch",
+          gap: { xs: 2, sm: 2.5, md: discoverCardInnerGap },
+          bgcolor: "transparent",
+          cursor: "pointer",
+          transition:
+            "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
+          "@media (hover: hover)": {
+            "&:hover": {
+              transform: "translateY(-6px)",
+              borderColor: ACCENT,
+              boxShadow: "0 14px 32px rgba(75, 74, 74, 0.12)",
+              "& .discover-card-image": {
+                transform: "scale(1.05)",
+              },
+              "& .discover-card-title": {
+                color: ACCENT,
+              },
+            },
+          },
+          "&:active": {
+            transform: "translateY(-2px)",
+          },
+        }}
+      >
+        <Box
+          sx={{
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "space-between",
+            width: "100%",
+            gap: 1,
+          }}
+        >
+          <Box
+            sx={{
+              bgcolor: TAN,
+              color: PAGE_BG,
+              px: discoverTagPadX,
+              py: discoverTagPadY,
+              borderRadius: shopRadius,
+              fontFamily: FONT_NAV,
+              fontWeight: 600,
+              fontSize: navFontSize,
+              textTransform: "uppercase",
+              lineHeight: 1,
+              whiteSpace: "nowrap",
+            }}
+          >
+            {p.badge}
+          </Box>
+          <WishlistHeartButton
+            product={{
+              badge: p.badge,
+              name: p.name,
+              price: p.price,
+              image: p.image,
+            }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            width: "100%",
+            height: { xs: 200, sm: 220, md: discoverImageBoxH },
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            position: "relative",
+            mx: "auto",
+            overflow: "hidden",
+          }}
+        >
+          <Box
+            component="img"
+            className="discover-card-image"
+            src={p.image}
+            alt=""
+            sx={{
+              maxWidth: "100%",
+              maxHeight: "100%",
+              width: "auto",
+              height: "auto",
+              objectFit: "contain",
+              display: "block",
+              transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+            }}
+          />
+        </Box>
+
+        <Box
+          sx={{
+            display: "flex",
+            flexDirection: "column",
+            gap: discoverMetaGap,
+            alignItems: "flex-start",
+            width: "100%",
+          }}
+        >
+          <Typography
+            className="discover-card-title"
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 600,
+              fontSize: discoverProductTitleSize,
+              textTransform: "uppercase",
+              color: MUTED,
+              lineHeight: 1.2,
+              transition: "color 0.28s ease",
+              wordBreak: "break-word",
+            }}
+          >
+            {p.name}
+          </Typography>
+          <Typography
+            sx={{
+              fontFamily: FONT_NAV,
+              fontWeight: 500,
+              fontSize: discoverPriceSize,
+              textTransform: "capitalize",
+              color: ACCENT,
+            }}
+          >
+            {p.price}
+          </Typography>
+        </Box>
+      </Box>
+      <Box aria-hidden sx={{ height: { xs: 12, md: 20 }, flexShrink: 0 }} />
+    </Box>
+  );
+}
+
+function DiscoverCardSkeleton() {
+  return (
+    <Box
+      sx={{
+        ...cardWidthSx,
+        minWidth: 0,
+        scrollSnapAlign: { xs: "center", md: "start" },
+        display: "flex",
+        flexDirection: "column",
+        boxSizing: "border-box",
+      }}
+    >
+      <Box aria-hidden sx={{ height: 6, flexShrink: 0 }} />
+      <Box
+        aria-hidden
+        sx={{
+          flex: 1,
+          borderRadius: discoverCardRadius,
+          border: `${shopBorderWidth} solid ${TAN}`,
+          boxSizing: "border-box",
+          px: 2,
+          py: 2.5,
+          display: "flex",
+          flexDirection: "column",
+          gap: 2,
+          opacity: 0.55,
+        }}
+      >
+        <Box sx={{ width: 72, height: 28, borderRadius: shopRadius, bgcolor: TAN }} />
+        <Box
+          sx={{
+            width: "100%",
+            height: { xs: 200, sm: 220 },
+            borderRadius: 1,
+            bgcolor: "rgba(204, 188, 166, 0.35)",
+          }}
+        />
+        <Box sx={{ width: "70%", height: 18, borderRadius: 1, bgcolor: "rgba(204, 188, 166, 0.35)" }} />
+        <Box sx={{ width: "45%", height: 14, borderRadius: 1, bgcolor: "rgba(204, 188, 166, 0.25)" }} />
+      </Box>
     </Box>
   );
 }

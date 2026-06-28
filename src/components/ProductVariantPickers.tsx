@@ -97,7 +97,8 @@ export function ProductVariantPickers({
                     lineHeight: 1,
                     textTransform: "uppercase",
                     color: isColorAvailable ? ACCENT : "rgba(75,74,74,0.3)",
-                    minWidth: { xs: "auto", sm: 77 },
+                    minWidth: { xs: 44, sm: 77 },
+                    minHeight: { xs: 44, sm: "auto" },
                     cursor: isColorAvailable ? "pointer" : "not-allowed",
                   }}
                 >
@@ -162,7 +163,8 @@ export function ProductVariantPickers({
                     lineHeight: 1,
                     textTransform: "uppercase",
                     color: isSizeAvailable ? ACCENT : "rgba(75,74,74,0.3)",
-                    minWidth: { xs: "auto", sm: 77 },
+                    minWidth: { xs: 44, sm: 77 },
+                    minHeight: { xs: 44, sm: "auto" },
                     cursor: isSizeAvailable ? "pointer" : "not-allowed",
                     position: "relative",
                     ...(!isSizeAvailable && {

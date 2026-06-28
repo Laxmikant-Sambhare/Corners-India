@@ -79,7 +79,7 @@ export const megaLinkGap = fluid1920(10, { min: 6, max: 12 });
 export const shopFontSize = fluid1920(14, { min: 12, max: 15 });
 export const shopPadX = fluid1920(18, { min: 9, max: 18 });
 export const shopPadY = fluid1920(9, { min: 6, max: 12 });
-export const shopRadius = fluid1920(9.33, { min: 6, max: 11 });
+export const shopRadius = fluid1920(9.33, { min: 15, max: 30 });
 export const shopBorderWidth = fluid1920(0.93, { min: 1, max: 1.5 });
 
 /** Explore category block inner padding @ 1920 (card padding inside 265px shell). */
@@ -223,9 +223,9 @@ export const faqAnswerSize = fluid1920(14, { min: 12, max: 16 });
 export const footerPadX = fluid1080(60, { min: 28, max: 60 });
 export const footerBandPadX = fluid1920(116.667, { min: 16, max: 120 });
 export const footerBandPadY = fluid1080(99.867, { min: 40, max: 120 });
-export const footerBandRadius = fluid1920(18.667, { min: 12, max: 22 });
+export const footerBandRadius = fluid1920(14, { min: 10, max: 16 });
 export const footerNewsletterH = fluid1080(63.467, { min: 48, max: 72 });
-export const footerNewsletterRadius = fluid1920(13.067, { min: 8, max: 16 });
+export const footerNewsletterRadius = fluid1920(10, { min: 8, max: 12 });
 /** Newsletter field padding (990:4673) */
 export const footerNewsletterInputPadX = fluid1920(46.667, {
   min: 16,
@@ -568,8 +568,8 @@ export const furnitureCategoryShellBg = "#ccbca6";
 
 /** Rounded top corners for the customizations-page footer shell (Figma 990:1736 — 47px at 1920). */
 export const siteFooterCustomizationsTopRadius = fluid1920(47, {
-  min: 24,
-  max: 52,
+  min: 12,
+  max: 47,
 });
 
 /** Top padding for the customizations-page footer shell (Figma 990:1736 — 126px at 1920). */
@@ -625,12 +625,21 @@ export const discoverPhilosophyPadTop = fluid1920(126, { min: 48, max: 140 });
 export const discoverPhilosophyPadBottom = fluid1920(80, { min: 40, max: 100 });
 export const discoverPhilosophyGap = fluid1920(58, { min: 32, max: 64 });
 export const discoverPhilosophyTitleSize = fluid1920(68, { min: 32, max: 76 });
-export const discoverPhilosophyBodyMaxW = fluid1920(1296, { min: 280, max: 1296 });
+export const discoverPhilosophyBodyMaxW = fluid1920(1296, {
+  min: 280,
+  max: 1296,
+});
 export const discoverPhilosophyBadgePadX = fluid1920(18, { min: 12, max: 22 });
 export const discoverPhilosophyBadgePadY = fluid1920(12, { min: 8, max: 14 });
 export const discoverPhilosophyBadgeRadius = fluid1920(10, { min: 8, max: 12 });
-export const discoverPhilosophyBadgeMinW = fluid1920(169, { min: 140, max: 180 });
-export const discoverPhilosophyRugMaxW = fluid1920(1342, { min: 320, max: 1342 });
+export const discoverPhilosophyBadgeMinW = fluid1920(169, {
+  min: 140,
+  max: 180,
+});
+export const discoverPhilosophyRugMaxW = fluid1920(1342, {
+  min: 320,
+  max: 1342,
+});
 export const discoverPhilosophyRugPadX = fluid1920(289, { min: 16, max: 300 });
 /** Tan story band pulls up over the bottom of the philosophy rug — Figma 2699 − 2334 = 365px @ 1920. */
 export const discoverPhilosophyRugOverlapIntoStory = fluid1920(365, {
@@ -639,7 +648,10 @@ export const discoverPhilosophyRugOverlapIntoStory = fluid1920(365, {
 });
 
 /** Discover story band — Figma 1366:2746 @ 1920 */
-export const discoverStorySectionMinH = fluid1920(1943, { min: 900, max: 1943 });
+export const discoverStorySectionMinH = fluid1920(1943, {
+  min: 900,
+  max: 1943,
+});
 export const discoverStoryPadX = fluid1920(127, { min: 16, max: 140 });
 export const discoverStoryIntroPadX = fluid1920(258, { min: 16, max: 280 });
 export const discoverStoryPadBottom = fluid1920(120, { min: 48, max: 140 });
@@ -666,8 +678,14 @@ export const discoverStorySofaFrameH = fluid1920(584, { min: 280, max: 584 });
 export const discoverStorySofaFrameLeft = fluid1920(521, { min: 16, max: 521 });
 /** Row 3 top — sofa frame + meaning block share y=3535 in Figma (1201 from tan top). */
 export const discoverStoryRow3Top = fluid1920(1201, { min: 560, max: 1201 });
-export const discoverStoryPortraitToBodyGap = fluid1920(107, { min: 48, max: 120 });
-export const discoverStoryEditorialMinH = fluid1920(1628, { min: 720, max: 1628 });
+export const discoverStoryPortraitToBodyGap = fluid1920(107, {
+  min: 48,
+  max: 120,
+});
+export const discoverStoryEditorialMinH = fluid1920(1628, {
+  min: 720,
+  max: 1628,
+});
 export const discoverStorySofaRadius = fluid1920(14, { min: 10, max: 16 });
 export const discoverStoryMeaningLeft = fluid1920(1148, { min: 0, max: 1148 });
 /** @deprecated Use discoverStorySofaFrameW — full uncropped asset width in Figma. */
@@ -684,7 +702,10 @@ export const discoverJourneyPadBottom = fluid1920(120, { min: 48, max: 140 });
 export const discoverJourneyLabelSize = fluid1920(16, { min: 12, max: 16 });
 export const discoverJourneyClosingSize = fluid1920(42, { min: 24, max: 46 });
 export const discoverJourneyBodyMaxW = fluid1920(387, { min: 280, max: 387 });
-export const discoverJourneyClosingMaxW = fluid1920(1251, { min: 280, max: 1251 });
+export const discoverJourneyClosingMaxW = fluid1920(1251, {
+  min: 280,
+  max: 1251,
+});
 export const discoverJourneyImageRadius = fluid1920(14, { min: 10, max: 16 });
 export const discoverJourneySparkleW = fluid1920(87, { min: 48, max: 87 });
 export const discoverJourneySparkleH = fluid1920(40, { min: 24, max: 40 });

@@ -35,12 +35,9 @@ import { CDN_HEROES, CDN_LIFESTYLE } from "../shopify/cdnImages";
 const PAGE_BG = "#f3ede3";
 const BODY_TEXT = "#4b4a4a";
 const CARD_BORDER = "#ccbca6";
+const ACCENT = "#bc7e5a";
 
 const HERO_TEXT = "#f3ede3";
-
-const fluid1920Gap28 = "clamp(12px, 1.458vw, 28px)";
-const fluidChevronW = "clamp(18px, 1.51vw, 29px)";
-const fluidChevronH = "clamp(8px, 0.625vw, 12px)";
 
 /**
  * Customizations landing page — Figma 1162:7 hero + 1162:8 how-it-works.
@@ -48,242 +45,303 @@ const fluidChevronH = "clamp(8px, 0.625vw, 12px)";
 export function CustomizationsPage() {
   return (
     <>
-    <Box
-      component="section"
-      aria-label="Customizations"
-      sx={{
-        position: "relative",
-        width: "100%",
-        minHeight: customHeroMinH,
-        overflow: "hidden",
-        bgcolor: "#1a1410",
-      }}
-    >
-      {/* Full-bleed background photo */}
       <Box
-        component="img"
-        src={CDN_HEROES["customizations-hero"]}
-        alt=""
-        fetchPriority="high"
-        loading="eager"
-        decoding="async"
-        sx={{
-          position: "absolute",
-          inset: 0,
-          width: "100%",
-          height: "100%",
-          objectFit: "cover",
-          objectPosition: "center center",
-          display: "block",
-        }}
-      />
-
-      {/* Scrim — matches CatalogHero gradient */}
-      <Box
-        aria-hidden
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.38) 100%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Text content — same structure as CatalogHero */}
-      <Stack
+        component="section"
+        aria-label="Customizations"
         sx={{
           position: "relative",
-          zIndex: 1,
-          minHeight: customHeroMinH,
-          px: {
-            xs: layoutPaddingX.xs,
-            sm: layoutPaddingX.sm,
-            md: layoutMarginX,
+          width: "100%",
+          minHeight: {
+            xs: "min(72vh, 520px)",
+            sm: "min(78vh, 580px)",
+            md: customHeroMinH,
           },
-          pt: { xs: 10, sm: 12, md: 14 },
-          pb: { xs: 6, md: 8 },
-          boxSizing: "border-box",
-          gap: furnitureHeroBreadcrumbToTitleGap,
-          alignItems: "flex-start",
+          overflow: "hidden",
+          bgcolor: "#1a1410",
         }}
       >
-        {/* Breadcrumb: Home → Customizations */}
+        <Box
+          component="img"
+          src={CDN_HEROES["customizations-hero"]}
+          alt=""
+          fetchPriority="high"
+          loading="eager"
+          decoding="async"
+          sx={{
+            position: "absolute",
+            inset: 0,
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            objectPosition: { xs: "58% center", md: "center center" },
+            display: "block",
+          }}
+        />
+
+        <Box
+          aria-hidden
+          sx={{
+            position: "absolute",
+            inset: 0,
+            background: {
+              xs: "linear-gradient(180deg, rgba(0,0,0,0.08) 0%, rgba(0,0,0,0.32) 50%, rgba(0,0,0,0.62) 100%)",
+              md: "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.38) 100%)",
+            },
+            pointerEvents: "none",
+          }}
+        />
+
         <Stack
-          direction="row"
-          alignItems="center"
-          sx={{ color: HERO_TEXT, gap: fluid1920Gap28 }}
+          sx={{
+            position: "relative",
+            zIndex: 1,
+            minHeight: {
+              xs: "min(72vh, 520px)",
+              sm: "min(78vh, 580px)",
+              md: customHeroMinH,
+            },
+            px: {
+              xs: layoutPaddingX.xs,
+              sm: layoutPaddingX.sm,
+              md: layoutMarginX,
+            },
+            pt: { xs: 10, sm: 12, md: 14 },
+            pb: { xs: 4, sm: 5, md: 8 },
+            boxSizing: "border-box",
+            gap: {
+              xs: 1.5,
+              sm: 2.5,
+              md: furnitureHeroBreadcrumbToTitleGap,
+            },
+            alignItems: "flex-start",
+            justifyContent: { xs: "flex-end", md: "flex-start" },
+          }}
         >
-          <Typography
-            component={RouterLink}
-            to="/"
+          <Stack
+            direction="row"
+            alignItems="center"
             sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureHeroBreadcrumbFontSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              color: "inherit",
-              textDecoration: "none",
-              "&:hover": { opacity: 0.9 },
-            }}
-          >
-            Home
-          </Typography>
-          <BreadcrumbChevron />
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureHeroBreadcrumbFontSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              color: "inherit",
-              opacity: 0.5,
-            }}
-          >
-            Customizations
-          </Typography>
-        </Stack>
-
-        {/* Title + description */}
-        <Stack sx={{ width: "100%", gap: furnitureHeroTitleToBodyGap }}>
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: FONT_SURGENA,
-              fontWeight: 600,
-              fontSize: customHeroTitleSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
               color: HERO_TEXT,
-              letterSpacing: "0.02em",
+              gap: { xs: 0.5, sm: 0.75, md: "clamp(12px, 1.458vw, 28px)" },
             }}
           >
-            Customizations
-          </Typography>
-
-          <Stack sx={{ gap: customHeroDescToNoteGap, maxWidth: customHeroDescMaxW }}>
             <Typography
-              sx={{
-                fontFamily: FONT_NAV,
-                fontWeight: 500,
-                fontSize: furnitureHeroBodyFontSize,
-                lineHeight: 1.4,
-                color: HERO_TEXT,
-              }}
-            >
-              Every home is personal. Your furniture and rugs should feel the same.
-              <br />
-              At Corners, we offer thoughtful, limited-scope customization to maintain design integrity and craftsmanship.
-            </Typography>
-
-            <Typography
+              component={RouterLink}
+              to="/"
               sx={{
                 fontFamily: FONT_NAV,
                 fontWeight: 600,
-                fontSize: furnitureHeroBodyFontSize,
-                lineHeight: 1.4,
-                color: HERO_TEXT,
+                fontSize: { xs: 11, sm: 12, md: furnitureHeroBreadcrumbFontSize },
+                lineHeight: 1.2,
+                textTransform: "uppercase",
+                color: "inherit",
+                textDecoration: "none",
+                letterSpacing: "0.04em",
+                "&:hover": { opacity: 0.9 },
               }}
             >
-              Furniture upholstery can be customized. Rugs are fully custom-made to your space and palette.
+              Home
             </Typography>
-          </Stack>
-        </Stack>
-      </Stack>
-    </Box>
-
-    {/* ── How It Works — Figma 1162:8 ── */}
-    <Box
-      component="section"
-      aria-label="How It Works"
-      sx={{ bgcolor: PAGE_BG, px: customHowItWorksSectionPadX, py: customHowItWorksSectionPadY }}
-    >
-      {/* Section title */}
-      <Typography
-        component="h2"
-        sx={{
-          fontFamily: FONT_SURGENA,
-          fontWeight: 600,
-          fontSize: customHowItWorksTitleSize,
-          lineHeight: 1.2,
-          textTransform: "uppercase",
-          color: BODY_TEXT,
-          mb: customHowItWorksTitleToCardsGap,
-        }}
-      >
-        How It Works
-      </Typography>
-
-      {/* Two-column: steps (left) + photo (right) */}
-      <Stack
-        direction={{ xs: "column", md: "row" }}
-        alignItems={{ xs: "stretch", md: "flex-start" }}
-        sx={{ gap: customHowItWorksColGap }}
-      >
-        {/* Step cards */}
-        <Stack sx={{ gap: customHowItWorksCardGap, flex: "1 1 0", maxWidth: customHowItWorksCardMaxW }}>
-          {HOW_IT_WORKS_STEPS.map((step) => (
-            <Box
-              key={step.number}
-              sx={{
-                border: `1px solid ${CARD_BORDER}`,
-                borderRadius: customHowItWorksCardRadius,
-                px: customHowItWorksCardPadX,
-                py: customHowItWorksCardPadY,
-                display: "flex",
-                flexDirection: "column",
-                gap: customHowItWorksCardInnerGap,
-              }}
-            >
+            <Box sx={{ display: { xs: "none", sm: "contents" } }}>
+              <BreadcrumbChevron />
               <Typography
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 600,
-                  fontSize: customHowItWorksStepFontSize,
-                  lineHeight: 1.4,
-                  color: BODY_TEXT,
+                  fontSize: { sm: 12, md: furnitureHeroBreadcrumbFontSize },
+                  lineHeight: 1.2,
+                  textTransform: "uppercase",
+                  color: "inherit",
+                  opacity: 0.5,
+                  letterSpacing: "0.04em",
                 }}
               >
-                Step - {step.number}
+                Customizations
               </Typography>
+            </Box>
+          </Stack>
+
+          <Stack
+            sx={{
+              width: "100%",
+              gap: { xs: 1.25, sm: 2, md: furnitureHeroTitleToBodyGap },
+              maxWidth: { xs: "100%", md: customHeroDescMaxW },
+            }}
+          >
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: FONT_SURGENA,
+                fontWeight: 600,
+                fontSize: {
+                  xs: "clamp(28px, 8vw, 40px)",
+                  sm: "clamp(36px, 6vw, 52px)",
+                  md: customHeroTitleSize,
+                },
+                lineHeight: { xs: 1.08, md: 1.2 },
+                textTransform: "uppercase",
+                color: HERO_TEXT,
+                letterSpacing: "0.02em",
+              }}
+            >
+              Customizations
+            </Typography>
+
+            <Stack sx={{ gap: { xs: 1.25, sm: 1.5, md: customHeroDescToNoteGap } }}>
               <Typography
                 sx={{
-                  fontFamily: FONT_SURGENA,
-                  fontWeight: 600,
-                  fontSize: customHowItWorksCardTitleSize,
-                  lineHeight: 1.4,
-                  color: BODY_TEXT,
+                  fontFamily: FONT_NAV,
+                  fontWeight: 500,
+                  fontSize: { xs: 13, sm: 14, md: furnitureHeroBodyFontSize },
+                  lineHeight: { xs: 1.55, md: 1.4 },
+                  color: HERO_TEXT,
+                  opacity: 0.96,
                 }}
               >
-                {step.title}
+                Every home is personal. Your furniture and rugs should feel the same.
+                At Corners, we offer thoughtful, limited-scope customization to maintain
+                design integrity and craftsmanship.
               </Typography>
-              <Box sx={{ color: BODY_TEXT, opacity: 0.5 }}>
-                {step.body}
-              </Box>
-            </Box>
-          ))}
-        </Stack>
 
-        {/* Lifestyle photo */}
-        <Box
-          component="img"
-          src={CDN_LIFESTYLE["how-it-works-photo"]}
-          alt="Woman touching soft fluffy carpet"
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: { xs: 13, sm: 14, md: furnitureHeroBodyFontSize },
+                  lineHeight: { xs: 1.55, md: 1.4 },
+                  color: HERO_TEXT,
+                  borderLeft: { xs: `2px solid ${ACCENT}`, md: "none" },
+                  pl: { xs: 1.5, md: 0 },
+                  opacity: 0.98,
+                }}
+              >
+                Furniture upholstery can be customized. Rugs are fully custom-made to
+                your space and palette.
+              </Typography>
+            </Stack>
+          </Stack>
+        </Stack>
+      </Box>
+
+      <Box
+        component="section"
+        aria-label="How It Works"
+        sx={{
+          bgcolor: PAGE_BG,
+          px: {
+            xs: layoutPaddingX.xs,
+            sm: layoutPaddingX.sm,
+            md: customHowItWorksSectionPadX,
+          },
+          py: { xs: 5, sm: 6, md: customHowItWorksSectionPadY },
+        }}
+      >
+        <Typography
+          component="h2"
           sx={{
-            flex: "1 1 0",
-            maxWidth: { xs: "100%", md: customHowItWorksPhotoMaxW },
-            width: "100%",
-            height: "auto",
-            borderRadius: customHowItWorksCardRadius,
-            objectFit: "cover",
-            display: "block",
-            alignSelf: { md: "stretch" },
+            fontFamily: FONT_SURGENA,
+            fontWeight: 600,
+            fontSize: {
+              xs: "clamp(26px, 7vw, 32px)",
+              sm: 40,
+              md: customHowItWorksTitleSize,
+            },
+            lineHeight: 1.2,
+            textTransform: "uppercase",
+            color: BODY_TEXT,
+            textAlign: { xs: "center", md: "left" },
+            mb: { xs: 2.5, sm: 3.5, md: customHowItWorksTitleToCardsGap },
           }}
-        />
-      </Stack>
-    </Box>
+        >
+          How It Works
+        </Typography>
+
+        <Stack
+          direction={{ xs: "column", md: "row" }}
+          alignItems={{ xs: "stretch", md: "flex-start" }}
+          sx={{ gap: { xs: 3, sm: 4, md: customHowItWorksColGap } }}
+        >
+          <Box
+            component="img"
+            src={CDN_LIFESTYLE["how-it-works-photo"]}
+            alt="Woman touching soft fluffy carpet"
+            sx={{
+              order: { xs: -1, md: 0 },
+              flex: { md: "1 1 0" },
+              width: "100%",
+              maxWidth: { xs: "100%", md: customHowItWorksPhotoMaxW },
+              aspectRatio: { xs: "4 / 3", sm: "16 / 10", md: "auto" },
+              maxHeight: { xs: 260, sm: 340, md: "none" },
+              height: { md: "auto" },
+              borderRadius: customHowItWorksCardRadius,
+              objectFit: "cover",
+              display: "block",
+              alignSelf: { md: "stretch" },
+            }}
+          />
+
+          <Stack
+            sx={{
+              order: { xs: 0, md: 0 },
+              gap: { xs: 1.5, sm: 2, md: customHowItWorksCardGap },
+              flex: "1 1 0",
+              maxWidth: { xs: "100%", md: customHowItWorksCardMaxW },
+            }}
+          >
+            {HOW_IT_WORKS_STEPS.map((step) => (
+              <Box
+                key={step.number}
+                sx={{
+                  border: `1px solid ${CARD_BORDER}`,
+                  borderRadius: customHowItWorksCardRadius,
+                  px: { xs: 2, sm: 2.5, md: customHowItWorksCardPadX },
+                  py: { xs: 2, sm: 2.5, md: customHowItWorksCardPadY },
+                  display: "flex",
+                  flexDirection: "column",
+                  gap: { xs: 1, sm: 1.25, md: customHowItWorksCardInnerGap },
+                  bgcolor: "rgba(255,255,255,0.35)",
+                }}
+              >
+                <Typography
+                  sx={{
+                    alignSelf: "flex-start",
+                    fontFamily: FONT_NAV,
+                    fontWeight: 600,
+                    fontSize: { xs: 10, sm: 11, md: customHowItWorksStepFontSize },
+                    lineHeight: 1.2,
+                    letterSpacing: "0.08em",
+                    textTransform: "uppercase",
+                    color: ACCENT,
+                    px: { xs: 1, sm: 1.25 },
+                    py: 0.375,
+                    borderRadius: 999,
+                    border: `1px solid rgba(188, 126, 90, 0.35)`,
+                    bgcolor: "rgba(255,255,255, 0.55)",
+                  }}
+                >
+                  Step {step.number}
+                </Typography>
+                <Typography
+                  sx={{
+                    fontFamily: FONT_SURGENA,
+                    fontWeight: 600,
+                    fontSize: {
+                      xs: 18,
+                      sm: 20,
+                      md: customHowItWorksCardTitleSize,
+                    },
+                    lineHeight: 1.35,
+                    color: BODY_TEXT,
+                  }}
+                >
+                  {step.title}
+                </Typography>
+                <Box sx={{ color: BODY_TEXT, opacity: 0.72 }}>{step.body}</Box>
+              </Box>
+            ))}
+          </Stack>
+        </Stack>
+      </Box>
     </>
   );
 }
@@ -294,10 +352,10 @@ function BreadcrumbChevron() {
       component="svg"
       viewBox="0 0 18 12"
       sx={{
-        width: fluidChevronW,
-        height: fluidChevronH,
+        width: { xs: 14, sm: 16, md: "clamp(18px, 1.51vw, 29px)" },
+        height: { xs: 6, sm: 7, md: "clamp(8px, 0.625vw, 12px)" },
         flexShrink: 0,
-        opacity: 0.9,
+        opacity: 0.75,
       }}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"
@@ -316,8 +374,8 @@ function BreadcrumbChevron() {
 const stepBodySx = {
   fontFamily: FONT_NAV,
   fontWeight: 500,
-  fontSize: customHowItWorksStepFontSize,
-  lineHeight: 1.4,
+  fontSize: { xs: 13, sm: 14, md: customHowItWorksStepFontSize },
+  lineHeight: 1.5,
 } as const;
 
 const HOW_IT_WORKS_STEPS: {
@@ -340,10 +398,16 @@ const HOW_IT_WORKS_STEPS: {
     body: (
       <Box sx={stepBodySx} component="div">
         <Typography sx={stepBodySx}>You receive:</Typography>
-        <Box component="ul" sx={{ m: 0, pl: "24px" }}>
-          <li><Typography sx={stepBodySx}>Final specification sheet</Typography></li>
-          <li><Typography sx={stepBodySx}>Fabric / swatch suggestions</Typography></li>
-          <li><Typography sx={stepBodySx}>Timeline &amp; pricing</Typography></li>
+        <Box component="ul" sx={{ m: 0, pl: { xs: "18px", md: "24px" } }}>
+          <li>
+            <Typography sx={stepBodySx}>Final specification sheet</Typography>
+          </li>
+          <li>
+            <Typography sx={stepBodySx}>Fabric / swatch suggestions</Typography>
+          </li>
+          <li>
+            <Typography sx={stepBodySx}>Timeline &amp; pricing</Typography>
+          </li>
         </Box>
         <Typography sx={{ ...stepBodySx, mt: "0.6em" }}>
           Your order moves to production once confirmed.
@@ -357,9 +421,14 @@ const HOW_IT_WORKS_STEPS: {
     body: (
       <Typography sx={stepBodySx}>
         Your product is handcrafted by expert ateliers.
-        <br /><br />
-        <Box component="span" sx={{ fontWeight: 600 }}>Timeline: </Box>
-        <Box component="span" sx={{ fontStyle: "italic" }}>4–8 weeks based on complexity.</Box>
+        <Box component="span" sx={{ display: "block", mt: 1 }}>
+          <Box component="span" sx={{ fontWeight: 600 }}>
+            Timeline:{" "}
+          </Box>
+          <Box component="span" sx={{ fontStyle: "italic" }}>
+            4–8 weeks based on complexity.
+          </Box>
+        </Box>
       </Typography>
     ),
   },

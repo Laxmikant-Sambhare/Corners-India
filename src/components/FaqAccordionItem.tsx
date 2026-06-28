@@ -71,10 +71,11 @@ export function FaqAccordionItem({
           display: "flex",
           alignItems: "center",
           justifyContent: "space-between",
-          gap: 2,
+          gap: { xs: 1.5, sm: 2 },
           textAlign: "left",
           py: 0,
           px: 0,
+          minHeight: { xs: 44, sm: "auto" },
           cursor: hasAnswer ? "pointer" : "default",
         }}
       >
@@ -83,9 +84,9 @@ export function FaqAccordionItem({
             fontFamily: FONT_NAV,
             fontWeight: 600,
             fontSize: faqQuestionSize,
-            lineHeight: 1.2,
+            lineHeight: { xs: 1.35, sm: 1.2 },
             color: MUTED,
-            textTransform: "uppercase",
+            textTransform: { xs: "none", sm: "uppercase" },
             flex: 1,
             minWidth: 0,
           }}
@@ -114,10 +115,10 @@ export function FaqAccordionItem({
               fontFamily: FONT_NAV,
               fontWeight: 500,
               fontSize: faqAnswerSize,
-              lineHeight: 1.4,
+              lineHeight: { xs: 1.55, sm: 1.4 },
               color: MUTED,
-              maxWidth: fluid1920(961, { min: 280, max: 960 }),
-              mt: fluid1920(31.733),
+              maxWidth: { xs: "100%", sm: fluid1920(961, { min: 280, max: 960 }) },
+              mt: { xs: 1.5, sm: fluid1920(31.733, { min: 20, max: 32 }) },
               pr: { xs: 0, sm: fluid1920(28) },
             }}
           >

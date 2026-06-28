@@ -5,13 +5,16 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Stack from "@mui/material/Stack";
 import Typography from "@mui/material/Typography";
+import useMediaQuery from "@mui/material/useMediaQuery";
+import { useTheme } from "@mui/material/styles";
 import { Link as RouterLink, useNavigate } from "@tanstack/react-router";
-import { useState, type ReactNode } from "react";
+import { useState, type Dispatch, type ReactNode, type SetStateAction } from "react";
 import type {
   CatalogProduct,
   ProductPdpBodyConfig,
 } from "../catalog/catalogPageTypes";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
+import { layoutPaddingX } from "../layoutConstants";
 import { useCartStore } from "../store/cartStore";
 import { ProductVariantPickers } from "./ProductVariantPickers";
 import { formatPriceShort } from "./productDetailUtils";
@@ -45,7 +48,6 @@ import {
   pdpBodyMadeToOrderPadY,
   pdpBodyPriceSize,
   pdpBodyQtyRowGap,
-  pdpBodyQtyRowMinH,
   pdpBodySectionPadTop,
   pdpBodySwatchGap,
   pdpBodySwatchH,
@@ -64,6 +66,9 @@ const PAGE_BG = "#f3ede3";
 const TAN = "#ccbca6";
 const ACCENT = "#bc7e5a";
 const MUTED = "#4b4a4a";
+const MOBILE_CTA_MIN_H = 48;
+const MOBILE_TOUCH_MIN = 44;
+const MOBILE_STICKY_BAR_H = 168;
 
 type ProductPdpBodyProps = {
   config: ProductPdpBodyConfig;
@@ -77,6 +82,8 @@ export function ProductPdpBody({
   wishlistProduct,
   noHeroBleed,
 }: ProductPdpBodyProps) {
+  const theme = useTheme();
+  const isMobile = useMediaQuery(theme.breakpoints.down("md"));
   const navigate = useNavigate();
   const addToCart = useCartStore((s) => s.addToCart);
   const clearCart = useCartStore((s) => s.clearCart);
@@ -109,16 +116,35 @@ export function ProductPdpBody({
     void navigate({ to: "/checkout" });
   }
 
+  const purchaseControls = (
+    <PdpPurchaseControls
+      quantity={quantity}
+      setQuantity={setQuantity}
+      selectedSizeInStock={selectedSizeInStock}
+      onAddToCart={handleAddToCart}
+      onBuyNow={handleBuyNow}
+      expectedDelivery={config.expectedDelivery}
+      layout={isMobile ? "stacked" : "inline"}
+      showCustomize={!isMobile}
+    />
+  );
+
   return (
+    <>
     <Box
       component="section"
       aria-label="Product details"
       sx={{
         width: "100%",
         bgcolor: PAGE_BG,
-        px: pdpHeroPadX,
-        pt: pdpBodySectionPadTop,
-        pb: { xs: 4, md: 6 },
+        px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: pdpHeroPadX },
+        pt: { xs: 3, md: pdpBodySectionPadTop },
+        pb: {
+          xs: isMobile
+            ? `calc(${MOBILE_STICKY_BAR_H}px + env(safe-area-inset-bottom) + 24px)`
+            : 4,
+          md: 6,
+        },
         boxSizing: "border-box",
       }}
     >
@@ -137,8 +163,11 @@ export function ProductPdpBody({
             width: "100%",
             maxWidth: { lg: pdpBodyDetailsMaxW },
             flexShrink: 0,
-            gap: pdpBodyBlockGap,
-            mt: noHeroBleed ? 0 : pdpHeroImageBleedMarginDesc,
+            gap: { xs: 2.5, md: pdpBodyBlockGap },
+            mt: {
+              xs: noHeroBleed ? 0 : 2,
+              md: noHeroBleed ? 0 : pdpHeroImageBleedMarginDesc,
+            },
           }}
         >
           <Stack
@@ -147,7 +176,7 @@ export function ProductPdpBody({
             justifyContent={
               config.madeToOrder !== false ? "space-between" : "flex-end"
             }
-            sx={{ width: "100%" }}
+            sx={{ width: "100%", gap: 1, flexWrap: "wrap" }}
           >
             {config.madeToOrder !== false && (
               <Stack
@@ -178,19 +207,23 @@ export function ProductPdpBody({
                 </Typography>
               </Stack>
             )}
-            <Stack direction="row" sx={{ gap: 2, alignItems: "center" }}>
+            <Stack direction="row" sx={{ gap: { xs: 1, md: 2 }, alignItems: "center" }}>
               {wishlistProduct ? (
                 <WishlistHeartButton product={wishlistProduct} size="36px" />
               ) : (
                 <ButtonBase
                   type="button"
                   aria-label="Add to wishlist"
-                  sx={{ p: 0.5 }}
+                  sx={{ p: 0.5, minWidth: MOBILE_TOUCH_MIN, minHeight: MOBILE_TOUCH_MIN }}
                 >
                   <HeartIcon />
                 </ButtonBase>
               )}
-              <ButtonBase type="button" aria-label="Share" sx={{ p: 0.5 }}>
+              <ButtonBase
+                type="button"
+                aria-label="Share"
+                sx={{ p: 0.5, minWidth: MOBILE_TOUCH_MIN, minHeight: MOBILE_TOUCH_MIN }}
+              >
                 <ShareIcon />
               </ButtonBase>
             </Stack>
@@ -214,7 +247,10 @@ export function ProductPdpBody({
                 sx={{
                   fontFamily: FONT_SURGENA,
                   fontWeight: 600,
-                  fontSize: pdpBodyPriceSize,
+                  fontSize: {
+                    xs: "clamp(28px, 7vw, 36px)",
+                    md: pdpBodyPriceSize,
+                  },
                   lineHeight: 1,
                   textTransform: "uppercase",
                   color: ACCENT,
@@ -253,11 +289,15 @@ export function ProductPdpBody({
               <Stack
                 direction="row"
                 sx={{
-                  flexWrap: { xs: "wrap", md: "nowrap" },
+                  flexWrap: "nowrap",
                   gap: pdpBodySwatchGap,
                   width: "100%",
-                  overflowX: { xs: "auto", md: "visible" },
-                  pb: { xs: 0.5, md: 0 },
+                  overflowX: "auto",
+                  pb: 0.5,
+                  scrollbarWidth: "none",
+                  msOverflowStyle: "none",
+                  "&::-webkit-scrollbar": { display: "none" },
+                  WebkitOverflowScrolling: "touch",
                 }}
               >
                 {config.materialSwatches.map((label, i) => (
@@ -269,6 +309,7 @@ export function ProductPdpBody({
                       width: pdpBodySwatchW,
                       height: pdpBodySwatchH,
                       minWidth: pdpBodySwatchW,
+                      minHeight: { xs: MOBILE_TOUCH_MIN, md: pdpBodySwatchH },
                       borderRadius: pdpBodyBtnRadius,
                       flexShrink: 0,
                       border:
@@ -311,200 +352,29 @@ export function ProductPdpBody({
             />
           ) : null}
 
-          <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
-            <Typography
-              sx={{
-                fontFamily: FONT_NAV,
-                fontWeight: 500,
-                fontSize: furnitureHeroBodyFontSize,
-                lineHeight: 1.2,
-                textTransform: "capitalize",
-                color: TAN,
-              }}
-            >
-              Quantity
-            </Typography>
-            <Stack
-              direction={{ xs: "column", sm: "row" }}
-              sx={{
-                gap: pdpBodyQtyRowGap,
-                width: "100%",
-                alignItems: "stretch",
-              }}
-            >
-              <Stack
-                direction="row"
-                alignItems="center"
-                justifyContent="space-between"
-                sx={{
-                  flex: { sm: "1 1 0" },
-                  minWidth: 0,
-                  minHeight: pdpBodyQtyRowMinH,
-                  border: "1px solid rgba(75, 74, 74, 0.2)",
-                  borderRadius: pdpBodyBtnRadius,
-                  bgcolor: "rgba(255, 255, 255, 0.72)",
-                  px: productDetailModalQtyPadX,
-                  py: productDetailModalQtyPadY,
-                  boxSizing: "border-box",
-                }}
-              >
-                <ButtonBase
-                  type="button"
-                  disabled={quantity <= 1}
-                  onClick={() => setQuantity((q) => Math.max(1, q - 1))}
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: navFontSize,
-                    color: MUTED,
-                  }}
-                >
-                  −
-                </ButtonBase>
-                <Typography
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: navFontSize,
-                    color: MUTED,
-                  }}
-                >
-                  {quantity}
-                </Typography>
-                <ButtonBase
-                  type="button"
-                  onClick={() => setQuantity((q) => q + 1)}
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: navFontSize,
-                    color: MUTED,
-                  }}
-                >
-                  +
-                </ButtonBase>
-              </Stack>
-              {selectedSizeInStock ? (
-                <>
-                  <ButtonBase
-                    type="button"
-                    onClick={handleAddToCart}
-                    sx={{
-                      flex: { sm: "1 1 0" },
-                      minWidth: 0,
-                      minHeight: pdpBodyQtyRowMinH,
-                      bgcolor: ACCENT,
-                      color: PAGE_BG,
-                      px: productDetailModalCtaPadX,
-                      py: productDetailModalCtaPadY,
-                      borderRadius: pdpBodyBtnRadius,
-                      fontFamily: FONT_NAV,
-                      fontWeight: 600,
-                      fontSize: navFontSize,
-                      textTransform: "uppercase",
-                      "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
-                    }}
-                  >
-                    Add to cart
-                  </ButtonBase>
-                </>
-              ) : (
-                <Box
-                  sx={{
-                    flex: { sm: "1 1 0" },
-                    minWidth: 0,
-                    minHeight: pdpBodyQtyRowMinH,
-                    bgcolor: "rgba(75,74,74,0.08)",
-                    color: "rgba(75,74,74,0.45)",
-                    px: productDetailModalCtaPadX,
-                    py: productDetailModalCtaPadY,
-                    borderRadius: pdpBodyBtnRadius,
-                    fontFamily: FONT_NAV,
-                    fontWeight: 600,
-                    fontSize: navFontSize,
-                    textTransform: "uppercase",
-                    textAlign: "center",
-                    display: "flex",
-                    alignItems: "center",
-                    justifyContent: "center",
-                    border: "1px solid rgba(75,74,74,0.15)",
-                  }}
-                >
-                  Out of stock
-                </Box>
-              )}
-            </Stack>
-            {selectedSizeInStock ? (
-              <ButtonBase
-                type="button"
-                onClick={handleBuyNow}
-                sx={{
-                  width: "100%",
-                  minHeight: pdpBodyQtyRowMinH,
-                  bgcolor: "transparent",
-                  color: ACCENT,
-                  py: productDetailModalCtaPadY,
-                  borderRadius: pdpBodyBtnRadius,
-                  border: `2px solid ${ACCENT}`,
-                  fontFamily: FONT_NAV,
-                  fontWeight: 600,
-                  fontSize: navFontSize,
-                  textTransform: "uppercase",
-                  "&:hover": { bgcolor: "rgba(188, 126, 90, 0.08)" },
-                }}
-              >
-                Buy now
-              </ButtonBase>
-            ) : null}
+          {!isMobile ? purchaseControls : null}
+
+          {isMobile ? (
             <ButtonBase
               component={RouterLink}
               to="/customizations"
               sx={{
                 width: "100%",
-                minHeight: pdpBodyQtyRowMinH,
-                bgcolor: ACCENT,
-                color: PAGE_BG,
+                minHeight: MOBILE_CTA_MIN_H,
+                bgcolor: "transparent",
+                color: TAN,
                 py: productDetailModalCtaPadY,
                 borderRadius: pdpBodyBtnRadius,
+                border: `1px solid ${TAN}`,
                 fontFamily: FONT_NAV,
                 fontWeight: 600,
                 fontSize: navFontSize,
                 textTransform: "uppercase",
-                "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
               }}
             >
               Get it Customized
             </ButtonBase>
-            {config.expectedDelivery && (
-              <Stack
-                direction="row"
-                sx={{ gap: "2px", flexWrap: "wrap", alignItems: "baseline" }}
-              >
-                <Typography
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 500,
-                    fontSize: furnitureHeroBodyFontSize,
-                    lineHeight: 1.4,
-                    color: MUTED,
-                  }}
-                >
-                  Expected Delivery by{" "}
-                </Typography>
-                <Typography
-                  sx={{
-                    fontFamily: FONT_NAV,
-                    fontWeight: 700,
-                    fontSize: furnitureHeroBodyFontSize,
-                    lineHeight: 1.4,
-                    color: ACCENT,
-                  }}
-                >
-                  {config.expectedDelivery}
-                </Typography>
-              </Stack>
-            )}
-          </Stack>
+          ) : null}
 
           <Stack sx={{ gap: pdpBodyAccordionListGap, width: "100%" }}>
             <PdpAccordion title="Product Description" defaultExpanded>
@@ -521,7 +391,7 @@ export function ProductPdpBody({
               </Typography>
             </PdpAccordion>
 
-            <PdpAccordion title="Material" defaultExpanded>
+            <PdpAccordion title="Material" defaultExpanded={!isMobile}>
               <Box
                 component="ul"
                 sx={{
@@ -543,12 +413,12 @@ export function ProductPdpBody({
             </PdpAccordion>
 
             {config.showDimensions !== false && (
-              <PdpAccordion title="Dimensions and Size" defaultExpanded>
+              <PdpAccordion title="Dimensions and Size" defaultExpanded={!isMobile}>
                 <ProductPdpDimensions dims={config.dimensions} />
               </PdpAccordion>
             )}
 
-            <PdpAccordion title="Shipping / Delivery Timeline" defaultExpanded>
+            <PdpAccordion title="Shipping / Delivery Timeline" defaultExpanded={!isMobile}>
               <Typography
                 sx={{
                   fontFamily: FONT_NAV,
@@ -576,7 +446,7 @@ export function ProductPdpBody({
               )}
             </PdpAccordion>
 
-            <PdpAccordion title="Return & Exchange" defaultExpanded>
+            <PdpAccordion title="Return & Exchange" defaultExpanded={!isMobile}>
               <Typography
                 sx={{
                   fontFamily: FONT_NAV,
@@ -593,6 +463,298 @@ export function ProductPdpBody({
         </Stack>
       </Stack>
     </Box>
+
+    {isMobile ? (
+      <Box
+        sx={{
+          position: "fixed",
+          left: 0,
+          right: 0,
+          bottom: 0,
+          zIndex: 12,
+          px: layoutPaddingX.xs,
+          pt: 1.5,
+          pb: "max(12px, env(safe-area-inset-bottom))",
+          bgcolor: PAGE_BG,
+          borderTop: `1px solid rgba(204, 188, 166, 0.55)`,
+          boxShadow: "0 -10px 28px rgba(75, 74, 74, 0.12)",
+        }}
+      >
+        {purchaseControls}
+      </Box>
+    ) : null}
+    </>
+  );
+}
+
+function PdpPurchaseControls({
+  quantity,
+  setQuantity,
+  selectedSizeInStock,
+  onAddToCart,
+  onBuyNow,
+  expectedDelivery,
+  layout,
+  showCustomize,
+}: {
+  quantity: number;
+  setQuantity: Dispatch<SetStateAction<number>>;
+  selectedSizeInStock: boolean;
+  onAddToCart: () => void;
+  onBuyNow: () => void;
+  expectedDelivery?: string;
+  layout: "inline" | "stacked";
+  showCustomize?: boolean;
+}) {
+  const isStacked = layout === "stacked";
+
+  const qtyRow = (
+    <Stack
+      direction="row"
+      alignItems="center"
+      justifyContent="center"
+      sx={{
+        flex: isStacked ? "0 0 auto" : { sm: "1 1 0" },
+        width: isStacked ? 132 : undefined,
+        minWidth: isStacked ? 132 : 0,
+        flexShrink: 0,
+        minHeight: MOBILE_CTA_MIN_H,
+        border: "1px solid rgba(75, 74, 74, 0.2)",
+        borderRadius: pdpBodyBtnRadius,
+        bgcolor: "rgba(255, 255, 255, 0.72)",
+        px: isStacked ? 1 : productDetailModalQtyPadX,
+        py: isStacked ? 0.5 : productDetailModalQtyPadY,
+        boxSizing: "border-box",
+        gap: isStacked ? 0.5 : 0,
+      }}
+    >
+      <ButtonBase
+        type="button"
+        aria-label="Decrease quantity"
+        disabled={quantity <= 1}
+        onClick={() => setQuantity((q) => Math.max(1, q - 1))}
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 600,
+          fontSize: navFontSize,
+          color: MUTED,
+          width: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          minWidth: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          height: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          minHeight: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          borderRadius: 1,
+          flexShrink: 0,
+        }}
+      >
+        −
+      </ButtonBase>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 600,
+          fontSize: navFontSize,
+          color: MUTED,
+          minWidth: isStacked ? 24 : 28,
+          flex: isStacked ? 1 : undefined,
+          textAlign: "center",
+        }}
+      >
+        {quantity}
+      </Typography>
+      <ButtonBase
+        type="button"
+        aria-label="Increase quantity"
+        onClick={() => setQuantity((q) => q + 1)}
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 600,
+          fontSize: navFontSize,
+          color: MUTED,
+          width: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          minWidth: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          height: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          minHeight: isStacked ? 36 : MOBILE_TOUCH_MIN,
+          borderRadius: 1,
+          flexShrink: 0,
+        }}
+      >
+        +
+      </ButtonBase>
+    </Stack>
+  );
+
+  const addToCartBtn = selectedSizeInStock ? (
+    <ButtonBase
+      type="button"
+      onClick={onAddToCart}
+      sx={{
+        flex: isStacked ? 1 : { sm: "1 1 0" },
+        width: isStacked ? "100%" : undefined,
+        alignSelf: isStacked ? "stretch" : undefined,
+        minWidth: 0,
+        minHeight: MOBILE_CTA_MIN_H,
+        bgcolor: ACCENT,
+        color: PAGE_BG,
+        px: productDetailModalCtaPadX,
+        py: productDetailModalCtaPadY,
+        borderRadius: pdpBodyBtnRadius,
+        fontFamily: FONT_NAV,
+        fontWeight: 600,
+        fontSize: navFontSize,
+        textTransform: "uppercase",
+        "&:hover": { bgcolor: ACCENT, opacity: 0.94 },
+        "&:active": { transform: "scale(0.99)" },
+      }}
+    >
+      Add to cart
+    </ButtonBase>
+  ) : (
+    <Box
+      sx={{
+        flex: isStacked ? 1 : { sm: "1 1 0" },
+        width: isStacked ? "100%" : undefined,
+        alignSelf: isStacked ? "stretch" : undefined,
+        minWidth: 0,
+        minHeight: MOBILE_CTA_MIN_H,
+        bgcolor: "rgba(75,74,74,0.08)",
+        color: "rgba(75,74,74,0.45)",
+        px: productDetailModalCtaPadX,
+        py: productDetailModalCtaPadY,
+        borderRadius: pdpBodyBtnRadius,
+        fontFamily: FONT_NAV,
+        fontWeight: 600,
+        fontSize: navFontSize,
+        textTransform: "uppercase",
+        textAlign: "center",
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "center",
+        border: "1px solid rgba(75,74,74,0.15)",
+      }}
+    >
+      Out of stock
+    </Box>
+  );
+
+  const buyNowBtn = selectedSizeInStock ? (
+    <ButtonBase
+      type="button"
+      onClick={onBuyNow}
+      sx={{
+        width: "100%",
+        minHeight: MOBILE_CTA_MIN_H,
+        bgcolor: "transparent",
+        color: ACCENT,
+        py: productDetailModalCtaPadY,
+        borderRadius: pdpBodyBtnRadius,
+        border: `2px solid ${ACCENT}`,
+        fontFamily: FONT_NAV,
+        fontWeight: 600,
+        fontSize: navFontSize,
+        textTransform: "uppercase",
+        "&:hover": { bgcolor: "rgba(188, 126, 90, 0.08)" },
+        "&:active": { transform: "scale(0.99)" },
+      }}
+    >
+      Buy now
+    </ButtonBase>
+  ) : null;
+
+  const customizeBtn = showCustomize ? (
+    <ButtonBase
+      component={RouterLink}
+      to="/customizations"
+      sx={{
+        width: "100%",
+        minHeight: MOBILE_CTA_MIN_H,
+        bgcolor: isStacked ? "transparent" : ACCENT,
+        color: isStacked ? TAN : PAGE_BG,
+        py: productDetailModalCtaPadY,
+        borderRadius: pdpBodyBtnRadius,
+        border: isStacked ? `1px solid ${TAN}` : "none",
+        fontFamily: FONT_NAV,
+        fontWeight: 600,
+        fontSize: navFontSize,
+        textTransform: "uppercase",
+        "&:hover": { bgcolor: isStacked ? "rgba(204,188,166,0.12)" : ACCENT, opacity: 0.94 },
+      }}
+    >
+      Get it Customized
+    </ButtonBase>
+  ) : null;
+
+  const deliveryNote = expectedDelivery ? (
+    <Stack direction="row" sx={{ gap: "2px", flexWrap: "wrap", alignItems: "baseline" }}>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 500,
+          fontSize: furnitureHeroBodyFontSize,
+          lineHeight: 1.4,
+          color: MUTED,
+        }}
+      >
+        Expected Delivery by{" "}
+      </Typography>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 700,
+          fontSize: furnitureHeroBodyFontSize,
+          lineHeight: 1.4,
+          color: ACCENT,
+        }}
+      >
+        {expectedDelivery}
+      </Typography>
+    </Stack>
+  ) : null;
+
+  if (isStacked) {
+    return (
+      <Stack sx={{ gap: 1.25, width: "100%" }}>
+        <Stack
+          direction="row"
+          sx={{
+            gap: 1.25,
+            alignItems: "stretch",
+            width: "100%",
+          }}
+        >
+          {qtyRow}
+          <Box sx={{ flex: 1, minWidth: 0, display: "flex" }}>{addToCartBtn}</Box>
+        </Stack>
+        {buyNowBtn}
+        {!showCustomize ? null : customizeBtn}
+      </Stack>
+    );
+  }
+
+  return (
+    <Stack sx={{ gap: pdpBodyFieldLabelGap, width: "100%" }}>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 500,
+          fontSize: furnitureHeroBodyFontSize,
+          lineHeight: 1.2,
+          textTransform: "capitalize",
+          color: TAN,
+        }}
+      >
+        Quantity
+      </Typography>
+      <Stack
+        direction={{ xs: "column", sm: "row" }}
+        sx={{ gap: pdpBodyQtyRowGap, width: "100%", alignItems: "stretch" }}
+      >
+        {qtyRow}
+        {addToCartBtn}
+      </Stack>
+      {buyNowBtn}
+      {customizeBtn}
+      {deliveryNote}
+    </Stack>
   );
 }
 
@@ -604,18 +766,35 @@ function ProductPdpGallery({
   noHeroBleed?: boolean;
 }) {
   return (
-    <Box
-      sx={{
-        width: "100%",
-        maxWidth: { lg: pdpBodyGalleryMaxW },
-        flex: { lg: "1 1 0" },
-        minWidth: 0,
-        display: "flex",
-        flexDirection: "column",
-        gap: pdpBodyGalleryGap,
-        mt: noHeroBleed ? 0 : pdpHeroImageBleedMargin,
-      }}
-    >
+    <>
+      {/* Mobile — clean vertical stack */}
+      <Stack
+        sx={{
+          display: { xs: "flex", md: "none" },
+          width: "100%",
+          gap: 2,
+          mt: noHeroBleed ? 0 : 1,
+        }}
+      >
+        <GalleryTile src={gallery.rightTall} aspectRatio={4 / 5} />
+        <GalleryTile src={gallery.topLeft} aspectRatio={382 / 358} />
+        <GalleryTile src={gallery.bottomLeft} aspectRatio={382 / 225} />
+        <GalleryTile src={gallery.bottomWide} aspectRatio={16 / 9} />
+      </Stack>
+
+      {/* Desktop — editorial grid */}
+      <Box
+        sx={{
+          display: { xs: "none", md: "flex" },
+          width: "100%",
+          maxWidth: { lg: pdpBodyGalleryMaxW },
+          flex: { lg: "1 1 0" },
+          minWidth: 0,
+          flexDirection: "column",
+          gap: pdpBodyGalleryGap,
+          mt: noHeroBleed ? 0 : pdpHeroImageBleedMargin,
+        }}
+      >
       <Stack
         direction="row"
         sx={{
@@ -678,7 +857,8 @@ function ProductPdpGallery({
           }}
         />
       </Box>
-    </Box>
+      </Box>
+    </>
   );
 }
 
@@ -933,13 +1113,17 @@ function PdpAccordion({
       <AccordionSummary
         expandIcon={<ChevronDown />}
         sx={{
-          px: pdpBodyAccordionPadX,
-          py: pdpBodyAccordionPadY,
+          px: { xs: 2, md: pdpBodyAccordionPadX },
+          py: { xs: 2, md: pdpBodyAccordionPadY },
+          minHeight: { xs: MOBILE_TOUCH_MIN, md: "auto" },
           bgcolor: PAGE_BG,
           "& .MuiAccordionSummary-content": {
             my: 0,
-            alignItems: "flex-start",
+            alignItems: "center",
             justifyContent: "space-between",
+          },
+          "& .MuiAccordionSummary-expandIconWrapper": {
+            color: ACCENT,
           },
         }}
       >
@@ -959,9 +1143,9 @@ function PdpAccordion({
       </AccordionSummary>
       <AccordionDetails
         sx={{
-          px: pdpBodyAccordionPadX,
+          px: { xs: 2, md: pdpBodyAccordionPadX },
           pt: 0,
-          pb: pdpBodyAccordionPadY,
+          pb: { xs: 2, md: pdpBodyAccordionPadY },
           mt: -1,
           bgcolor: PAGE_BG,
         }}

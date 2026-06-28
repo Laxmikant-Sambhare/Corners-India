@@ -1,6 +1,7 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
+import { layoutPaddingX } from "../layoutConstants";
 import {
   discoverCollectionBodyFontSize,
   discoverCollectionBodyMaxW,
@@ -10,7 +11,10 @@ import {
   discoverCollectionPadY,
   exploreHeadingFontSize,
   featureSpaceBg,
+  fluid1920,
 } from "../navDesignTokens";
+
+const CREAM = "#F3EDE3";
 
 const BODY_COPY =
   "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story, the places where life slows down and presence is felt.";
@@ -27,8 +31,12 @@ export function DiscoverCollectionSection() {
         width: "100%",
         maxWidth: "100%",
         bgcolor: featureSpaceBg,
-        px: discoverCollectionPadX,
-        py: discoverCollectionPadY,
+        px: {
+          xs: layoutPaddingX.xs,
+          sm: layoutPaddingX.sm,
+          md: discoverCollectionPadX,
+        },
+        py: { xs: 5, sm: 7, md: discoverCollectionPadY },
         boxSizing: "border-box",
       }}
     >
@@ -39,9 +47,10 @@ export function DiscoverCollectionSection() {
           maxWidth: discoverCollectionInnerMaxW,
           display: "flex",
           flexDirection: { xs: "column", lg: "row" },
-          alignItems: { xs: "flex-start", lg: "center" },
+          alignItems: { xs: "center", lg: "center" },
           justifyContent: "space-between",
-          gap: { xs: 3, sm: 4, lg: discoverCollectionGap },
+          gap: { xs: 2, sm: 3, lg: discoverCollectionGap },
+          textAlign: { xs: "center", lg: "left" },
         }}
       >
         <Typography
@@ -53,17 +62,19 @@ export function DiscoverCollectionSection() {
             fontStyle: "normal",
             fontWeight: 600,
             fontSize: {
-              xs: 28,
+              xs: "clamp(24px, 6.5vw, 32px)",
               sm: 36,
               md: 44,
               lg: exploreHeadingFontSize,
             },
-            lineHeight: "120%",
+            lineHeight: { xs: 1.15, md: 1.2 },
+            letterSpacing: { xs: "0.02em", lg: "0.04em" },
             textTransform: "uppercase",
-            color: "#F3EDE3",
+            color: CREAM,
             whiteSpace: { xs: "normal", md: "nowrap" },
             flexShrink: 0,
             flex: { lg: "0 0 auto" },
+            width: { xs: "100%", lg: "auto" },
             maxWidth: "100%",
             wordBreak: "break-word",
           }}
@@ -76,11 +87,16 @@ export function DiscoverCollectionSection() {
             fontFamily: FONT_NAV,
             fontStyle: "normal",
             fontWeight: 400,
-            fontSize: discoverCollectionBodyFontSize,
-            lineHeight: "140%",
-            color: "#F3EDE3",
-            maxWidth: { xs: "none", lg: discoverCollectionBodyMaxW },
+            fontSize: {
+              xs: fluid1920(14, { min: 14, max: 15 }),
+              md: discoverCollectionBodyFontSize,
+            },
+            lineHeight: { xs: 1.55, md: 1.4 },
+            color: CREAM,
+            width: { xs: "100%", lg: "auto" },
+            maxWidth: { xs: 480, lg: discoverCollectionBodyMaxW },
             flex: { lg: "0 1 auto" },
+            opacity: { xs: 0.96, lg: 1 },
           }}
         >
           {BODY_COPY}

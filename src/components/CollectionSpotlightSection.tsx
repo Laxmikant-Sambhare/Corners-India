@@ -1,8 +1,11 @@
 import Box from "@mui/material/Box";
 import Typography from "@mui/material/Typography";
+import { useTheme } from "@mui/material/styles";
+import useMediaQuery from "@mui/material/useMediaQuery";
 import { AnimatePresence, motion, useReducedMotion } from "framer-motion";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { FONT_NAV } from "../fonts";
+import { layoutPaddingX } from "../layoutConstants";
 import { CDN_HEROES } from "../shopify/cdnImages";
 import type { CatalogProduct } from "../catalog/catalogPageTypes";
 import { useShopifyProductHandleMap } from "../shopify/hooks";
@@ -49,7 +52,6 @@ const HERO_SRC: Record<"eira" | "dunari", string> = {
 };
 
 const PRESS_STRIP_SRC = "/collections/press-as-seen.svg";
-const PRESS_STRIP_ASPECT_RATIO = "1345.87 / 44.8";
 
 /**
  * Card width as a vw-clamped value (matches ~270 px at 1920 px).
@@ -150,6 +152,8 @@ function buildCardVariants(reduceMotion: boolean) {
 }
 
 export function CollectionSpotlightSection() {
+  const theme = useTheme();
+  const isCompactSpotlight = useMediaQuery(theme.breakpoints.down("md"));
   const [active, setActive] = useState<"eira" | "dunari">("eira");
   const [activeIdx, setActiveIdx] = useState<number | null>(null);
   const [modalProduct, setModalProduct] = useState<CatalogProduct | null>(null);
@@ -185,6 +189,23 @@ export function CollectionSpotlightSection() {
     setActiveIdx(null);
   }
 
+  useEffect(() => {
+    if (activeIdx === null) return;
+
+    function handlePointerDown(event: PointerEvent) {
+      const target = event.target;
+      if (!(target instanceof Element)) return;
+      if (target.closest("[data-spotlight-popup]")) return;
+      if (target.closest("[data-spotlight-hotspot]")) return;
+      setActiveIdx(null);
+    }
+
+    document.addEventListener("pointerdown", handlePointerDown);
+    return () => document.removeEventListener("pointerdown", handlePointerDown);
+  }, [activeIdx]);
+
+  const activeHotspot = activeIdx !== null ? hotspots[activeIdx] : null;
+
   return (
     <Box
       component="section"
@@ -199,13 +220,16 @@ export function CollectionSpotlightSection() {
       {/* Top tan bar */}
       <Box
         sx={{
-          height: collectionSpotlightFrameBarH,
+          height: { xs: 12, md: collectionSpotlightFrameBarH },
           width: "100%",
           bgcolor: TAN,
         }}
       />
 
-      {/* ── Hero image + interactive overlay ── */}
+      {/* Mobile / tablet: slim segmented switch (off the photo) */}
+      <CollectionSegmentedToggle active={active} onSwitch={switchCollection} />
+
+      {/* Hero + interactive hotspot overlay */}
       <Box
         sx={{
           position: "relative",
@@ -219,7 +243,11 @@ export function CollectionSpotlightSection() {
           key={active}
           component={motion.img}
           src={heroSrc}
-          alt=""
+          alt={
+            active === "eira"
+              ? "Eira collection lifestyle scene"
+              : "Dunari collection lifestyle scene"
+          }
           loading="lazy"
           decoding="async"
           initial={{ opacity: 0 }}
@@ -233,9 +261,13 @@ export function CollectionSpotlightSection() {
           }}
         />
 
-        {/* Overlay — inset: 0 so % positions match the image exactly */}
-        <Box sx={{ position: "absolute", inset: 0, pointerEvents: "none" }}>
-          {/* ── Click-outside backdrop: closes active dot when clicking image ── */}
+        <Box
+          sx={{
+            position: "absolute",
+            inset: 0,
+            pointerEvents: "none",
+          }}
+        >
           {activeIdx !== null && (
             <Box
               onClick={closeAll}
@@ -245,45 +277,76 @@ export function CollectionSpotlightSection() {
                 zIndex: 3,
                 pointerEvents: "auto",
                 cursor: "default",
+                bgcolor: isCompactSpotlight
+                  ? "rgba(75, 74, 74, 0.12)"
+                  : "transparent",
               }}
             />
           )}
 
-          {/* ── Product cards (one per hotspot, positioned near its dot) ── */}
-          <AnimatePresence>
-            {activeIdx !== null &&
-              (() => {
-                const hs = hotspots[activeIdx];
-                return (
-                  <Box
-                    key={activeIdx}
-                    component={motion.div}
-                    variants={cardVariants}
-                    initial="hidden"
-                    animate="visible"
-                    exit="exit"
-                    style={{ transformOrigin: hs.card.transformOrigin }}
-                    sx={{
-                      position: "absolute",
-                      left: hs.card.left,
-                      right: hs.card.right,
-                      top: hs.card.top,
-                      bottom: hs.card.bottom,
-                      width: CARD_W,
-                      pointerEvents: "auto",
-                      zIndex: 5,
-                    }}
-                  >
-                    <ProductBubble
-                      product={hs.product}
-                      onOpenModal={() => setModalProduct(hs.product)}
-                    />
-                  </Box>
-                );
-              })()}
-          </AnimatePresence>
+          {isCompactSpotlight ? (
+            <AnimatePresence>
+              {activeHotspot && (
+                <Box
+                  key={activeHotspot.handle}
+                  component={motion.div}
+                  data-spotlight-popup
+                  initial={{ opacity: 0, y: 16 }}
+                  animate={{ opacity: 1, y: 0 }}
+                  exit={{ opacity: 0, y: 12 }}
+                  transition={
+                    reduceMotion
+                      ? { duration: 0 }
+                      : { type: "spring", stiffness: 420, damping: 32 }
+                  }
+                  sx={{
+                    position: "absolute",
+                    left: { xs: 12, sm: 16 },
+                    right: { xs: 12, sm: 16 },
+                    bottom: { xs: 14, sm: 16 },
+                    zIndex: 5,
+                    pointerEvents: "auto",
+                  }}
+                >
+                  <MobileSpotlightCard
+                    product={activeHotspot.product}
+                    onOpenModal={() => setModalProduct(activeHotspot.product)}
+                  />
+                </Box>
+              )}
+            </AnimatePresence>
+          ) : (
+            <AnimatePresence>
+              {activeHotspot && (
+                <Box
+                  key={activeIdx}
+                  component={motion.div}
+                  data-spotlight-popup
+                  variants={cardVariants}
+                  initial="hidden"
+                  animate="visible"
+                  exit="exit"
+                  style={{ transformOrigin: activeHotspot.card.transformOrigin }}
+                  sx={{
+                    position: "absolute",
+                    left: activeHotspot.card.left,
+                    right: activeHotspot.card.right,
+                    top: activeHotspot.card.top,
+                    bottom: activeHotspot.card.bottom,
+                    width: CARD_W,
+                    pointerEvents: "auto",
+                    zIndex: 5,
+                  }}
+                >
+                  <ProductBubble
+                    product={activeHotspot.product}
+                    onOpenModal={() => setModalProduct(activeHotspot.product)}
+                  />
+                </Box>
+              )}
+            </AnimatePresence>
+          )}
 
-          {/* ── Hotspot dots ── */}
           {hotspots.map((hs, i) => (
             <HotspotDot
               key={hs.handle}
@@ -291,62 +354,45 @@ export function CollectionSpotlightSection() {
               top={hs.dot.top}
               label={hs.label}
               active={activeIdx === i}
+              compact={isCompactSpotlight}
               reduceMotion={reduceMotion}
               onClick={() => setActiveIdx((prev) => (prev === i ? null : i))}
             />
           ))}
 
-          {/* ── Collection pills ── */}
-          <Box
-            sx={{
-              pointerEvents: "auto",
-              position: "absolute",
-              left: 0,
-              right: 0,
-              bottom: collectionSpotlightPillsInsetBottom,
-              display: "flex",
-              flexWrap: "wrap",
-              justifyContent: "center",
-              gap: collectionSpotlightPillsGap,
-              px: { xs: 2, sm: collectionSpotlightPadX },
-              zIndex: 2,
-            }}
-          >
-            <CollectionPill
-              label="Dunari"
-              active={active === "dunari"}
-              onClick={() => switchCollection("dunari")}
-            />
-            <CollectionPill
-              label="EIRA"
-              active={active === "eira"}
-              onClick={() => switchCollection("eira")}
-            />
-          </Box>
+          {/* Desktop: collection pills on the photo */}
+          <CollectionPillBar
+            active={active}
+            onSwitch={switchCollection}
+            sx={{ display: { xs: "none", md: "flex" } }}
+          />
         </Box>
       </Box>
 
       {/* Bottom tan bar */}
       <Box
         sx={{
-          height: collectionSpotlightFrameBarH,
+          height: { xs: 12, md: collectionSpotlightFrameBarH },
           width: "100%",
           bgcolor: TAN,
         }}
       />
 
-      {/* Press strip */}
+      {/* Press strip — compact on mobile/tablet; Figma spacing from lg */}
       <Box
         component="aside"
         aria-label="As seen in the press"
         sx={{
-          width: "90%",
-          maxWidth: "90%",
+          width: "100%",
           mx: "auto",
           bgcolor: featureSpaceBg,
-          px: collectionSpotlightPadX,
-          pt: pressStripPadTop,
-          pb: pressStripPadBottom,
+          px: {
+            xs: layoutPaddingX.xs,
+            sm: layoutPaddingX.sm,
+            lg: collectionSpotlightPadX,
+          },
+          pt: { xs: 2, sm: 8, md: 12, lg: pressStripPadTop },
+          pb: { xs: 2, sm: 8, md: 12, lg: pressStripPadBottom },
           boxSizing: "border-box",
         }}
       >
@@ -357,22 +403,293 @@ export function CollectionSpotlightSection() {
           loading="lazy"
           decoding="async"
           sx={{
+            display: "block",
             width: "100%",
             maxWidth: "100%",
             height: "auto",
-            aspectRatio: PRESS_STRIP_ASPECT_RATIO,
-            display: "block",
+            mx: "auto",
             objectFit: "contain",
             objectPosition: "center",
           }}
         />
       </Box>
 
-      {/* ── Product detail modal ── */}
       <ProductDetailModal
         open={modalProduct !== null}
         onClose={() => setModalProduct(null)}
         product={modalProduct}
+      />
+    </Box>
+  );
+}
+
+/* ── Mobile: compact card docked above collection pills ── */
+
+function MobileSpotlightCard({
+  product,
+  onOpenModal,
+}: {
+  product: CatalogProduct;
+  onOpenModal: () => void;
+}) {
+  return (
+    <Box
+      component="button"
+      type="button"
+      onClick={onOpenModal}
+      aria-label={`View details for ${product.name}`}
+      sx={{
+        display: "flex",
+        alignItems: "stretch",
+        gap: 1.25,
+        width: "100%",
+        p: 1.25,
+        bgcolor: PAGE_BG,
+        border: `1px solid rgba(243, 237, 227, 0.95)`,
+        borderRadius: spotlightCardOuterRadius,
+        boxShadow: "0 12px 32px rgba(75, 74, 74, 0.22)",
+        boxSizing: "border-box",
+        cursor: "pointer",
+        textAlign: "left",
+        "&:active": { transform: "scale(0.99)" },
+      }}
+    >
+      <Box
+        sx={{
+          flexShrink: 0,
+          width: 84,
+          height: 84,
+          borderRadius: spotlightCardInnerRadius,
+          overflow: "hidden",
+          bgcolor: "rgba(204, 188, 166, 0.25)",
+        }}
+      >
+        <Box
+          component="img"
+          src={product.image}
+          alt=""
+          sx={{
+            width: "100%",
+            height: "100%",
+            objectFit: "cover",
+            display: "block",
+          }}
+        />
+      </Box>
+
+      <Box
+        sx={{
+          flex: 1,
+          minWidth: 0,
+          display: "flex",
+          flexDirection: "column",
+          justifyContent: "center",
+          gap: 0.75,
+          py: 0.25,
+        }}
+      >
+        <Box
+          sx={{
+            alignSelf: "flex-start",
+            bgcolor: TAN,
+            color: PAGE_BG,
+            px: spotlightCardBadgePx,
+            py: spotlightCardBadgePy,
+            borderRadius: spotlightCardBadgeRadius,
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: spotlightCardBadgeFontSize,
+            lineHeight: 1,
+            letterSpacing: "0.02em",
+            textTransform: "uppercase",
+          }}
+        >
+          {product.badge}
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: { xs: 14, sm: 15 },
+            textTransform: "uppercase",
+            color: MUTED,
+            lineHeight: 1.2,
+            display: "-webkit-box",
+            WebkitLineClamp: 2,
+            WebkitBoxOrient: "vertical",
+            overflow: "hidden",
+          }}
+        >
+          {product.name}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 500,
+            fontSize: spotlightCardPriceSize,
+            color: ACCENT,
+            lineHeight: 1.2,
+          }}
+        >
+          {product.price}
+        </Typography>
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: spotlightCardBadgeFontSize,
+            textTransform: "uppercase",
+            letterSpacing: "0.04em",
+            color: ACCENT,
+            lineHeight: 1,
+          }}
+        >
+          View details →
+        </Typography>
+      </Box>
+
+      <Box
+        sx={{
+          flexShrink: 0,
+          alignSelf: "flex-start",
+          pt: 0.25,
+        }}
+      >
+        <WishlistHeartButton product={product} size={spotlightCardHeartW} />
+      </Box>
+    </Box>
+  );
+}
+
+/* ── Mobile / tablet: segmented collection toggle ── */
+
+const COLLECTION_OPTIONS = [
+  { id: "dunari" as const, label: "Dunari" },
+  { id: "eira" as const, label: "Eira" },
+];
+
+function CollectionSegmentedToggle({
+  active,
+  onSwitch,
+}: {
+  active: "eira" | "dunari";
+  onSwitch: (collection: "eira" | "dunari") => void;
+}) {
+  return (
+    <Box
+      sx={{
+        display: { xs: "flex", md: "none" },
+        flexDirection: "column",
+        alignItems: "center",
+        gap: 0.75,
+        px: layoutPaddingX.xs,
+        py: { xs: 1.25, sm: 1.5 },
+        bgcolor: TAN,
+      }}
+    >
+      <Box
+        role="tablist"
+        aria-label="Collection"
+        sx={{
+          display: "inline-flex",
+          alignItems: "center",
+          p: 0.5,
+          gap: 0.5,
+          borderRadius: shopRadius,
+          bgcolor: "rgba(255, 255, 255, 0.5)",
+          border: "1px solid rgba(255, 255, 255, 0.65)",
+          boxShadow: "inset 0 1px 0 rgba(255,255,255,0.35)",
+        }}
+      >
+        {COLLECTION_OPTIONS.map(({ id, label }) => {
+          const selected = active === id;
+          return (
+            <Box
+              key={id}
+              component="button"
+              type="button"
+              role="tab"
+              aria-selected={selected}
+              onClick={() => onSwitch(id)}
+              sx={{
+                px: { xs: 2.25, sm: 2.75 },
+                py: 0.75,
+                minHeight: 36,
+                minWidth: { xs: 88, sm: 96 },
+                border: "none",
+                borderRadius: 6,
+                cursor: "pointer",
+                fontFamily: FONT_NAV,
+                fontWeight: 600,
+                fontSize: { xs: 11, sm: 12 },
+                letterSpacing: "0.06em",
+                textTransform: "uppercase",
+                lineHeight: 1,
+                color: selected ? PAGE_BG : MUTED,
+                bgcolor: selected ? ACCENT : "transparent",
+                transition: "background-color 0.15s ease, color 0.15s ease",
+                "&:active": { transform: "scale(0.98)" },
+              }}
+            >
+              {label}
+            </Box>
+          );
+        })}
+      </Box>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 500,
+          fontSize: 11,
+          lineHeight: 1.3,
+          color: "rgba(75, 74, 74, 0.62)",
+          textAlign: "center",
+        }}
+      >
+        Tap a dot on the photo to shop
+      </Typography>
+    </Box>
+  );
+}
+
+/* ── Desktop: collection pill bar (overlay on hero) ── */
+
+function CollectionPillBar({
+  active,
+  onSwitch,
+  sx,
+}: {
+  active: "eira" | "dunari";
+  onSwitch: (collection: "eira" | "dunari") => void;
+  sx?: object;
+}) {
+  return (
+    <Box
+      sx={{
+        pointerEvents: "auto",
+        position: "absolute",
+        left: 0,
+        right: 0,
+        bottom: collectionSpotlightPillsInsetBottom,
+        zIndex: 6,
+        display: "flex",
+        flexWrap: "nowrap",
+        justifyContent: "center",
+        gap: collectionSpotlightPillsGap,
+        px: collectionSpotlightPadX,
+        py: 0,
+        ...sx,
+      }}
+    >
+      <CollectionPill
+        label="Dunari"
+        active={active === "dunari"}
+        onClick={() => onSwitch("dunari")}
+      />
+      <CollectionPill
+        label="EIRA"
+        active={active === "eira"}
+        onClick={() => onSwitch("eira")}
       />
     </Box>
   );
@@ -385,6 +702,7 @@ function HotspotDot({
   top,
   label,
   active,
+  compact = false,
   reduceMotion,
   onClick,
 }: {
@@ -392,15 +710,23 @@ function HotspotDot({
   top: string;
   label: string;
   active: boolean;
+  compact?: boolean;
   reduceMotion: boolean;
   onClick: () => void;
 }) {
-  const SIZE = { xs: 28, sm: 32, md: 38 };
+  const visualSize = compact ? 22 : { xs: 28, sm: 32, md: 38 };
+  const touchSize = compact ? 44 : undefined;
+  const idlePulse = compact ? [1, 1.06, 1] : [1, 1.22, 1];
+  const activeScale = compact ? 1.04 : 1.1;
+  const activeRing = compact
+    ? "0 0 0 3px rgba(188,126,90,0.18)"
+    : "0 0 0 5px rgba(188,126,90,0.2)";
 
   return (
     <Box
       component="button"
       type="button"
+      data-spotlight-hotspot
       aria-label={label}
       aria-pressed={active}
       onClick={onClick}
@@ -412,22 +738,25 @@ function HotspotDot({
         transform: "translate(-50%, -50%)",
         background: "none",
         border: "none",
-        padding: 0,
+        p: 0,
         cursor: "pointer",
         zIndex: 4,
         display: "flex",
         alignItems: "center",
         justifyContent: "center",
+        width: touchSize,
+        height: touchSize,
+        minWidth: touchSize,
+        minHeight: touchSize,
       }}
     >
-      {/* Outer circle — pulses when idle, turns ACCENT when active */}
       <Box
         component={motion.div}
         animate={
           active
             ? {
                 backgroundColor: ACCENT,
-                scale: 1.1,
+                scale: activeScale,
                 borderColor: ACCENT,
               }
             : reduceMotion
@@ -442,7 +771,7 @@ function HotspotDot({
                     "rgba(255,255,255,0.72)",
                     "rgba(255,255,255,0.42)",
                   ],
-                  scale: [1, 1.22, 1],
+                  scale: idlePulse,
                   borderColor: [
                     "rgba(255,255,255,0.7)",
                     "rgba(255,255,255,1)",
@@ -456,29 +785,30 @@ function HotspotDot({
             : active
               ? { type: "spring", stiffness: 360, damping: 26 }
               : {
-                  duration: 2.2,
+                  duration: compact ? 2.6 : 2.2,
                   repeat: Infinity,
                   ease: "easeInOut",
                 }
         }
         sx={{
-          width: SIZE,
-          height: SIZE,
+          width: visualSize,
+          height: visualSize,
           borderRadius: "50%",
-          border: "1.5px solid",
+          border: compact ? "1px solid" : "1.5px solid",
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
           boxShadow: active
-            ? "0 0 0 5px rgba(188,126,90,0.2)"
-            : "0 2px 10px rgba(0,0,0,0.2)",
+            ? activeRing
+            : compact
+              ? "0 1px 6px rgba(0,0,0,0.18)"
+              : "0 2px 10px rgba(0,0,0,0.2)",
           transition: "box-shadow 0.25s ease",
         }}
       >
-        {/* Inner white dot */}
         <Box
           component={motion.div}
-          animate={{ scale: active ? 1.2 : 1 }}
+          animate={{ scale: active ? (compact ? 1.1 : 1.2) : 1 }}
           transition={
             reduceMotion
               ? { duration: 0 }
@@ -489,7 +819,7 @@ function HotspotDot({
             height: "36%",
             borderRadius: "50%",
             bgcolor: active ? "rgba(255,255,255,0.9)" : "#fff",
-            boxShadow: "0 1px 4px rgba(0,0,0,0.15)",
+            boxShadow: compact ? "none" : "0 1px 4px rgba(0,0,0,0.15)",
           }}
         />
       </Box>
@@ -655,7 +985,8 @@ function CollectionPill({
       onClick={onClick}
       sx={{
         px: collectionSpotlightPillsGap,
-        py: { xs: "10px", sm: "12px" },
+        py: "12px",
+        minHeight: 44,
         borderRadius: shopRadius,
         fontFamily: FONT_NAV,
         fontWeight: 600,
@@ -670,6 +1001,7 @@ function CollectionPill({
         color: "#fff",
         ...(active ? { bgcolor: ACCENT } : { bgcolor: PILL_INACTIVE_BG }),
         "&:hover": { filter: "brightness(1.05)" },
+        "&:active": { transform: "scale(0.98)" },
       }}
     >
       {label}

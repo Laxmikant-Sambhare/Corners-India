@@ -94,10 +94,13 @@ type Props = {
 export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   const theme = useTheme();
   const reduceMotion = useReducedMotion();
-  const isCompactNav = useMediaQuery(theme.breakpoints.down("md"));
+  const isViewportCompact = useMediaQuery(theme.breakpoints.down("lg"));
   const pathname = useRouterState({ select: (s) => s.location.pathname });
   const shellRef = useRef<HTMLDivElement>(null);
   const [sentinelHeight, setSentinelHeight] = useState(0);
+  /** Collapse to hamburger when the bar itself is too narrow (e.g. DevTools docked). */
+  const [isContainerCompact, setIsContainerCompact] = useState(false);
+  const isCompactNav = isViewportCompact || isContainerCompact;
 
   const [navPinned, setNavPinned] = useState(true);
   const [shopMenuOpen, setShopMenuOpen] = useState(false);
@@ -210,12 +213,19 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
   };
 
   useLayoutEffect(() => {
-    if (!reserveLayoutSpace) return;
     const el = shellRef.current;
     if (!el) return;
+
+    const NAV_EXPAND_MIN_W = 1040;
+
     const measure = () => {
-      setSentinelHeight(Math.ceil(el.getBoundingClientRect().height));
+      const width = el.getBoundingClientRect().width;
+      setIsContainerCompact(width > 0 && width < NAV_EXPAND_MIN_W);
+      if (reserveLayoutSpace) {
+        setSentinelHeight(Math.ceil(el.getBoundingClientRect().height));
+      }
     };
+
     measure();
     const ro = new ResizeObserver(measure);
     ro.observe(el);
@@ -299,15 +309,12 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                   md: navPillPadY,
                 },
                 display: "flex",
-                flexDirection: isCompactNav
-                  ? "row"
-                  : { xs: "column", md: "row" },
-                alignItems: isCompactNav
-                  ? "center"
-                  : { xs: "stretch", md: "center" },
+                flexDirection: "row",
+                alignItems: "center",
                 justifyContent: isCompactNav ? "flex-start" : "space-between",
-                gap: isCompactNav ? 0.5 : { xs: 2, md: 3 },
+                gap: isCompactNav ? 0.5 : 3,
                 minHeight: isCompactNav ? 52 : undefined,
+                flexWrap: "nowrap",
               }}
             >
               {isCompactNav ? (
@@ -466,12 +473,11 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                     sx={{
                       display: "block",
                       lineHeight: 0,
-                      alignSelf: { xs: "center", md: "auto" },
                       flexShrink: 0,
                       minWidth: 0,
                       "& img": {
                         display: "block",
-                        height: { xs: 28, md: navLogoHeight },
+                        height: navLogoHeight,
                         width: "auto",
                       },
                     }}
@@ -486,14 +492,14 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
 
                   <Stack
                     direction="row"
-                    flexWrap="wrap"
+                    flexWrap="nowrap"
                     useFlexGap
                     justifyContent="center"
                     alignItems="center"
                     sx={{
-                      flex: { md: 1 },
+                      flex: 1,
                       minWidth: 0,
-                      gap: { xs: 2, sm: 3, md: 6, lg: navLinkGap },
+                      gap: { lg: 4, xl: navLinkGap },
                     }}
                   >
                     <NavbarShopLink
@@ -516,10 +522,7 @@ export function AppNavbar({ sx, reserveLayoutSpace = true }: Props) {
                     alignItems="center"
                     justifyContent="flex-end"
                     spacing={0.5}
-                    sx={{
-                      alignSelf: { xs: "center", md: "auto" },
-                      flexShrink: 0,
-                    }}
+                    sx={{ flexShrink: 0 }}
                   >
                     <IconButton
                       type="button"

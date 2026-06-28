@@ -5,6 +5,7 @@ import Typography from "@mui/material/Typography";
 import { Link as RouterLink, useRouterState } from "@tanstack/react-router";
 import { useRef, useState } from "react";
 import { FONT_NAV } from "../fonts";
+import { layoutPaddingX } from "../layoutConstants";
 import { subscribeToNewsletter } from "../shopify/client";
 import { selectIsLoggedIn, useAuthStore } from "../store/authStore";
 import {
@@ -38,6 +39,7 @@ import {
   footerQuickLinksColW,
   footerSectionHeadingGap,
   footerTaglineToNewsletterGap,
+  shopRadius,
   siteFooterShellBgDefault,
 } from "../navDesignTokens";
 import {
@@ -50,7 +52,6 @@ const PAGE_BG = siteFooterShellBgDefault;
 const FOOTER_BG = "#4b4a4a";
 
 const LOGO_SRC = "/faq-footer/logo.svg";
-/** Figma 990:4675 — tan pill + arrow (export) */
 const NEWSLETTER_SUBMIT_ART_SRC = "/faq-footer/newsletter-btn.svg";
 const SOCIAL_ROW_SRC = "/faq-footer/social-row.svg";
 const PAY_MC = "/faq-footer/pay-mastercard.svg";
@@ -78,11 +79,16 @@ const INFO_LINKS: { label: string; to: string }[] = [
   { label: "FAQs", to: "#" },
 ];
 
-function linkSx() {
+const SUPPORT_EMAIL = "support.corners@gmial.com";
+const SUPPORT_PHONE = "+91 8665654585";
+const SUPPORT_PHONE_HREF = "tel:+918665654585";
+const SUPPORT_ADDRESS = "Judges Bunglow Rd, I I M, Vastrapur, Ahmedabad, Gujarat 380015";
+
+function linkSx(compact = false) {
   return {
     fontFamily: FONT_NAV,
     fontWeight: 500,
-    fontSize: faqAnswerSize,
+    fontSize: compact ? 12 : faqAnswerSize,
     lineHeight: 1.4,
     color: PAGE_BG,
     textDecoration: "none",
@@ -91,7 +97,6 @@ function linkSx() {
   } as const;
 }
 
-/** Figma SVGs used to ship `preserveAspectRatio="none"` (fixed in assets); keeps bitmap box from distorting art. */
 const footerImgContain = {
   objectFit: "contain" as const,
   flexShrink: 0,
@@ -139,18 +144,22 @@ export function SiteFooter() {
         boxSizing: "border-box",
         bgcolor: siteFooterShellBgForPathname(pathname),
         borderRadius: siteFooterShellRadiusForPathname(pathname),
-        px: faqFooterPadX,
-        pt: siteFooterShellPadTopForPathname(pathname),
-        pb: faqFooterPadY,
+        px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: faqFooterPadX },
+        pt: {
+          xs: 3,
+          sm: 4,
+          md: siteFooterShellPadTopForPathname(pathname),
+        },
+        pb: { xs: 3, sm: 4, md: faqFooterPadY },
       }}
     >
       <Box
         sx={{
           width: "100%",
           bgcolor: FOOTER_BG,
-          borderRadius: footerBandRadius,
-          px: footerBandPadX,
-          py: footerBandPadY,
+          borderRadius: { xs: shopRadius, md: footerBandRadius },
+          px: { xs: 2, sm: 2.5, md: footerBandPadX },
+          py: { xs: 2.5, sm: 3, md: footerBandPadY },
           boxSizing: "border-box",
         }}
       >
@@ -160,12 +169,12 @@ export function SiteFooter() {
             flexDirection: { xs: "column", lg: "row" },
             alignItems: { xs: "stretch", lg: "flex-start" },
             justifyContent: { lg: "flex-start" },
-            gap: { xs: 4, md: 12, lg: footerMainColumnsGap },
+            gap: { xs: 2.5, sm: 3, md: 8, lg: footerMainColumnsGap },
             maxWidth: faqFooterInnerMaxW,
             mx: "auto",
           }}
         >
-          {/* Brand + newsletter — 990:4666: gap 108.267 before copyright; 990:4667: gap 54.133 */}
+          {/* Brand + newsletter */}
           <Box
             sx={{
               flexShrink: 0,
@@ -173,21 +182,21 @@ export function SiteFooter() {
               maxWidth: { xs: "100%", lg: footerBrandColMaxW },
               display: "flex",
               flexDirection: "column",
-              gap: footerNewsletterToCopyrightGap,
+              gap: { xs: 2, md: footerNewsletterToCopyrightGap },
             }}
           >
             <Box
               sx={{
                 display: "flex",
                 flexDirection: "column",
-                gap: footerTaglineToNewsletterGap,
+                gap: { xs: 2, md: footerTaglineToNewsletterGap },
               }}
             >
               <Box
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: footerLogoToTaglineGap,
+                  gap: { xs: 0, md: footerLogoToTaglineGap },
                 }}
               >
                 <Box
@@ -196,16 +205,17 @@ export function SiteFooter() {
                   alt="Corners India"
                   sx={{
                     width: "100%",
-                    maxWidth: fluid1920(266.933, { min: 200, max: 280 }),
+                    maxWidth: { xs: 148, sm: 180, md: fluid1920(266.933, { min: 200, max: 280 }) },
                     height: "auto",
                     display: "block",
                     ...footerImgContain,
                     objectPosition: "left top",
-                    alignSelf: "flex-start",
+                    alignSelf: { xs: "center", md: "flex-start" },
                   }}
                 />
                 <Typography
                   sx={{
+                    display: { xs: "none", md: "block" },
                     fontFamily: FONT_NAV,
                     fontWeight: 500,
                     fontSize: faqAnswerSize,
@@ -223,178 +233,134 @@ export function SiteFooter() {
                 sx={{
                   display: "flex",
                   flexDirection: "column",
-                  gap: footerNewsletterTitleToFormGap,
+                  gap: { xs: 1, md: footerNewsletterTitleToFormGap },
                 }}
               >
                 <Typography
                   sx={{
                     fontFamily: FONT_NAV,
                     fontWeight: 600,
-                    fontSize: fluid1920(22, { min: 18, max: 24 }),
+                    fontSize: { xs: 14, sm: 15, md: fluid1920(22, { min: 18, max: 24 }) },
                     lineHeight: 1.2,
                     color: PAGE_BG,
+                    textAlign: { xs: "center", md: "left" },
                   }}
                 >
                   Subscribe to newsletter
                 </Typography>
-                {status === "success" ? (
-                  <Box
-                    sx={{
-                      display: "flex",
-                      alignItems: "center",
-                      gap: 1.5,
-                      height: footerNewsletterH,
-                      px: footerNewsletterInputPadX,
-                      bgcolor: PAGE_BG,
-                      borderRadius: footerNewsletterRadius,
-                    }}
-                  >
-                    <Box
-                      sx={{
-                        width: 20,
-                        height: 20,
-                        borderRadius: "50%",
-                        bgcolor: "#bc7e5a",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "center",
-                        flexShrink: 0,
-                      }}
-                    >
-                      <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
-                        <path d="M1 4L4 7L10 1" stroke="#f3ede3" strokeWidth="1.6" strokeLinecap="round" strokeLinejoin="round" />
-                      </svg>
-                    </Box>
-                    <Typography
-                      sx={{
-                        fontFamily: FONT_NAV,
-                        fontWeight: 600,
-                        fontSize: fluid1920(13, { min: 11, max: 14 }),
-                        color: footerNewsletterPlaceholderColor,
-                      }}
-                    >
-                      You're subscribed!
-                    </Typography>
-                  </Box>
-                ) : (
-                  <Box
-                    component="form"
-                    onSubmit={handleNewsletterSubmit}
-                    sx={{
-                      position: "relative",
-                      width: "100%",
-                      height: footerNewsletterH,
-                      borderRadius: footerNewsletterRadius,
-                      overflow: "hidden",
-                      bgcolor: PAGE_BG,
-                    }}
-                  >
-                    <Box
-                      ref={inputRef}
-                      component="input"
-                      name="email"
-                      type="email"
-                      value={loggedIn ? (customer?.email ?? "") : email}
-                      readOnly={loggedIn}
-                      onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
-                        if (loggedIn) return;
-                        setEmail(e.target.value);
-                        if (status === "error") setStatus("idle");
-                      }}
-                      placeholder={status === "error" ? (errorMsg || "Try again") : "Enter your email"}
-                      autoComplete="email"
-                      disabled={status === "loading"}
-                      sx={{
-                        position: "relative",
-                        zIndex: 1,
-                        boxSizing: "border-box",
-                        width: "100%",
-                        height: "100%",
-                        border: status === "error" ? "1.5px solid #e07070" : 0,
-                        outline: "none",
-                        bgcolor: "transparent",
-                        pl: footerNewsletterInputPadX,
-                        pr: `calc(${footerNewsletterBtnW} + ${footerNewsletterTextBtnGap})`,
-                        pt: footerNewsletterInputPadY,
-                        pb: footerNewsletterInputPadY,
-                        fontFamily: FONT_NAV,
-                        fontWeight: 600,
-                        fontSize: fluid1920(14, { min: 12, max: 15 }),
-                        lineHeight: "normal",
-                        color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
-                        borderRadius: footerNewsletterRadius,
-                        "&::placeholder": {
-                          color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
-                          opacity: 1,
-                        },
-                      }}
-                    />
-                    <ButtonBase
-                      type="submit"
-                      disableRipple
-                      aria-label="Subscribe"
-                      disabled={status === "loading"}
-                      sx={{
-                        position: "absolute",
-                        right: 0,
-                        top: 0,
-                        zIndex: 2,
-                        width: footerNewsletterBtnW,
-                        height: "100%",
-                        p: 0,
-                        m: 0,
-                        minWidth: 0,
-                        borderRadius: 0,
-                        bgcolor: "transparent",
-                        display: "flex",
-                        alignItems: "center",
-                        justifyContent: "flex-end",
-                        opacity: status === "loading" ? 0.6 : 1,
-                      }}
-                    >
-                      {status === "loading" ? (
-                        <Box sx={{ pr: footerNewsletterInputPadX }}>
-                          <CircularProgress size={16} sx={{ color: "#bc7e5a" }} />
-                        </Box>
-                      ) : (
-                        <Box
-                          component="img"
-                          src={NEWSLETTER_SUBMIT_ART_SRC}
-                          alt=""
-                          sx={{
-                            height: "100%",
-                            width: "auto",
-                            maxWidth: footerNewsletterBtnW,
-                            ...footerImgContain,
-                            objectPosition: "right center",
-                          }}
-                        />
-                      )}
-                    </ButtonBase>
-                  </Box>
-                )}
+                <NewsletterForm
+                  status={status}
+                  errorMsg={errorMsg}
+                  email={email}
+                  loggedIn={loggedIn}
+                  customerEmail={customer?.email}
+                  inputRef={inputRef}
+                  onEmailChange={(value) => {
+                    setEmail(value);
+                    if (status === "error") setStatus("idle");
+                  }}
+                  onSubmit={handleNewsletterSubmit}
+                />
               </Box>
+            </Box>
+
+            {/* Mobile: contact — how customers reach us */}
+            <Box
+              sx={{
+                display: { xs: "flex", md: "none" },
+                flexDirection: "column",
+                gap: 1.25,
+                pt: 0.5,
+              }}
+            >
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: 11,
+                  lineHeight: 1.2,
+                  letterSpacing: "0.08em",
+                  textTransform: "uppercase",
+                  color: PAGE_BG,
+                  textAlign: "center",
+                  opacity: 0.9,
+                }}
+              >
+                Contact us
+              </Typography>
+
+              <Box
+                sx={{
+                  display: "flex",
+                  flexDirection: "column",
+                  alignItems: "center",
+                  gap: 0.75,
+                }}
+              >
+                <Typography
+                  component="a"
+                  href={`mailto:${SUPPORT_EMAIL}`}
+                  sx={{ ...linkSx(true), textAlign: "center" }}
+                >
+                  {SUPPORT_EMAIL}
+                </Typography>
+                <Typography
+                  component="a"
+                  href={SUPPORT_PHONE_HREF}
+                  sx={{ ...linkSx(true), textAlign: "center" }}
+                >
+                  {SUPPORT_PHONE}
+                </Typography>
+                <Typography
+                  sx={{
+                    ...linkSx(true),
+                    textAlign: "center",
+                    maxWidth: 280,
+                    opacity: 0.82,
+                    lineHeight: 1.5,
+                  }}
+                >
+                  {SUPPORT_ADDRESS}
+                </Typography>
+              </Box>
+
+              <Box
+                component="img"
+                src={SOCIAL_ROW_SRC}
+                alt="Follow Corners on social media"
+                sx={{
+                  width: 132,
+                  height: "auto",
+                  aspectRatio: "154.933 / 23.3333",
+                  display: "block",
+                  mx: "auto",
+                  mt: 0.5,
+                  ...footerImgContain,
+                  objectPosition: "center",
+                  opacity: 0.95,
+                }}
+              />
             </Box>
           </Box>
 
-          {/* Links + contact — 990:4679 w 761.6; inner row 990:4680 w 735 gap 95.2 */}
+          {/* Desktop: full link columns */}
           <Box
             sx={{
+              display: { xs: "none", md: "flex" },
               flex: 1,
-              display: "flex",
               flexDirection: "column",
-              alignItems: { xs: "stretch", lg: "flex-end" },
+              alignItems: { md: "flex-end" },
               gap: fluid1920(32),
               minWidth: 0,
               width: { lg: "auto" },
-              maxWidth: { xs: "100%", lg: footerLinksClusterMaxW },
+              maxWidth: { lg: footerLinksClusterMaxW },
             }}
           >
             <Box
               sx={{
                 display: "flex",
-                flexDirection: { xs: "column", sm: "row" },
-                flexWrap: { xs: "wrap", lg: "nowrap" },
+                flexDirection: { md: "row" },
+                flexWrap: { md: "nowrap" },
                 gap: footerColumnGap,
                 justifyContent: { lg: "flex-end" },
                 width: "100%",
@@ -421,7 +387,6 @@ export function SiteFooter() {
                     display: "flex",
                     flexDirection: "column",
                     gap: footerLinkGap,
-                    alignItems: { xs: "flex-start", sm: "flex-start" },
                   }}
                 >
                   {QUICK_LINKS.map((l) => (
@@ -474,7 +439,7 @@ export function SiteFooter() {
               <Box
                 sx={{
                   width: { lg: footerContactColW },
-                  maxWidth: { xs: "100%", lg: footerContactColW },
+                  maxWidth: { lg: footerContactColW },
                   flexShrink: 0,
                 }}
               >
@@ -501,17 +466,17 @@ export function SiteFooter() {
                 >
                   <Typography
                     component="a"
-                    href="mailto:support.corners@gmial.com"
+                    href={`mailto:${SUPPORT_EMAIL}`}
                     sx={linkSx()}
                   >
-                    support.corners@gmial.com
+                    {SUPPORT_EMAIL}
                   </Typography>
                   <Typography
                     component="a"
-                    href="tel:+918665654585"
+                    href={SUPPORT_PHONE_HREF}
                     sx={linkSx()}
                   >
-                    +91 8665654585
+                    {SUPPORT_PHONE}
                   </Typography>
                   <Typography sx={linkSx()}>
                     Judges Bunglow Rd, I I M, Vastrapur,
@@ -538,45 +503,53 @@ export function SiteFooter() {
           </Box>
         </Box>
 
-        {/* Full-width bar: was nested in right column — spans same width as main row (1310.4) */}
         <Box
           sx={{
             display: "flex",
-            flexDirection: "row",
+            flexDirection: { xs: "column", sm: "row" },
             flexWrap: "nowrap",
             width: "100%",
             maxWidth: faqFooterInnerMaxW,
             mx: "auto",
             minWidth: 0,
-            mt: fluid1920(46.667),
-            px: 0,
+            mt: { xs: 2.5, sm: 3, md: fluid1920(46.667) },
+            pt: { xs: 2, md: 0 },
+            borderTop: { xs: "1px solid rgba(243, 237, 227, 0.12)", md: "none" },
             justifyContent: "space-between",
             alignItems: "center",
-            columnGap: 2,
-            overflowX: "auto",
+            gap: { xs: 1.25, sm: 2 },
+            overflowX: { xs: "visible", sm: "auto" },
           }}
         >
           <Typography
             sx={{
               fontFamily: FONT_NAV,
               fontWeight: 600,
-              fontSize: fluid1920(14, { min: 12, max: 15 }),
+              fontSize: { xs: 10, sm: 11, md: fluid1920(14, { min: 12, max: 15 }) },
               lineHeight: 1.2,
               color: PAGE_BG,
               textTransform: "uppercase",
               flexShrink: 0,
+              textAlign: { xs: "center", sm: "left" },
+              opacity: { xs: 0.85, md: 1 },
             }}
           >
-            © 2025 Corners. all rights reserved.
+            <Box component="span" sx={{ display: { xs: "inline", md: "none" } }}>
+              © 2025 Corners
+            </Box>
+            <Box component="span" sx={{ display: { xs: "none", md: "inline" } }}>
+              © 2025 Corners. all rights reserved.
+            </Box>
           </Typography>
           <Box
             sx={{
               display: "flex",
               flexWrap: "nowrap",
               alignItems: "center",
-              justifyContent: "flex-end",
-              gap: footerPaymentIconGap,
+              justifyContent: { xs: "center", sm: "flex-end" },
+              gap: { xs: 1, md: footerPaymentIconGap },
               flexShrink: 0,
+              opacity: { xs: 0.9, md: 1 },
             }}
           >
             {[
@@ -591,9 +564,15 @@ export function SiteFooter() {
                 src={p.src}
                 alt={p.alt}
                 sx={{
-                  height: fluid1920(p.h, { min: 18, max: 28 }),
+                  height: {
+                    xs: fluid1920(p.h, { min: 14, max: 18 }),
+                    md: fluid1920(p.h, { min: 18, max: 28 }),
+                  },
                   width: "auto",
-                  maxWidth: fluid1920(p.w, { min: 48, max: p.w }),
+                  maxWidth: {
+                    xs: fluid1920(p.w, { min: 36, max: 56 }),
+                    md: fluid1920(p.w, { min: 48, max: p.w }),
+                  },
                   display: "block",
                   ...footerImgContain,
                   objectPosition: "center",
@@ -603,6 +582,172 @@ export function SiteFooter() {
           </Box>
         </Box>
       </Box>
+    </Box>
+  );
+}
+
+function NewsletterForm({
+  status,
+  errorMsg,
+  email,
+  loggedIn,
+  customerEmail,
+  inputRef,
+  onEmailChange,
+  onSubmit,
+}: {
+  status: "idle" | "loading" | "success" | "error";
+  errorMsg: string;
+  email: string;
+  loggedIn: boolean;
+  customerEmail?: string;
+  inputRef: React.RefObject<HTMLInputElement | null>;
+  onEmailChange: (value: string) => void;
+  onSubmit: (e: React.FormEvent) => void;
+}) {
+  if (status === "success") {
+    return (
+      <Box
+        sx={{
+          display: "flex",
+          alignItems: "center",
+          gap: 1.5,
+          height: { xs: 44, md: footerNewsletterH },
+          px: footerNewsletterInputPadX,
+          bgcolor: PAGE_BG,
+          borderRadius: footerNewsletterRadius,
+        }}
+      >
+        <Box
+          sx={{
+            width: 20,
+            height: 20,
+            borderRadius: "50%",
+            bgcolor: "#bc7e5a",
+            display: "flex",
+            alignItems: "center",
+            justifyContent: "center",
+            flexShrink: 0,
+          }}
+        >
+          <svg width="11" height="8" viewBox="0 0 11 8" fill="none">
+            <path
+              d="M1 4L4 7L10 1"
+              stroke="#f3ede3"
+              strokeWidth="1.6"
+              strokeLinecap="round"
+              strokeLinejoin="round"
+            />
+          </svg>
+        </Box>
+        <Typography
+          sx={{
+            fontFamily: FONT_NAV,
+            fontWeight: 600,
+            fontSize: fluid1920(13, { min: 11, max: 14 }),
+            color: footerNewsletterPlaceholderColor,
+          }}
+        >
+          You're subscribed!
+        </Typography>
+      </Box>
+    );
+  }
+
+  return (
+    <Box
+      component="form"
+      onSubmit={onSubmit}
+      sx={{
+        position: "relative",
+        width: "100%",
+        height: { xs: 44, md: footerNewsletterH },
+        borderRadius: footerNewsletterRadius,
+        overflow: "hidden",
+        bgcolor: PAGE_BG,
+      }}
+    >
+      <Box
+        ref={inputRef}
+        component="input"
+        name="email"
+        type="email"
+        value={loggedIn ? (customerEmail ?? "") : email}
+        readOnly={loggedIn}
+        onChange={(e: React.ChangeEvent<HTMLInputElement>) => {
+          if (loggedIn) return;
+          onEmailChange(e.target.value);
+        }}
+        placeholder={status === "error" ? errorMsg || "Try again" : "Enter your email"}
+        autoComplete="email"
+        disabled={status === "loading"}
+        sx={{
+          position: "relative",
+          zIndex: 1,
+          boxSizing: "border-box",
+          width: "100%",
+          height: "100%",
+          border: status === "error" ? "1.5px solid #e07070" : 0,
+          outline: "none",
+          bgcolor: "transparent",
+          pl: { xs: 1.5, md: footerNewsletterInputPadX },
+          pr: `calc(${footerNewsletterBtnW} + ${footerNewsletterTextBtnGap})`,
+          pt: footerNewsletterInputPadY,
+          pb: footerNewsletterInputPadY,
+          fontFamily: FONT_NAV,
+          fontWeight: 600,
+          fontSize: { xs: 12, md: fluid1920(14, { min: 12, max: 15 }) },
+          lineHeight: "normal",
+          color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
+          borderRadius: footerNewsletterRadius,
+          "&::placeholder": {
+            color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
+            opacity: 1,
+          },
+        }}
+      />
+      <ButtonBase
+        type="submit"
+        disableRipple
+        aria-label="Subscribe"
+        disabled={status === "loading"}
+        sx={{
+          position: "absolute",
+          right: 0,
+          top: 0,
+          zIndex: 2,
+          width: footerNewsletterBtnW,
+          height: "100%",
+          p: 0,
+          m: 0,
+          minWidth: 0,
+          borderRadius: 0,
+          bgcolor: "transparent",
+          display: "flex",
+          alignItems: "center",
+          justifyContent: "flex-end",
+          opacity: status === "loading" ? 0.6 : 1,
+        }}
+      >
+        {status === "loading" ? (
+          <Box sx={{ pr: footerNewsletterInputPadX }}>
+            <CircularProgress size={16} sx={{ color: "#bc7e5a" }} />
+          </Box>
+        ) : (
+          <Box
+            component="img"
+            src={NEWSLETTER_SUBMIT_ART_SRC}
+            alt=""
+            sx={{
+              height: "100%",
+              width: "auto",
+              maxWidth: footerNewsletterBtnW,
+              ...footerImgContain,
+              objectPosition: "right center",
+            }}
+          />
+        )}
+      </ButtonBase>
     </Box>
   );
 }

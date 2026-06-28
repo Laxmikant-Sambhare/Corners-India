@@ -2,10 +2,7 @@ import Box from "@mui/material/Box";
 import ButtonBase from "@mui/material/ButtonBase";
 import Typography from "@mui/material/Typography";
 import { useState } from "react";
-import {
-  FaqAccordionItem,
-  type FaqAccordionEntry,
-} from "./FaqAccordionItem";
+import { FaqAccordionItem, type FaqAccordionEntry } from "./FaqAccordionItem";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
   faqAccordionGap,
@@ -27,6 +24,7 @@ const ACCENT = "#bc7e5a";
 const TAN = "#ccbca6";
 
 const FAQ_CATEGORIES = ["General", "Shipping", "Payment", "Furniture"] as const;
+type FaqCategory = (typeof FAQ_CATEGORIES)[number];
 
 const GENERAL_FAQ: FaqAccordionEntry[] = [
   {
@@ -57,14 +55,11 @@ const GENERAL_FAQ: FaqAccordionEntry[] = [
 
 /** FAQ accordion (Figma 990:4631). Global footer: `SiteFooter`. */
 export function FaqFooterSection() {
-  const [category, setCategory] =
-    useState<(typeof FAQ_CATEGORIES)[number]>("General");
+  const [category, setCategory] = useState<FaqCategory>("General");
   const [expandedId, setExpandedId] = useState<string | null>("q1");
 
-  const items =
-    category === "General"
-      ? GENERAL_FAQ
-      : GENERAL_FAQ.map((q) => ({ ...q, answer: undefined }));
+  const hasContent = category === "General";
+  const items = hasContent ? GENERAL_FAQ : [];
 
   const toggle = (id: string) => {
     setExpandedId((prev) => (prev === id ? null : id));
@@ -81,7 +76,7 @@ export function FaqFooterSection() {
         bgcolor: PAGE_BG,
         backdropFilter: "blur(1.867px)",
         px: faqFooterPadX,
-        pt: faqFooterPadY,
+        pt: { xs: 8, md: faqFooterPadY },
         pb: 0,
       }}
     >
@@ -92,10 +87,11 @@ export function FaqFooterSection() {
           display: "flex",
           flexDirection: "column",
           alignItems: "center",
-          gap: faqFooterTitleGap,
+          gap: { xs: 2, md: faqFooterTitleGap },
         }}
       >
         <Typography
+          component="h2"
           sx={{
             fontFamily: FONT_SURGENA,
             fontWeight: 600,
@@ -104,17 +100,23 @@ export function FaqFooterSection() {
             textAlign: "center",
             color: MUTED,
             textTransform: "uppercase",
+            px: { xs: 0.5, sm: 0 },
           }}
         >
-          Frequently Ask Questions
+          Frequently Asked Questions
         </Typography>
 
         <Box
+          role="tablist"
+          aria-label="FAQ categories"
           sx={{
-            display: "flex",
-            flexWrap: "wrap",
-            justifyContent: "center",
+            display: "grid",
+            gridTemplateColumns: { xs: "1fr 1fr", sm: "repeat(4, auto)" },
             gap: faqCategoryGap,
+            width: "100%",
+            maxWidth: { xs: 360, sm: "none" },
+            justifyContent: "center",
+            justifyItems: { xs: "stretch", sm: "center" },
           }}
         >
           {FAQ_CATEGORIES.map((cat) => {
@@ -122,20 +124,24 @@ export function FaqFooterSection() {
             return (
               <ButtonBase
                 key={cat}
+                role="tab"
+                aria-selected={active}
                 onClick={() => {
                   setCategory(cat);
-                  setExpandedId("q1");
+                  setExpandedId(cat === "General" ? "q1" : null);
                 }}
                 sx={{
+                  width: { xs: "100%", sm: "auto" },
                   px: faqCategoryPillPadX,
                   py: faqCategoryPillPadY,
+                  minHeight: { xs: 44, sm: "auto" },
                   borderRadius: faqCategoryPillRadius,
                   border: active ? "none" : `${fluid1920(0.93)} solid ${TAN}`,
                   bgcolor: active ? ACCENT : "transparent",
                   fontFamily: active ? FONT_SURGENA : FONT_NAV,
                   fontWeight: 600,
                   fontSize: fluid1920(14, { min: 12, max: 15 }),
-                  lineHeight: "normal",
+                  lineHeight: 1,
                   color: active ? PAGE_BG : TAN,
                   textTransform: "uppercase",
                   transition: "background-color 0.2s, color 0.2s",
@@ -153,16 +159,33 @@ export function FaqFooterSection() {
             display: "flex",
             flexDirection: "column",
             gap: faqAccordionGap,
+            mt: { xs: 0.5, sm: 0 },
           }}
         >
-          {items.map((item) => (
-            <FaqAccordionItem
-              key={item.id}
-              item={item}
-              expanded={expandedId === item.id}
-              onToggle={() => toggle(item.id)}
-            />
-          ))}
+          {hasContent ? (
+            items.map((item) => (
+              <FaqAccordionItem
+                key={item.id}
+                item={item}
+                expanded={expandedId === item.id}
+                onToggle={() => toggle(item.id)}
+              />
+            ))
+          ) : (
+            <Typography
+              sx={{
+                py: { xs: 3, sm: 4 },
+                fontFamily: FONT_NAV,
+                fontWeight: 500,
+                fontSize: fluid1920(14, { min: 13, max: 16 }),
+                lineHeight: 1.5,
+                textAlign: "center",
+                color: "rgba(75, 74, 74, 0.65)",
+              }}
+            >
+              {category} FAQs are coming soon.
+            </Typography>
+          )}
         </Box>
       </Box>
     </Box>
