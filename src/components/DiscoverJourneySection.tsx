@@ -34,8 +34,8 @@ const SPARKLE_SRC = "/discover/discover-journey-sparkle.svg";
 const bodyTextSx = {
   fontFamily: FONT_NAV,
   fontWeight: 500,
-  fontSize: furnitureHeroBodyFontSize,
-  lineHeight: 1.4,
+  fontSize: { xs: 13, sm: 14, md: furnitureHeroBodyFontSize },
+  lineHeight: { xs: 1.6, md: 1.4 },
   color: BODY_TEXT,
 } as const;
 
@@ -251,7 +251,7 @@ export function DiscoverJourneySection() {
       <Stack
         sx={{
           display: { xs: "flex", lg: "none" },
-          gap: 4,
+          gap: { xs: 2.5, sm: 3.5 },
           px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm },
         }}
       >
@@ -261,7 +261,7 @@ export function DiscoverJourneySection() {
             sx={{
               fontFamily: FONT_SURGENA,
               fontWeight: 600,
-              fontSize: discoverJourneyLabelSize,
+              fontSize: { xs: "clamp(18px, 5vw, 24px)", sm: discoverJourneyLabelSize },
               lineHeight: 1.2,
               textTransform: "uppercase",
               color: BODY_TEXT,
@@ -320,10 +320,10 @@ export function DiscoverJourneySection() {
           sx={{
             fontFamily: FONT_SURGENA,
             fontWeight: 600,
-            fontSize: discoverJourneyClosingSize,
-            lineHeight: 1.2,
+            fontSize: { xs: "clamp(20px, 5.5vw, 28px)", sm: discoverJourneyClosingSize },
+            lineHeight: 1.25,
             textTransform: "uppercase",
-            textAlign: "center",
+            textAlign: { xs: "left", sm: "center" },
             color: BODY_TEXT,
           }}
         >

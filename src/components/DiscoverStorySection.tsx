@@ -5,7 +5,6 @@ import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
   discoverPhilosophyGap,
   discoverPhilosophyRugMaxW,
-  discoverPhilosophyRugOverlapIntoStory,
   discoverPhilosophyRugPadX,
   discoverStoryContentPadTop,
   discoverStoryPadBottom,
@@ -32,11 +31,20 @@ const STORY_RUG_SRC = "/discover/discover-story-rug.png";
 const STORY_SOFA_SRC = "/discover/discover-story-sofa.png";
 const PHILOSOPHY_RUG_SRC = "/discover/dsc00082-rug.png";
 
+/** Native asset 4096×2731 — used to pull tan band up by exactly half the rendered rug height. */
+const PHILOSOPHY_RUG_HEIGHT_RATIO = 2731 / 4096;
+
+/** `100vw` minus total horizontal padding on the rug row (MUI spacing × 8px × 2 sides). */
+const philosophyRugHalfOverlap = (horizontalPadPx: number) =>
+  `calc(min(calc(100vw - ${horizontalPadPx}px), ${discoverPhilosophyRugMaxW}) * ${PHILOSOPHY_RUG_HEIGHT_RATIO} / 2)`;
+
+const philosophyRugHalfOverlapMd = `calc(min(calc(100vw - 2 * ${discoverPhilosophyRugPadX}), ${discoverPhilosophyRugMaxW}) * ${PHILOSOPHY_RUG_HEIGHT_RATIO} / 2)`;
+
 const bodyTextSx = {
   fontFamily: FONT_NAV,
   fontWeight: 500,
-  fontSize: furnitureHeroBodyFontSize,
-  lineHeight: 1.4,
+  fontSize: { xs: 13, sm: 14, md: furnitureHeroBodyFontSize },
+  lineHeight: { xs: 1.6, md: 1.4 },
   color: BODY_TEXT,
 } as const;
 
@@ -76,7 +84,7 @@ export function DiscoverStorySection() {
         sx={{
           position: "relative",
           zIndex: 0,
-          mt: discoverPhilosophyGap,
+          mt: { xs: 2, sm: 3, md: discoverPhilosophyGap },
           display: "flex",
           justifyContent: "center",
           px: rugPadX,
@@ -97,14 +105,18 @@ export function DiscoverStorySection() {
         />
       </Box>
 
-      {/* Tan story band (2746) */}
+      {/* Tan story band (2746) — bottom 50% of philosophy rug sits behind this band */}
       <Box
         sx={{
           position: "relative",
           zIndex: 2,
-          mt: { lg: `calc(-1 * ${discoverPhilosophyRugOverlapIntoStory})` },
+          mt: {
+            xs: `calc(-1 * ${philosophyRugHalfOverlap(layoutPaddingX.xs * 16)})`,
+            sm: `calc(-1 * ${philosophyRugHalfOverlap(layoutPaddingX.sm * 16)})`,
+            md: `calc(-1 * ${philosophyRugHalfOverlapMd})`,
+          },
           bgcolor: SECTION_BG,
-          pt: { lg: discoverStoryContentPadTop, xs: 4 },
+          pt: { xs: 2, sm: 2.5, md: discoverStoryContentPadTop },
           pb: discoverStoryPadBottom,
           overflow: "hidden",
         }}
@@ -272,10 +284,22 @@ export function DiscoverStorySection() {
         <Stack
           sx={{
             display: { xs: "flex", lg: "none" },
-            gap: 4,
+            gap: { xs: 2.5, sm: 3.5 },
             px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm },
+            pb: { xs: 4, sm: 5 },
           }}
         >
+          <Typography
+            id="discover-story-heading-mobile"
+            component="h2"
+            sx={{
+              ...headingSx,
+              fontSize: { xs: "clamp(20px, 5.5vw, 28px)", sm: discoverStoryTitleSize },
+            }}
+          >
+            It Started With Conversations About Home
+          </Typography>
+
           <Box
             component="img"
             src={STORY_PORTRAIT_SRC}
@@ -287,14 +311,6 @@ export function DiscoverStorySection() {
               display: "block",
             }}
           />
-
-          <Typography
-            id="discover-story-heading-mobile"
-            component="h2"
-            sx={{ ...headingSx, fontSize: discoverStoryTitleSize }}
-          >
-            It Started With Conversations About Home
-          </Typography>
 
           <Box
             sx={{
@@ -350,7 +366,7 @@ export function DiscoverStorySection() {
           </Box>
 
           <Stack sx={{ gap: discoverStoryTextColGap }}>
-            <Typography component="h3" sx={{ ...headingSx, fontSize: discoverStorySubheadingSize }}>
+            <Typography component="h3" sx={{ ...headingSx, fontSize: { xs: 18, sm: discoverStorySubheadingSize } }}>
               Finding Meaning in the Little Spaces
             </Typography>
             <Typography sx={bodyTextSx}>
