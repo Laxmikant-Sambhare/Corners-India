@@ -619,6 +619,76 @@ export const pdpHeroImgRightW = "49%";
 export const discoverHeroMinH = fluid1920(1446, { min: 480, max: 1446 });
 export const discoverHeroDescMaxW = fluid1920(922, { min: 280, max: 960 });
 
+/** Discover philosophy band — Figma 1366:2758 @ 1920 */
+export const discoverPhilosophyPadX = fluid1920(312, { min: 16, max: 320 });
+export const discoverPhilosophyPadTop = fluid1920(126, { min: 48, max: 140 });
+export const discoverPhilosophyPadBottom = fluid1920(80, { min: 40, max: 100 });
+export const discoverPhilosophyGap = fluid1920(58, { min: 32, max: 64 });
+export const discoverPhilosophyTitleSize = fluid1920(68, { min: 32, max: 76 });
+export const discoverPhilosophyBodyMaxW = fluid1920(1296, { min: 280, max: 1296 });
+export const discoverPhilosophyBadgePadX = fluid1920(18, { min: 12, max: 22 });
+export const discoverPhilosophyBadgePadY = fluid1920(12, { min: 8, max: 14 });
+export const discoverPhilosophyBadgeRadius = fluid1920(10, { min: 8, max: 12 });
+export const discoverPhilosophyBadgeMinW = fluid1920(169, { min: 140, max: 180 });
+export const discoverPhilosophyRugMaxW = fluid1920(1342, { min: 320, max: 1342 });
+export const discoverPhilosophyRugPadX = fluid1920(289, { min: 16, max: 300 });
+/** Tan story band pulls up over the bottom of the philosophy rug — Figma 2699 − 2334 = 365px @ 1920. */
+export const discoverPhilosophyRugOverlapIntoStory = fluid1920(365, {
+  min: 140,
+  max: 365,
+});
+
+/** Discover story band — Figma 1366:2746 @ 1920 */
+export const discoverStorySectionMinH = fluid1920(1943, { min: 900, max: 1943 });
+export const discoverStoryPadX = fluid1920(127, { min: 16, max: 140 });
+export const discoverStoryIntroPadX = fluid1920(258, { min: 16, max: 280 });
+export const discoverStoryPadBottom = fluid1920(120, { min: 48, max: 140 });
+export const discoverStoryContentPadTop = fluid1920(157, { min: 32, max: 157 });
+export const discoverStoryPortraitW = fluid1920(520, { min: 260, max: 520 });
+export const discoverStoryPortraitH = fluid1920(567, { min: 320, max: 567 });
+export const discoverStoryPortraitRadius = fluid1920(14, { min: 10, max: 16 });
+export const discoverStoryTitleLeft = fluid1920(770, { min: 0, max: 770 });
+export const discoverStoryTitleSize = fluid1920(68, { min: 32, max: 76 });
+export const discoverStoryTitleMaxW = fluid1920(862, { min: 280, max: 862 });
+export const discoverStoryIntroMaxW = fluid1920(542, { min: 280, max: 542 });
+export const discoverStorySubheadingSize = fluid1920(42, { min: 24, max: 46 });
+export const discoverStoryRightColMaxW = fluid1920(514, { min: 280, max: 514 });
+export const discoverStoryTextColGap = fluid1920(32, { min: 20, max: 36 });
+export const discoverStoryRugW = fluid1920(831, { min: 280, max: 831 });
+export const discoverStoryRugH = fluid1920(584, { min: 220, max: 584 });
+export const discoverStoryRugRight = fluid1920(128, { min: 16, max: 140 });
+export const discoverStoryRugTop = fluid1920(460, { min: 200, max: 460 });
+export const discoverStoryRugRadius = fluid1920(14, { min: 10, max: 16 });
+export const discoverStoryBodyTop = fluid1920(831, { min: 400, max: 831 });
+/** Visible sofa frame (1366:2786) — masked crop of the lifestyle photo. */
+export const discoverStorySofaFrameW = fluid1920(440, { min: 240, max: 440 });
+export const discoverStorySofaFrameH = fluid1920(584, { min: 280, max: 584 });
+export const discoverStorySofaFrameLeft = fluid1920(521, { min: 16, max: 521 });
+/** Row 3 top — sofa frame + meaning block share y=3535 in Figma (1201 from tan top). */
+export const discoverStoryRow3Top = fluid1920(1201, { min: 560, max: 1201 });
+export const discoverStoryPortraitToBodyGap = fluid1920(107, { min: 48, max: 120 });
+export const discoverStoryEditorialMinH = fluid1920(1628, { min: 720, max: 1628 });
+export const discoverStorySofaRadius = fluid1920(14, { min: 10, max: 16 });
+export const discoverStoryMeaningLeft = fluid1920(1148, { min: 0, max: 1148 });
+/** @deprecated Use discoverStorySofaFrameW — full uncropped asset width in Figma. */
+export const discoverStorySofaW = fluid1920(819, { min: 280, max: 819 });
+/** @deprecated Use discoverStoryRow3Top — uncropped image top in Figma. */
+export const discoverStorySofaTop = fluid1920(934, { min: 440, max: 934 });
+/** @deprecated Use discoverStorySofaFrameLeft. */
+export const discoverStorySofaLeft = fluid1920(442, { min: 16, max: 442 });
+export const discoverStoryMeaningTop = fluid1920(1201, { min: 560, max: 1201 });
+
+/** Discover journey band — Figma 1366:2652 cream section @ 1920, content y=4434–6198 */
+export const discoverJourneyPadTop = fluid1920(157, { min: 32, max: 157 });
+export const discoverJourneyPadBottom = fluid1920(120, { min: 48, max: 140 });
+export const discoverJourneyLabelSize = fluid1920(16, { min: 12, max: 16 });
+export const discoverJourneyClosingSize = fluid1920(42, { min: 24, max: 46 });
+export const discoverJourneyBodyMaxW = fluid1920(387, { min: 280, max: 387 });
+export const discoverJourneyClosingMaxW = fluid1920(1251, { min: 280, max: 1251 });
+export const discoverJourneyImageRadius = fluid1920(14, { min: 10, max: 16 });
+export const discoverJourneySparkleW = fluid1920(87, { min: 48, max: 87 });
+export const discoverJourneySparkleH = fluid1920(40, { min: 24, max: 40 });
+
 /** Customizations page hero + how-it-works — Figma 1162:7/8 @ 1920×1080 */
 export const customHeroMinH = fluid1080(1010, { min: 420, max: 1010 });
 export const customHeroTitleSize = fluid1920(110, { min: 40, max: 120 });
