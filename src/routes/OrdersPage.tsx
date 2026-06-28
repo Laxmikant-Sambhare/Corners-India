@@ -12,24 +12,18 @@ import {
   isOrderCancelled,
   orderStatusLabel,
 } from "../components/OrderDetailModal";
+import {
+  catalogProductCardBadgeSx,
+  catalogProductCardGridSx,
+  catalogProductCardImageBoxSx,
+  catalogProductCardPriceSx,
+  catalogProductCardSurfaceSx,
+  catalogProductCardTitleSx,
+} from "../components/CatalogProductCard";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import {
-  furnitureListingBadgeFontSize,
-  furnitureListingBadgePadX,
-  furnitureListingBadgePadY,
-  furnitureListingCardImageMaxW,
-  furnitureListingCardMetaGap,
   furnitureListingCardMetaMaxW,
-  furnitureListingCardPad,
-  furnitureListingCardRadius,
-  furnitureListingCardSectionGap,
-  furnitureListingGridColGap,
-  furnitureListingGridRowGap,
-  furnitureListingImageH,
-  furnitureListingPriceSize,
-  furnitureListingProductTitleSize,
   fluid1920,
-  shopBorderWidth,
   shopRadius,
 } from "../navDesignTokens";
 import {
@@ -45,7 +39,42 @@ const DARK = "#1a1814";
 const MUTED = "#4b4a4a";
 const TAN = "#ccbca6";
 const BORDER = "rgba(204,188,166,0.45)";
-const CARD_BG = "rgba(204,188,166,0.13)";
+const HELPER_TEXT = "rgba(75,74,74,0.62)";
+
+const frostedCardSx = {
+  bgcolor: "rgba(255,255,255,0.42)",
+  border: `1px solid ${BORDER}`,
+  borderRadius: shopRadius,
+  backdropFilter: "blur(6px)",
+} as const;
+
+const primaryBtnSx = {
+  bgcolor: ACCENT,
+  color: PAGE_BG,
+  fontFamily: FONT_NAV,
+  fontWeight: 700,
+  fontSize: { xs: 12, sm: fluid1920(13, { min: 12, max: 14 }) },
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.07em",
+  borderRadius: shopRadius,
+  minHeight: { xs: 48, sm: "auto" },
+  px: { xs: 3, sm: fluid1920(32, { min: 22, max: 36 }) },
+  py: { xs: 1.25, sm: fluid1920(14, { min: 11, max: 16 }) },
+  whiteSpace: "nowrap" as const,
+  flexShrink: 0,
+  transition: "opacity 0.15s",
+  "&:hover": { opacity: 0.9 },
+};
+
+const ordersGridSx = {
+  ...catalogProductCardGridSx,
+  gridTemplateColumns: {
+    xs: "1fr",
+    sm: "repeat(2, minmax(0, 1fr))",
+    lg: "repeat(3, minmax(0, 1fr))",
+  },
+  rowGap: { xs: 1.25, sm: 2, md: catalogProductCardGridSx.rowGap.sm },
+} as const;
 
 function orderCardSubtitle(order: OrderDetail): string {
   const itemCount = order.lineItems.reduce((sum, li) => sum + li.quantity, 0);
@@ -54,6 +83,102 @@ function orderCardSubtitle(order: OrderDetail): string {
     return `${formatOrderDate(order.processedAt)} · ${itemCount} item`;
   }
   return `${formatOrderDate(order.processedAt)} · ${primary} +${order.lineItems.length - 1} more`;
+}
+
+function OrderStatusBadge({
+  order,
+  cancelled,
+  statusLabel,
+}: {
+  order: OrderDetail;
+  cancelled: boolean;
+  statusLabel: string;
+}) {
+  return (
+    <Box
+      sx={{
+        display: "flex",
+        alignItems: "center",
+        justifyContent: "space-between",
+        width: "100%",
+        gap: 0.5,
+      }}
+    >
+      <Box
+        sx={{
+          ...catalogProductCardBadgeSx,
+          bgcolor: cancelled ? "rgba(75,74,74,0.14)" : TAN,
+          color: cancelled ? MUTED : PAGE_BG,
+          border: cancelled ? `1px solid rgba(75,74,74,0.18)` : "none",
+          maxWidth: "72%",
+          overflow: "hidden",
+          textOverflow: "ellipsis",
+          whiteSpace: "nowrap",
+        }}
+      >
+        {statusLabel}
+      </Box>
+      <Typography
+        sx={{
+          fontFamily: FONT_NAV,
+          fontWeight: 500,
+          fontSize: { xs: 9, sm: 10, md: 12 },
+          color: MUTED,
+          textTransform: "uppercase",
+          letterSpacing: "0.06em",
+          flexShrink: 0,
+        }}
+      >
+        #{order.orderNumber}
+      </Typography>
+    </Box>
+  );
+}
+
+function OrderCardImage({
+  heroItem,
+  cancelled,
+}: {
+  heroItem: OrderDetail["lineItems"][0] | undefined;
+  cancelled: boolean;
+}) {
+  return (
+    <Box
+      sx={{
+        ...catalogProductCardImageBoxSx,
+        borderRadius: shopRadius,
+        bgcolor: "rgba(255,255,255,0.35)",
+        width: { xs: 88, sm: "100%" },
+        maxWidth: { xs: 88, sm: furnitureListingCardMetaMaxW },
+        height: { xs: 88, sm: 120, md: catalogProductCardImageBoxSx.height.md },
+        mx: { xs: 0, sm: "auto" },
+        flexShrink: 0,
+      }}
+    >
+      {heroItem?.imageUrl ? (
+        <Box
+          component="img"
+          className="order-card-image"
+          src={heroItem.imageUrl}
+          alt={heroItem.imageAlt ?? heroItem.title}
+          sx={{
+            maxWidth: "100%",
+            maxHeight: "100%",
+            width: "auto",
+            height: "auto",
+            objectFit: "contain",
+            display: "block",
+            transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
+            opacity: cancelled ? 0.85 : 1,
+          }}
+        />
+      ) : (
+        <Typography sx={{ fontFamily: FONT_NAV, fontSize: 13, color: MUTED }}>
+          Order
+        </Typography>
+      )}
+    </Box>
+  );
 }
 
 function OrderCard({
@@ -78,7 +203,6 @@ function OrderCard({
         boxSizing: "border-box",
       }}
     >
-      <Box aria-hidden sx={{ height: 10, flexShrink: 0 }} />
       <Box
         role="button"
         tabIndex={0}
@@ -90,27 +214,26 @@ function OrderCard({
           }
         }}
         sx={{
+          ...catalogProductCardSurfaceSx,
+          ...frostedCardSx,
           flex: 1,
-          borderRadius: furnitureListingCardRadius,
-          border: `${shopBorderWidth} solid ${TAN}`,
-          boxSizing: "border-box",
-          px: furnitureListingCardPad,
-          py: furnitureListingCardPad,
           display: "flex",
-          flexDirection: "column",
-          alignItems: "center",
-          gap: furnitureListingCardSectionGap,
+          flexDirection: { xs: "row", sm: "column" },
+          alignItems: { xs: "flex-start", sm: "center" },
           cursor: "pointer",
           width: "100%",
           bgcolor: PAGE_BG,
           opacity: cancelled ? 0.72 : 1,
+          gap: { xs: 1.5, sm: catalogProductCardSurfaceSx.gap.sm },
+          px: { xs: 1.25, sm: catalogProductCardSurfaceSx.px.sm },
+          py: { xs: 1.25, sm: catalogProductCardSurfaceSx.py.sm },
           transition:
             "transform 0.28s cubic-bezier(0.22, 1, 0.36, 1), box-shadow 0.28s ease, border-color 0.28s ease",
           "@media (hover: hover)": {
             "&:hover": {
-              transform: "translateY(-6px)",
+              transform: { xs: "none", sm: "translateY(-6px)" },
               borderColor: ACCENT,
-              boxShadow: "0 14px 32px rgba(75, 74, 74, 0.12)",
+              boxShadow: { xs: "none", sm: "0 14px 32px rgba(75, 74, 74, 0.12)" },
               "& .order-card-image": {
                 transform: "scale(1.05)",
               },
@@ -120,148 +243,102 @@ function OrderCard({
             },
           },
           "&:active": {
-            transform: "translateY(-2px)",
+            transform: { xs: "scale(0.99)", sm: "translateY(-2px)" },
           },
         }}
       >
-        <Box
-          sx={{
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "space-between",
-            width: "100%",
-            maxWidth: furnitureListingCardMetaMaxW,
-          }}
-        >
-          <Box
-            sx={{
-              bgcolor: cancelled ? "rgba(75,74,74,0.14)" : TAN,
-              color: cancelled ? MUTED : PAGE_BG,
-              px: furnitureListingBadgePadX,
-              py: furnitureListingBadgePadY,
-              borderRadius: shopRadius,
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureListingBadgeFontSize,
-              textTransform: "uppercase",
-              lineHeight: 1,
-              border: cancelled ? `1px solid rgba(75,74,74,0.18)` : "none",
-            }}
-          >
-            {statusLabel}
-          </Box>
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 500,
-              fontSize: 12,
-              color: MUTED,
-              textTransform: "uppercase",
-              letterSpacing: "0.06em",
-            }}
-          >
-            #{order.orderNumber}
-          </Typography>
-        </Box>
-
-        <Box
-          sx={{
-            width: "100%",
-            maxWidth: furnitureListingCardImageMaxW,
-            height: furnitureListingImageH,
-            display: "flex",
-            alignItems: "center",
-            justifyContent: "center",
-            position: "relative",
-            mx: "auto",
-            overflow: "hidden",
-            borderRadius: shopRadius,
-            bgcolor: "rgba(255,255,255,0.35)",
-          }}
-        >
-          {heroItem?.imageUrl ? (
-            <Box
-              component="img"
-              className="order-card-image"
-              src={heroItem.imageUrl}
-              alt={heroItem.imageAlt ?? heroItem.title}
-              sx={{
-                maxWidth: "100%",
-                maxHeight: "100%",
-                width: "auto",
-                height: "auto",
-                objectFit: "contain",
-                display: "block",
-                transition: "transform 0.35s cubic-bezier(0.22, 1, 0.36, 1)",
-              }}
-            />
-          ) : (
-            <Typography sx={{ fontFamily: FONT_NAV, fontSize: 13, color: MUTED }}>
-              Order
-            </Typography>
-          )}
+        <Box sx={{ display: { xs: "block", sm: "none" }, flexShrink: 0 }}>
+          <OrderCardImage heroItem={heroItem} cancelled={cancelled} />
         </Box>
 
         <Stack
           sx={{
-            alignItems: "flex-start",
+            flex: 1,
+            minWidth: 0,
             width: "100%",
-            maxWidth: furnitureListingCardMetaMaxW,
-            gap: furnitureListingCardMetaGap,
+            gap: { xs: 0.75, sm: 1, md: 1.25 },
           }}
         >
-          <Typography
-            className="order-card-title"
+          <Box sx={{ display: { xs: "block", sm: "none" } }}>
+            <OrderStatusBadge
+              order={order}
+              cancelled={cancelled}
+              statusLabel={statusLabel}
+            />
+          </Box>
+
+          <Box
             sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureListingProductTitleSize,
-              lineHeight: 1,
-              textTransform: "uppercase",
-              color: MUTED,
-              transition: "color 0.28s ease",
+              display: { xs: "none", sm: "flex" },
+              alignItems: "center",
+              justifyContent: "space-between",
+              width: "100%",
+              maxWidth: furnitureListingCardMetaMaxW,
             }}
           >
-            {heroItem?.title ?? `Order #${order.orderNumber}`}
-          </Typography>
-          <Typography
+            <OrderStatusBadge
+              order={order}
+              cancelled={cancelled}
+              statusLabel={statusLabel}
+            />
+          </Box>
+
+          <Box sx={{ display: { xs: "none", sm: "block" }, width: "100%" }}>
+            <OrderCardImage heroItem={heroItem} cancelled={cancelled} />
+          </Box>
+
+          <Stack
             sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 500,
-              fontSize: furnitureListingPriceSize,
-              lineHeight: 1,
-              color: ACCENT,
+              alignItems: "flex-start",
+              width: "100%",
+              maxWidth: furnitureListingCardMetaMaxW,
+              gap: { xs: 0.5, sm: 0.75, md: 1.25 },
             }}
           >
-            {formatOrderMoney(order.totalPrice.amount, order.totalPrice.currencyCode)}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 400,
-              fontSize: 13,
-              lineHeight: 1.45,
-              color: MUTED,
-            }}
-          >
-            {orderCardSubtitle(order)}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: 11,
-              textTransform: "uppercase",
-              letterSpacing: "0.07em",
-              color: ACCENT,
-              mt: 0.5,
-            }}
-          >
-            View details
-          </Typography>
+            <Typography
+              className="order-card-title"
+              sx={{
+                ...catalogProductCardTitleSx,
+                transition: "color 0.28s ease",
+                wordBreak: "break-word",
+                display: "-webkit-box",
+                WebkitLineClamp: { xs: 2, sm: 3 },
+                WebkitBoxOrient: "vertical",
+                overflow: "hidden",
+              }}
+            >
+              {heroItem?.title ?? `Order #${order.orderNumber}`}
+            </Typography>
+            <Typography sx={catalogProductCardPriceSx}>
+              {formatOrderMoney(order.totalPrice.amount, order.totalPrice.currencyCode)}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: FONT_NAV,
+                fontWeight: 400,
+                fontSize: { xs: 10, sm: 11, md: 13 },
+                lineHeight: 1.45,
+                color: HELPER_TEXT,
+              }}
+            >
+              {orderCardSubtitle(order)}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: FONT_NAV,
+                fontWeight: 600,
+                fontSize: { xs: 10, sm: 11 },
+                textTransform: "uppercase",
+                letterSpacing: "0.07em",
+                color: ACCENT,
+                mt: { xs: 0.25, sm: 0.5 },
+              }}
+            >
+              View details →
+            </Typography>
+          </Stack>
         </Stack>
       </Box>
-      <Box aria-hidden sx={{ height: 20, flexShrink: 0 }} />
     </Box>
   );
 }
@@ -280,46 +357,71 @@ export function OrdersPage() {
 
   return (
     <>
-      <Stack gap={fluid1920(40, { min: 28, max: 48 })}>
-        <Stack gap="6px">
-          <Typography
-            component="h1"
-            sx={{
-              fontFamily: FONT_SURGENA,
-              fontWeight: 600,
-              fontSize: fluid1920(52, { min: 32, max: 60 }),
-              color: DARK,
-              lineHeight: 1.05,
-              letterSpacing: "-0.01em",
-            }}
-          >
-            {loggedIn && customer ? `Hi, ${customer.firstName}.` : "My Orders"}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 400,
-              fontSize: fluid1920(14, { min: 13, max: 15 }),
-              color: MUTED,
-            }}
-          >
-            {loggedIn
-              ? "Tap an order to view full details, tracking, and delivery info."
-              : "Sign in to view your order history and track deliveries."}
-          </Typography>
-        </Stack>
+      <Box
+        sx={{
+          width: "100%",
+          maxWidth: { lg: 960 },
+          mx: "auto",
+          pb: { xs: 2, sm: 0 },
+        }}
+      >
+        <Stack
+          gap={{ xs: 2, sm: fluid1920(40, { min: 28, max: 48 }) }}
+          sx={{
+            ...frostedCardSx,
+            px: { xs: 2.5, sm: 3 },
+            py: { xs: 2.5, sm: 3 },
+          }}
+        >
+          <Stack gap={{ xs: "8px", sm: "6px" }}>
+            <Box
+              sx={{
+                width: { xs: 28, sm: 32 },
+                height: "2px",
+                bgcolor: ACCENT,
+                borderRadius: "1px",
+                mb: { xs: 0.5, sm: 0 },
+              }}
+            />
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: FONT_SURGENA,
+                fontWeight: 600,
+                fontSize: { xs: 28, sm: 34, lg: fluid1920(52, { min: 32, max: 60 }) },
+                color: DARK,
+                lineHeight: 1.08,
+                letterSpacing: "-0.01em",
+              }}
+            >
+              {loggedIn && customer ? `Hi, ${customer.firstName}.` : "My Orders"}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: FONT_NAV,
+                fontWeight: 400,
+                fontSize: { xs: 13, sm: fluid1920(14, { min: 13, max: 15 }) },
+                color: MUTED,
+                lineHeight: 1.6,
+                maxWidth: { xs: 320, sm: "none" },
+              }}
+            >
+              {loggedIn
+                ? "Tap an order to view full details, tracking, and delivery info."
+                : "Sign in to view your order history and track deliveries."}
+            </Typography>
+          </Stack>
 
         {!loggedIn && (
           <Box
             sx={{
-              bgcolor: CARD_BG,
-              border: `1.5px solid ${BORDER}`,
-              borderRadius: "20px",
-              p: fluid1920(40, { min: 28, max: 48 }),
+              ...frostedCardSx,
+              bgcolor: PAGE_BG,
+              p: { xs: 2, sm: fluid1920(40, { min: 28, max: 48 }) },
               display: "flex",
               flexDirection: { xs: "column", sm: "row" },
               alignItems: { sm: "center" },
-              gap: fluid1920(24, { min: 16, max: 28 }),
+              gap: { xs: 2, sm: fluid1920(24, { min: 16, max: 28 }) },
               justifyContent: "space-between",
             }}
           >
@@ -328,7 +430,7 @@ export function OrdersPage() {
                 sx={{
                   fontFamily: FONT_SURGENA,
                   fontWeight: 600,
-                  fontSize: fluid1920(22, { min: 17, max: 24 }),
+                  fontSize: { xs: 18, sm: fluid1920(22, { min: 17, max: 24 }) },
                   color: DARK,
                 }}
               >
@@ -338,8 +440,8 @@ export function OrdersPage() {
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 400,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  color: MUTED,
+                  fontSize: { xs: 12, sm: fluid1920(13, { min: 12, max: 14 }) },
+                  color: HELPER_TEXT,
                   maxWidth: 380,
                   lineHeight: 1.65,
                 }}
@@ -352,19 +454,8 @@ export function OrdersPage() {
               component={RouterLink}
               to="/login?next=%2Forders"
               sx={{
-                bgcolor: ACCENT,
-                color: PAGE_BG,
-                fontFamily: FONT_NAV,
-                fontWeight: 700,
-                fontSize: fluid1920(13, { min: 12, max: 14 }),
-                textTransform: "uppercase",
-                letterSpacing: "0.07em",
-                px: fluid1920(32, { min: 22, max: 36 }),
-                py: fluid1920(14, { min: 11, max: 16 }),
-                borderRadius: "12px",
-                whiteSpace: "nowrap",
-                flexShrink: 0,
-                "&:hover": { opacity: 0.9 },
+                ...primaryBtnSx,
+                width: { xs: "100%", sm: "auto" },
               }}
             >
               Sign In
@@ -375,23 +466,23 @@ export function OrdersPage() {
         {loggedIn && needsReauth && (
           <Box
             sx={{
+              ...frostedCardSx,
               bgcolor: "rgba(188,126,90,0.08)",
               border: `1px solid rgba(188,126,90,0.25)`,
-              borderRadius: "16px",
-              p: fluid1920(24, { min: 18, max: 28 }),
+              p: { xs: 2, sm: fluid1920(24, { min: 18, max: 28 }) },
             }}
           >
             <Typography
               sx={{
                 fontFamily: FONT_NAV,
-                fontSize: fluid1920(14, { min: 13, max: 15 }),
+                fontSize: { xs: 13, sm: fluid1920(14, { min: 13, max: 15 }) },
                 color: DARK,
                 mb: 2,
                 lineHeight: 1.6,
               }}
             >
-              Your session needs to be refreshed. Sign out, then sign in again with
-              &ldquo;Continue with Shopify&rdquo; to load orders and tracking.
+              Your session needs to be refreshed. Sign out, then sign in again to
+              load orders and tracking.
             </Typography>
             <ButtonBase
               component={RouterLink}
@@ -399,9 +490,10 @@ export function OrdersPage() {
               sx={{
                 fontFamily: FONT_NAV,
                 fontWeight: 600,
-                fontSize: fluid1920(12, { min: 11, max: 13 }),
+                fontSize: { xs: 11, sm: fluid1920(12, { min: 11, max: 13 }) },
                 color: ACCENT,
                 textTransform: "uppercase",
+                letterSpacing: "0.07em",
               }}
             >
               Sign in again
@@ -410,18 +502,44 @@ export function OrdersPage() {
         )}
 
         {loggedIn && !needsReauth && (
-          <Stack gap={fluid1920(16, { min: 12, max: 20 })}>
-            <Stack direction="row" justifyContent="space-between" alignItems="center">
-              <Typography
-                sx={{
-                  fontFamily: FONT_SURGENA,
-                  fontWeight: 600,
-                  fontSize: fluid1920(24, { min: 18, max: 26 }),
-                  color: DARK,
-                }}
-              >
-                Your orders
-              </Typography>
+          <Stack gap={{ xs: 1.5, sm: fluid1920(16, { min: 12, max: 20 }) }}>
+            <Stack
+              direction="row"
+              justifyContent="space-between"
+              alignItems="center"
+              gap={1}
+            >
+              <Stack direction="row" alignItems="center" gap={1}>
+                <Typography
+                  sx={{
+                    fontFamily: FONT_SURGENA,
+                    fontWeight: 600,
+                    fontSize: { xs: 18, sm: fluid1920(24, { min: 18, max: 26 }) },
+                    color: DARK,
+                  }}
+                >
+                  Your orders
+                </Typography>
+                {!isLoading && orders && orders.length > 0 ? (
+                  <Box
+                    sx={{
+                      fontFamily: FONT_NAV,
+                      fontWeight: 600,
+                      fontSize: 10,
+                      textTransform: "uppercase",
+                      letterSpacing: "0.06em",
+                      color: PAGE_BG,
+                      bgcolor: TAN,
+                      px: 1,
+                      py: 0.35,
+                      borderRadius: shopRadius,
+                      lineHeight: 1.2,
+                    }}
+                  >
+                    {orders.length}
+                  </Box>
+                ) : null}
+              </Stack>
               <ButtonBase
                 type="button"
                 onClick={() => void refetch()}
@@ -429,11 +547,12 @@ export function OrdersPage() {
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 600,
-                  fontSize: fluid1920(12, { min: 11, max: 13 }),
+                  fontSize: { xs: 10, sm: fluid1920(12, { min: 11, max: 13 }) },
                   textTransform: "uppercase",
                   letterSpacing: "0.07em",
                   color: ACCENT,
                   opacity: isFetching ? 0.5 : 1,
+                  flexShrink: 0,
                 }}
               >
                 {isFetching ? "Refreshing…" : "Refresh"}
@@ -441,24 +560,25 @@ export function OrdersPage() {
             </Stack>
 
             {isLoading ? (
-              <Stack alignItems="center" py={6}>
+              <Stack alignItems="center" py={{ xs: 4, sm: 6 }}>
                 <CircularProgress sx={{ color: ACCENT }} size={32} />
               </Stack>
             ) : isError ? (
               <Box
                 sx={{
+                  ...frostedCardSx,
                   bgcolor: "rgba(188,126,90,0.08)",
                   border: `1px solid rgba(188,126,90,0.25)`,
-                  borderRadius: "16px",
-                  p: fluid1920(24, { min: 18, max: 28 }),
+                  p: { xs: 2, sm: fluid1920(24, { min: 18, max: 28 }) },
                 }}
               >
                 <Typography
                   sx={{
                     fontFamily: FONT_NAV,
-                    fontSize: fluid1920(14, { min: 13, max: 15 }),
+                    fontSize: { xs: 13, sm: fluid1920(14, { min: 13, max: 15 }) },
                     color: DARK,
                     mb: 2,
+                    lineHeight: 1.6,
                   }}
                 >
                   {error instanceof Error
@@ -471,28 +591,17 @@ export function OrdersPage() {
                   sx={{
                     fontFamily: FONT_NAV,
                     fontWeight: 600,
-                    fontSize: fluid1920(12, { min: 11, max: 13 }),
+                    fontSize: { xs: 11, sm: fluid1920(12, { min: 11, max: 13 }) },
                     color: ACCENT,
                     textTransform: "uppercase",
+                    letterSpacing: "0.07em",
                   }}
                 >
                   Try again
                 </ButtonBase>
               </Box>
             ) : orders && orders.length > 0 ? (
-              <Box
-                sx={{
-                  display: "grid",
-                  gridTemplateColumns: {
-                    xs: "minmax(0, 1fr)",
-                    sm: "repeat(2, minmax(0, 1fr))",
-                    lg: "repeat(3, minmax(0, 1fr))",
-                  },
-                  rowGap: furnitureListingGridRowGap,
-                  columnGap: furnitureListingGridColGap,
-                  width: "100%",
-                }}
-              >
+              <Box sx={{ ...ordersGridSx, width: "100%" }}>
                 {orders.map((order) => (
                   <OrderCard
                     key={order.id}
@@ -504,10 +613,9 @@ export function OrdersPage() {
             ) : (
               <Box
                 sx={{
-                  bgcolor: CARD_BG,
-                  border: `1px solid ${BORDER}`,
-                  borderRadius: "20px",
-                  p: fluid1920(36, { min: 24, max: 42 }),
+                  ...frostedCardSx,
+                  bgcolor: PAGE_BG,
+                  p: { xs: 2.5, sm: fluid1920(36, { min: 24, max: 42 }) },
                   textAlign: "center",
                 }}
               >
@@ -515,7 +623,7 @@ export function OrdersPage() {
                   sx={{
                     fontFamily: FONT_SURGENA,
                     fontWeight: 600,
-                    fontSize: fluid1920(20, { min: 16, max: 22 }),
+                    fontSize: { xs: 17, sm: fluid1920(20, { min: 16, max: 22 }) },
                     color: DARK,
                     mb: 1,
                   }}
@@ -525,9 +633,10 @@ export function OrdersPage() {
                 <Typography
                   sx={{
                     fontFamily: FONT_NAV,
-                    fontSize: fluid1920(14, { min: 13, max: 15 }),
-                    color: MUTED,
+                    fontSize: { xs: 12, sm: fluid1920(14, { min: 13, max: 15 }) },
+                    color: HELPER_TEXT,
                     mb: 3,
+                    lineHeight: 1.6,
                   }}
                 >
                   When you place an order, it will show up here with live tracking.
@@ -536,17 +645,8 @@ export function OrdersPage() {
                   component={RouterLink}
                   to="/"
                   sx={{
-                    bgcolor: ACCENT,
-                    color: PAGE_BG,
-                    fontFamily: FONT_NAV,
-                    fontWeight: 700,
-                    fontSize: fluid1920(13, { min: 12, max: 14 }),
-                    textTransform: "uppercase",
-                    letterSpacing: "0.07em",
-                    px: fluid1920(28, { min: 20, max: 32 }),
-                    py: fluid1920(13, { min: 10, max: 15 }),
-                    borderRadius: "12px",
-                    "&:hover": { opacity: 0.9 },
+                    ...primaryBtnSx,
+                    width: { xs: "100%", sm: "auto" },
                   }}
                 >
                   Start shopping
@@ -555,7 +655,8 @@ export function OrdersPage() {
             )}
           </Stack>
         )}
-      </Stack>
+        </Stack>
+      </Box>
 
       <OrderDetailModal
         open={selectedOrder !== null}

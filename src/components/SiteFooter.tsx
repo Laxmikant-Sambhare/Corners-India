@@ -79,10 +79,11 @@ const INFO_LINKS: { label: string; to: string }[] = [
   { label: "FAQs", to: "#" },
 ];
 
-const SUPPORT_EMAIL = "support.corners@gmial.com";
+const SUPPORT_EMAIL = "support.corners@gmail.com";
 const SUPPORT_PHONE = "+91 8665654585";
 const SUPPORT_PHONE_HREF = "tel:+918665654585";
-const SUPPORT_ADDRESS = "Judges Bunglow Rd, I I M, Vastrapur, Ahmedabad, Gujarat 380015";
+const SUPPORT_ADDRESS =
+  "Judges Bungalow Rd, IIM, Vastrapur, Ahmedabad, Gujarat 380015";
 
 function linkSx(compact = false) {
   return {
@@ -111,7 +112,9 @@ export function SiteFooter() {
   const loggedIn = useAuthStore(selectIsLoggedIn);
 
   const [email, setEmail] = useState("");
-  const [status, setStatus] = useState<"idle" | "loading" | "success" | "error">("idle");
+  const [status, setStatus] = useState<
+    "idle" | "loading" | "success" | "error"
+  >("idle");
   const [errorMsg, setErrorMsg] = useState("");
   const inputRef = useRef<HTMLInputElement>(null);
 
@@ -205,7 +208,11 @@ export function SiteFooter() {
                   alt="Corners India"
                   sx={{
                     width: "100%",
-                    maxWidth: { xs: 148, sm: 180, md: fluid1920(266.933, { min: 200, max: 280 }) },
+                    maxWidth: {
+                      xs: 148,
+                      sm: 180,
+                      md: fluid1920(266.933, { min: 200, max: 280 }),
+                    },
                     height: "auto",
                     display: "block",
                     ...footerImgContain,
@@ -240,7 +247,11 @@ export function SiteFooter() {
                   sx={{
                     fontFamily: FONT_NAV,
                     fontWeight: 600,
-                    fontSize: { xs: 14, sm: 15, md: fluid1920(22, { min: 18, max: 24 }) },
+                    fontSize: {
+                      xs: 14,
+                      sm: 15,
+                      md: fluid1920(22, { min: 18, max: 24 }),
+                    },
                     lineHeight: 1.2,
                     color: PAGE_BG,
                     textAlign: { xs: "center", md: "left" },
@@ -479,7 +490,7 @@ export function SiteFooter() {
                     {SUPPORT_PHONE}
                   </Typography>
                   <Typography sx={linkSx()}>
-                    Judges Bunglow Rd, I I M, Vastrapur,
+                    Judges Bungalow Rd, IIM, Vastrapur,
                     <br />
                     Ahmedabad, Gujarat 380015
                   </Typography>
@@ -514,7 +525,10 @@ export function SiteFooter() {
             minWidth: 0,
             mt: { xs: 2.5, sm: 3, md: fluid1920(46.667) },
             pt: { xs: 2, md: 0 },
-            borderTop: { xs: "1px solid rgba(243, 237, 227, 0.12)", md: "none" },
+            borderTop: {
+              xs: "1px solid rgba(243, 237, 227, 0.12)",
+              md: "none",
+            },
             justifyContent: "space-between",
             alignItems: "center",
             gap: { xs: 1.25, sm: 2 },
@@ -525,7 +539,11 @@ export function SiteFooter() {
             sx={{
               fontFamily: FONT_NAV,
               fontWeight: 600,
-              fontSize: { xs: 10, sm: 11, md: fluid1920(14, { min: 12, max: 15 }) },
+              fontSize: {
+                xs: 10,
+                sm: 11,
+                md: fluid1920(14, { min: 12, max: 15 }),
+              },
               lineHeight: 1.2,
               color: PAGE_BG,
               textTransform: "uppercase",
@@ -534,11 +552,17 @@ export function SiteFooter() {
               opacity: { xs: 0.85, md: 1 },
             }}
           >
-            <Box component="span" sx={{ display: { xs: "inline", md: "none" } }}>
+            <Box
+              component="span"
+              sx={{ display: { xs: "inline", md: "none" } }}
+            >
               © 2025 Corners
             </Box>
-            <Box component="span" sx={{ display: { xs: "none", md: "inline" } }}>
-              © 2025 Corners. all rights reserved.
+            <Box
+              component="span"
+              sx={{ display: { xs: "none", md: "inline" } }}
+            >
+              © 2025 Corners. All rights reserved.
             </Box>
           </Typography>
           <Box
@@ -678,7 +702,9 @@ function NewsletterForm({
           if (loggedIn) return;
           onEmailChange(e.target.value);
         }}
-        placeholder={status === "error" ? errorMsg || "Try again" : "Enter your email"}
+        placeholder={
+          status === "error" ? errorMsg || "Try again" : "Enter your email"
+        }
         autoComplete="email"
         disabled={status === "loading"}
         sx={{
@@ -698,10 +724,12 @@ function NewsletterForm({
           fontWeight: 600,
           fontSize: { xs: 12, md: fluid1920(14, { min: 12, max: 15 }) },
           lineHeight: "normal",
-          color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
+          color:
+            status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
           borderRadius: footerNewsletterRadius,
           "&::placeholder": {
-            color: status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
+            color:
+              status === "error" ? "#e07070" : footerNewsletterPlaceholderColor,
             opacity: 1,
           },
         }}

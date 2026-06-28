@@ -18,7 +18,7 @@ const PROMO_VISUAL_BASE = {
 } as const;
 
 const COPY_FURNITURE =
-  "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story, the places where life slows down and presence is felt.";
+  "Corners is about emotional connection with personal spaces—especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story—the places where life slows down and presence is felt.";
 
 const COPY_RUGS =
   "Discover rugs that ground a room—texture, warmth, and pattern chosen to live with you. Each piece is selected to pair with Corners furniture and your own story.";
@@ -31,25 +31,25 @@ const COPY_EIRA =
 
 const FURNITURE_PRODUCTS: CatalogProduct[] = [
   {
-    badge: "Badging",
+    badge: "Chair",
     name: "Eira Chair",
     price: "Rs. 50,000.00",
     image: CDN_PRODUCTS["listing-eira-chair"],
   },
   {
-    badge: "Badging",
+    badge: "Chair",
     name: "Dunari Chair",
     price: "Rs. 50,000.00",
     image: CDN_PRODUCTS["listing-dunari-chair"],
   },
   {
-    badge: "Badging",
+    badge: "Ottoman",
     name: "Dunari Ottoman",
     price: "Rs. 50,000.00",
     image: CDN_PRODUCTS["listing-dunari-ottoman"],
   },
   {
-    badge: "Badging",
+    badge: "Table",
     name: "Dunari Table",
     price: "Rs. 50,000.00",
     image: CDN_PRODUCTS["listing-dunari-table"],
@@ -173,7 +173,7 @@ const EIRA_LOUNGE_PDP_BODY: ProductPdpBodyConfig = {
     "This chair mirrors the silhouette of wind-sculpted dunes with its soft, rounded backrest and plush seat. The curves evoke the natural contours shaped by shifting sands, offering both visual comfort and a sense of tranquility reminiscent of serene desert vistas. The base texture mimics the subtle patterns of ripples, grounding the chair in the inspiration of earthy landscapes.",
   materialBullets: [
     "Fully upholstered in high-end fabric.",
-    "Teak Wood carved leg.",
+    "Teak wood carved legs.",
   ],
   dimensions: { ...PDP_DEFAULT_DIMENSIONS_MOCK },
   shippingBody: PDP_COPY_SHIPPING,
@@ -303,7 +303,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Eira Lounge Chair",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "This chair mirrors the silhouette of wind-sculpted dunes with its soft, rounded backrest and plush seat.",
     heroImages: [
@@ -317,7 +317,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Eira Chair",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "The Eira chair pairs clean lines with inviting materials—designed to anchor living spaces with sculptural calm.",
     heroImages: [
@@ -330,7 +330,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Dunari Chair",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "Dunari brings sculptural calm and tactile finishes—crafted to anchor dining and living spaces.",
     heroImages: [
@@ -343,7 +343,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Dunari Ottoman",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "The ottoman's design is intentionally simple and inviting, echoing the gentle rise and fall of a dune crest.",
     heroImages: [
@@ -356,7 +356,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Dunari Table",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "The Dunari table grounds any room with its sculptural base and tactile wood finish.",
     heroImages: [
@@ -369,7 +369,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Eira Table",
     categoryLabel: "Furniture",
     categoryPath: "/category/furniture",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "Light woods and organic forms—the Eira table sits comfortably in living rooms and reading nooks.",
     heroImages: [
@@ -382,7 +382,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Dunari Rug",
     categoryLabel: "Rugs",
     categoryPath: "/category/rugs",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "The Dunari rug in sand color, made from viscose and wool—crafted to sit quietly beneath furniture while adding warmth and texture.",
     heroImages: [],
@@ -393,7 +393,7 @@ const PRODUCT_HERO_CONFIGS: ProductHeroConfig[] = [
     productName: "Eira Rug",
     categoryLabel: "Rugs",
     categoryPath: "/category/rugs",
-    theme: "Japendi",
+    theme: "Japandi",
     description:
       "Inspired by rivers that cut through mountains with both patience and power, the Eira Rug brings movement to stillness.",
     heroImages: [],

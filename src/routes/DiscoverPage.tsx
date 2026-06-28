@@ -131,8 +131,8 @@ export function DiscoverPage() {
               alignSelf: "center",
             }}
           >
-            Corners is about emotional connection with personal spaces. Especially the overlooked
-            corners of a home. It's rooted in the belief that every corner holds a story, the places
+            Corners is about emotional connection with personal spaces—especially the overlooked
+            corners of a home. It's rooted in the belief that every corner holds a story—the places
             where life slows down and presence is felt.
           </Typography>
         </Stack>

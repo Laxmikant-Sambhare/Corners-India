@@ -1,7 +1,7 @@
 {
   "_comment": "Fill one file per product handle. Upload images to Content → Files using the filenames below. Wire into the site via catalogPageConfig.ts today, or Shopify metafields later.",
   "handle": "eira-chair",
-  "theme": "Japendi",
+  "theme": "Japandi",
   "categoryLabel": "Furniture",
   "categoryPath": "/category/furniture",
 

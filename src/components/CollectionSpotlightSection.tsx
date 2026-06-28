@@ -687,7 +687,7 @@ function CollectionPillBar({
         onClick={() => onSwitch("dunari")}
       />
       <CollectionPill
-        label="EIRA"
+        label="Eira"
         active={active === "eira"}
         onClick={() => onSwitch("eira")}
       />

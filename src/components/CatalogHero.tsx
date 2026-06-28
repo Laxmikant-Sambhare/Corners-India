@@ -4,6 +4,7 @@ import Typography from "@mui/material/Typography";
 import { Link as RouterLink } from "@tanstack/react-router";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
 import type { CatalogHeroConfig } from "../catalog/catalogPageTypes";
+import { layoutPaddingX } from "../layoutConstants";
 import {
   furnitureHeroBodyFontSize,
   furnitureHeroBodyMaxW,
@@ -13,13 +14,8 @@ import {
   furnitureHeroTitleToBodyGap,
   layoutMarginX,
 } from "../navDesignTokens";
-import { layoutPaddingX } from "../layoutConstants";
 
 const HERO_TEXT = "#f3ede3";
-
-const fluid1920Gap28 = "clamp(12px, 1.458vw, 28px)";
-const fluidChevronW = "clamp(18px, 1.51vw, 29px)";
-const fluidChevronH = "clamp(8px, 0.625vw, 12px)";
 
 type CatalogHeroProps = CatalogHeroConfig;
 
@@ -43,7 +39,14 @@ export function CatalogHero({
         overflow: "hidden",
       }}
     >
-      <Box sx={{ position: "relative", width: "100%", lineHeight: 0 }}>
+      <Box
+        sx={{
+          position: "relative",
+          width: "100%",
+          lineHeight: 0,
+          minHeight: { xs: "min(52vh, 380px)", sm: "min(58vh, 440px)", md: 0 },
+        }}
+      >
         <Box
           component="img"
           src={heroImageSrc}
@@ -53,7 +56,10 @@ export function CatalogHero({
           decoding="async"
           sx={{
             width: "100%",
-            height: "auto",
+            height: { xs: "100%", md: "auto" },
+            minHeight: { xs: "min(52vh, 380px)", sm: "min(58vh, 440px)", md: 0 },
+            objectFit: { xs: "cover", md: "fill" },
+            objectPosition: { xs: "center 35%", md: "center center" },
             display: "block",
           }}
         />
@@ -62,8 +68,10 @@ export function CatalogHero({
           sx={{
             position: "absolute",
             inset: 0,
-            background:
-              "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.28) 100%)",
+            background: {
+              xs: "linear-gradient(180deg, rgba(0,0,0,0.1) 0%, rgba(0,0,0,0.35) 55%, rgba(0,0,0,0.58) 100%)",
+              md: "linear-gradient(180deg, rgba(0,0,0,0.12) 0%, rgba(0,0,0,0.28) 100%)",
+            },
             pointerEvents: "none",
           }}
         />
@@ -79,84 +87,101 @@ export function CatalogHero({
               md: layoutMarginX,
             },
             pt: { xs: 10, sm: 12, md: 14 },
-            pb: { xs: 6, md: 8 },
+            pb: { xs: 3.5, sm: 5, md: 8 },
             boxSizing: "border-box",
-            gap: furnitureHeroBreadcrumbToTitleGap,
+            gap: {
+              xs: 1.25,
+              sm: 2,
+              md: furnitureHeroBreadcrumbToTitleGap,
+            },
             alignItems: "flex-start",
-            justifyContent: "flex-start",
+            justifyContent: { xs: "flex-end", md: "flex-start" },
           }}
         >
-        <Stack
-          direction="row"
-          alignItems="center"
-          sx={{ color: HERO_TEXT, gap: fluid1920Gap28 }}
-        >
-          <Typography
-            component={RouterLink}
-            to="/"
+          <Stack
+            direction="row"
+            alignItems="center"
             sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureHeroBreadcrumbFontSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              color: "inherit",
-              textDecoration: "none",
-              "&:hover": { opacity: 0.9 },
+              color: HERO_TEXT,
+              gap: { xs: 0.5, sm: 0.75, md: "clamp(12px, 1.458vw, 28px)" },
             }}
           >
-            Home
-          </Typography>
-          <BreadcrumbChevron />
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 600,
-              fontSize: furnitureHeroBreadcrumbFontSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              color: "inherit",
-              opacity: 0.5,
-            }}
-          >
-            {breadcrumbCurrent}
-          </Typography>
-        </Stack>
+            <Typography
+              component={RouterLink}
+              to="/"
+              sx={{
+                fontFamily: FONT_NAV,
+                fontWeight: 600,
+                fontSize: { xs: 11, sm: 12, md: furnitureHeroBreadcrumbFontSize },
+                lineHeight: 1.2,
+                textTransform: "uppercase",
+                color: "inherit",
+                textDecoration: "none",
+                letterSpacing: "0.04em",
+                "&:hover": { opacity: 0.9 },
+              }}
+            >
+              Home
+            </Typography>
+            <Box sx={{ display: { xs: "none", sm: "contents" } }}>
+              <BreadcrumbChevron />
+              <Typography
+                sx={{
+                  fontFamily: FONT_NAV,
+                  fontWeight: 600,
+                  fontSize: { sm: 12, md: furnitureHeroBreadcrumbFontSize },
+                  lineHeight: 1.2,
+                  textTransform: "uppercase",
+                  color: "inherit",
+                  opacity: 0.5,
+                  letterSpacing: "0.04em",
+                }}
+              >
+                {breadcrumbCurrent}
+              </Typography>
+            </Box>
+          </Stack>
 
-        <Stack
-          sx={{
-            width: "100%",
-            gap: furnitureHeroTitleToBodyGap,
-          }}
-        >
-          <Typography
-            component="h1"
+          <Stack
             sx={{
-              fontFamily: FONT_SURGENA,
-              fontWeight: 600,
-              fontSize: furnitureHeroTitleSize,
-              lineHeight: 1.2,
-              textTransform: "uppercase",
-              color: HERO_TEXT,
-              letterSpacing: "0.02em",
+              width: "100%",
+              gap: { xs: 1, sm: 1.5, md: furnitureHeroTitleToBodyGap },
+              maxWidth: { xs: "92%", sm: "85%", md: furnitureHeroBodyMaxW },
             }}
           >
-            {title}
-          </Typography>
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 500,
-              fontSize: furnitureHeroBodyFontSize,
-              lineHeight: 1.4,
-              color: HERO_TEXT,
-              maxWidth: furnitureHeroBodyMaxW,
-            }}
-          >
-            {description}
-          </Typography>
+            <Typography
+              component="h1"
+              sx={{
+                fontFamily: FONT_SURGENA,
+                fontWeight: 600,
+                fontSize: {
+                  xs: "clamp(28px, 8vw, 40px)",
+                  sm: "clamp(36px, 6vw, 52px)",
+                  md: furnitureHeroTitleSize,
+                },
+                lineHeight: { xs: 1.08, md: 1.2 },
+                textTransform: "uppercase",
+                color: HERO_TEXT,
+                letterSpacing: "0.02em",
+              }}
+            >
+              {title}
+            </Typography>
+            <Typography
+              sx={{
+                fontFamily: FONT_NAV,
+                fontWeight: 500,
+                fontSize: { xs: 13, sm: 14, md: furnitureHeroBodyFontSize },
+                lineHeight: { xs: 1.55, md: 1.4 },
+                color: HERO_TEXT,
+                maxWidth: "100%",
+                opacity: 0.96,
+              }}
+            >
+              {description}
+            </Typography>
+          </Stack>
         </Stack>
-      </Stack>
       </Box>
     </Box>
   );
@@ -168,10 +193,10 @@ function BreadcrumbChevron() {
       component="svg"
       viewBox="0 0 18 12"
       sx={{
-        width: fluidChevronW,
-        height: fluidChevronH,
+        width: { xs: 14, sm: 16, md: "clamp(18px, 1.51vw, 29px)" },
+        height: { xs: 6, sm: 7, md: "clamp(8px, 0.625vw, 12px)" },
         flexShrink: 0,
-        opacity: 0.9,
+        opacity: 0.75,
       }}
       fill="none"
       xmlns="http://www.w3.org/2000/svg"

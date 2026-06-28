@@ -110,7 +110,7 @@ export type ProductHeroConfig = {
   /** Breadcrumb middle segment, e.g. "Furniture". */
   categoryLabel: string;
   categoryPath: string;
-  /** Badge label, e.g. "Japendi". */
+  /** Badge label, e.g. "Japandi". */
   theme?: string;
   description: string;
   heroImages: string[];

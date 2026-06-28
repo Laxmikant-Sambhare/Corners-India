@@ -7,6 +7,7 @@ import type { CatalogProduct } from "../catalog/catalogPageTypes";
 import { CatalogHero } from "../components/CatalogHero";
 import { CatalogPromoCta } from "../components/CatalogPromoCta";
 import { FurnitureCategoryListing } from "../components/FurnitureCategoryListing";
+import { layoutPaddingX } from "../layoutConstants";
 import { furniturePagePadX, furniturePagePadY } from "../navDesignTokens";
 import { isShopifyConfigured } from "../shopify/client";
 import { shopifyCollectionToHeroConfig } from "../shopify/collectionMapper";
@@ -80,7 +81,12 @@ export function CatalogPage() {
   return (
     <>
       <CatalogHero {...hero} />
-      <Box sx={{ px: furniturePagePadX, py: furniturePagePadY }}>
+      <Box
+        sx={{
+          px: { xs: layoutPaddingX.xs, sm: layoutPaddingX.sm, md: furniturePagePadX },
+          py: { xs: 2.5, sm: 3.5, md: furniturePagePadY },
+        }}
+      >
         <Container maxWidth="xl" disableGutters>
           <FurnitureCategoryListing
             products={products}

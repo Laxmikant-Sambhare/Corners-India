@@ -29,7 +29,7 @@ Namespace for all fields: **`custom`** (Shopify’s default — you’ll see `cu
 | `delivery_copy`       | Multi-line text         | Shipping accordion                                                 |
 | `return_copy`         | Multi-line text         | Returns accordion                                                  |
 | `delivery_lead_time`  | Single line text        | e.g. `5 weeks`                                                     |
-| `theme`               | Single line text        | Badge e.g. `Japendi`                                               |
+| `theme`               | Single line text        | Badge e.g. `Japandi`                                               |
 | `show_dimensions`     | True or false           | `false` for rugs                                                   |
 | `made_to_order`       | True or false           | Made-to-order pill                                                 |
 | `category_label`      | Single line text        | Breadcrumb e.g. `Furniture`                                        |

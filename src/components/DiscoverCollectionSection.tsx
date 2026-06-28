@@ -17,7 +17,7 @@ import {
 const CREAM = "#F3EDE3";
 
 const BODY_COPY =
-  "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story, the places where life slows down and presence is felt.";
+  "Corners is about emotional connection with personal spaces—especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story—the places where life slows down and presence is felt.";
 
 /**
  * Figma `Frame 165` (990:4732) — full-width tan band, headline + manifesto.

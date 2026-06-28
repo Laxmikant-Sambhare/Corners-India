@@ -35,7 +35,7 @@ const GENERAL_FAQ: FaqAccordionEntry[] = [
   },
   {
     id: "q2",
-    question: "Are Corners’ products handcrafted?",
+    question: "Are Corners products handcrafted?",
     answer:
       "Many of our pieces involve hand finishing, upholstery, and detailing by skilled craftspeople. We combine artisan techniques with careful quality control so every item meets our standards before it reaches your home.",
   },
@@ -49,7 +49,7 @@ const GENERAL_FAQ: FaqAccordionEntry[] = [
     id: "q4",
     question: "Do you take custom orders?",
     answer:
-      "Yes, we offer customizations on select pieces—finishes, fabrics, dimensions, and more—depending on the range. Share your brief with our team and we’ll confirm feasibility, timelines, and pricing for you.",
+      "Yes, we offer customisation on select pieces—finishes, fabrics, dimensions, and more—depending on the range. Share your brief with our team and we’ll confirm feasibility, timelines, and pricing for you.",
   },
 ];
 

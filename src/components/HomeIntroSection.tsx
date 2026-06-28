@@ -13,7 +13,7 @@ import {
 } from "../navDesignTokens";
 
 const BODY_COPY =
-  "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story, the places where life slows down and presence is felt.";
+  "Corners is about emotional connection with personal spaces—especially the overlooked corners of a home. It's rooted in the belief that every corner holds a story—the places where life slows down and presence is felt.";
 
 /** Full-width tan band below the home hero video — headline + manifesto. */
 export function HomeIntroSection() {

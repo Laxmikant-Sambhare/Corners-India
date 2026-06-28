@@ -254,7 +254,7 @@ export function DiscoverStorySection() {
               <Typography sx={bodyTextSx}>
                 They realized that many spaces lacked a story — a sense of belonging. What if we
                 could add meaning to even an unused corner? That thought grew into endless
-                discussions — about textiles that changes the game, furniture that feels personal
+                discussions — about textiles that change the game, furniture that feels personal
                 and invites emotion, and how a simple corner could reflect one&apos;s personality.
               </Typography>
               <Typography sx={bodyTextSx}>
@@ -356,7 +356,7 @@ export function DiscoverStorySection() {
             <Typography sx={bodyTextSx}>
               They realized that many spaces lacked a story — a sense of belonging. What if we could
               add meaning to even an unused corner? That thought grew into endless discussions —
-              about textiles that changes the game, furniture that feels personal and invites emotion,
+              about textiles that change the game, furniture that feels personal and invites emotion,
               and how a simple corner could reflect one&apos;s personality.
             </Typography>
             <Typography sx={bodyTextSx}>

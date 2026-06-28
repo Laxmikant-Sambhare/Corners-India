@@ -10,8 +10,7 @@ import {
 } from "@tanstack/react-router";
 import { useState, type FormEvent } from "react";
 import { FONT_NAV, FONT_SURGENA } from "../fonts";
-import { fluid1920 } from "../navDesignTokens";
-import { CDN_LIFESTYLE } from "../shopify/cdnImages";
+import { fluid1920, shopRadius } from "../navDesignTokens";
 import {
   loginCustomer,
   NeedsActivationError,
@@ -31,7 +30,41 @@ const DARK = "#1a1814";
 const MUTED = "#4b4a4a";
 const TAN = "#ccbca6";
 const BORDER = "rgba(204,188,166,0.45)";
-const PANEL_BG = "#1a1814";
+const HELPER_TEXT = "rgba(75,74,74,0.62)";
+
+const primaryBtnSx = {
+  display: "flex",
+  alignItems: "center",
+  justifyContent: "center",
+  gap: "10px",
+  width: "100%",
+  minHeight: { xs: 48, lg: "auto" },
+  py: fluid1920(15, { min: 12, max: 17 }),
+  borderRadius: shopRadius,
+  fontFamily: FONT_NAV,
+  fontWeight: 700,
+  fontSize: fluid1920(13, { min: 12, max: 14 }),
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.07em",
+  transition: "opacity 0.15s, border-color 0.15s, color 0.15s",
+};
+
+const ghostBtnSx = {
+  width: "100%",
+  minHeight: { xs: 46, lg: "auto" },
+  py: fluid1920(14, { min: 11, max: 16 }),
+  borderRadius: shopRadius,
+  border: `1.5px solid ${BORDER}`,
+  fontFamily: FONT_NAV,
+  fontWeight: 600,
+  fontSize: fluid1920(13, { min: 12, max: 14 }),
+  textTransform: "uppercase" as const,
+  letterSpacing: "0.07em",
+  color: MUTED,
+  bgcolor: "transparent",
+  transition: "all 0.15s",
+  "&:hover": { borderColor: ACCENT, color: ACCENT },
+};
 
 /* ── Shared field styles ── */
 const labelSx = {
@@ -64,160 +97,6 @@ const inputSx = {
 };
 
 type Mode = "login" | "register";
-
-/* ── Left brand panel ── */
-function BrandPanel() {
-  return (
-    <Box
-      sx={{
-        display: { xs: "none", lg: "flex" },
-        flexDirection: "column",
-        justifyContent: "space-between",
-        width: "46%",
-        flexShrink: 0,
-        bgcolor: PANEL_BG,
-        borderRadius: "24px",
-        p: fluid1920(56, { min: 36, max: 64 }),
-        position: "relative",
-        overflow: "hidden",
-        minHeight: { lg: "calc(100vh - 120px)" },
-      }}
-    >
-      {/* Subtle texture overlay */}
-      <Box
-        sx={{
-          position: "absolute",
-          inset: 0,
-          background:
-            "radial-gradient(ellipse at 30% 70%, rgba(188,126,90,0.18) 0%, transparent 65%), radial-gradient(ellipse at 80% 20%, rgba(204,188,166,0.10) 0%, transparent 55%)",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Logo */}
-      <Box
-        component="img"
-        src="/nav/logo.svg"
-        alt="Corners"
-        sx={{
-          width: "auto",
-          height: fluid1920(160, { min: 80, max: 100 }),
-          filter: "brightness(0) invert(1)",
-          opacity: 0.9,
-          position: "relative",
-          zIndex: 1,
-        }}
-      />
-
-      {/* Decorative circle */}
-      <Box
-        sx={{
-          position: "absolute",
-          width: fluid1920(480, { min: 300, max: 560 }),
-          height: fluid1920(480, { min: 300, max: 560 }),
-          borderRadius: "50%",
-          border: "1px solid rgba(204,188,166,0.12)",
-          bottom: "-20%",
-          right: "-20%",
-          pointerEvents: "none",
-        }}
-      />
-      <Box
-        sx={{
-          position: "absolute",
-          width: fluid1920(320, { min: 200, max: 380 }),
-          height: fluid1920(320, { min: 200, max: 380 }),
-          borderRadius: "50%",
-          border: "1px solid rgba(204,188,166,0.08)",
-          bottom: "-8%",
-          right: "-8%",
-          pointerEvents: "none",
-        }}
-      />
-
-      {/* Quote block */}
-      <Stack
-        gap={fluid1920(24, { min: 16, max: 28 })}
-        sx={{ position: "relative", zIndex: 1 }}
-      >
-        <Box
-          sx={{
-            width: fluid1920(40, { min: 28, max: 44 }),
-            height: "2px",
-            bgcolor: ACCENT,
-            borderRadius: "1px",
-          }}
-        />
-        <Typography
-          sx={{
-            fontFamily: FONT_SURGENA,
-            fontWeight: 600,
-            fontSize: fluid1920(34, { min: 24, max: 38 }),
-            color: PAGE_BG,
-            lineHeight: 1.2,
-            letterSpacing: "-0.01em",
-          }}
-        >
-          Every corner
-          <br />
-          tells a story.
-        </Typography>
-        <Typography
-          sx={{
-            fontFamily: FONT_NAV,
-            fontWeight: 400,
-            fontSize: fluid1920(14, { min: 13, max: 15 }),
-            color: "rgba(243,237,227,0.55)",
-            lineHeight: 1.7,
-            maxWidth: 320,
-          }}
-        >
-          Handcrafted furniture that brings warmth, intention, and quiet beauty
-          into your home.
-        </Typography>
-
-        <Stack
-          direction="row"
-          gap="10px"
-          alignItems="center"
-          sx={{ mt: fluid1920(8) }}
-        >
-          {[
-            CDN_LIFESTYLE["discover-product-1"],
-            CDN_LIFESTYLE["discover-product-2"],
-            CDN_LIFESTYLE["discover-product-4"],
-          ].map((src, i) => (
-            <Box
-              key={src}
-              component="img"
-              src={src}
-              alt=""
-              sx={{
-                width: fluid1920(56, { min: 44, max: 64 }),
-                height: fluid1920(56, { min: 44, max: 64 }),
-                borderRadius: "10px",
-                objectFit: "cover",
-                opacity: i === 0 ? 1 : i === 1 ? 0.7 : 0.45,
-                border: "1px solid rgba(255,255,255,0.08)",
-              }}
-            />
-          ))}
-          <Typography
-            sx={{
-              fontFamily: FONT_NAV,
-              fontWeight: 500,
-              fontSize: fluid1920(12, { min: 11, max: 13 }),
-              color: "rgba(243,237,227,0.4)",
-              ml: "4px",
-            }}
-          >
-            +8 pieces
-          </Typography>
-        </Stack>
-      </Stack>
-    </Box>
-  );
-}
 
 /* ════════════════════════════════════════════════════════
    Main page
@@ -291,23 +170,26 @@ export function LoginPage() {
     return (
       <Box
         sx={{
-          minHeight: { lg: "calc(100vh - 80px)" },
+          minHeight: { xs: "auto", lg: "calc(100vh - 80px)" },
           display: "flex",
           alignItems: "center",
           justifyContent: "center",
-          py: { xs: 4, lg: 0 },
+          py: { xs: 2, lg: 0 },
+          width: "100%",
         }}
       >
         <Stack
           alignItems="center"
-          gap={fluid1920(24, { min: 18, max: 28 })}
+          gap={{ xs: 2, lg: fluid1920(24, { min: 18, max: 28 }) }}
           sx={{
+            width: "100%",
             maxWidth: 460,
             textAlign: "center",
-            p: fluid1920(48, { min: 32, max: 56 }),
-            bgcolor: "rgba(204,188,166,0.14)",
-            border: `1.5px solid ${BORDER}`,
-            borderRadius: "20px",
+            p: { xs: 2.5, sm: fluid1920(48, { min: 32, max: 56 }) },
+            bgcolor: "rgba(255,255,255,0.42)",
+            border: `1px solid ${BORDER}`,
+            borderRadius: shopRadius,
+            backdropFilter: "blur(6px)",
           }}
         >
           {/* Envelope icon */}
@@ -413,51 +295,43 @@ export function LoginPage() {
       sx={{
         minHeight: { lg: "calc(100vh - 80px)" },
         display: "flex",
-        alignItems: { lg: "center" },
-        py: { xs: 2, lg: 0 },
+        alignItems: "center",
+        justifyContent: "center",
+        width: "100%",
+        py: { xs: 0, lg: 0 },
       }}
     >
       <Stack
-        direction={{ xs: "column", lg: "row" }}
-        gap={fluid1920(40, { min: 28, max: 48 })}
-        sx={{ width: "100%", alignItems: { lg: "stretch" } }}
+        sx={{
+          width: "100%",
+          maxWidth: 480,
+          justifyContent: "center",
+          pb: { xs: 3, lg: 0 },
+        }}
       >
-        {/* ── Left brand panel ── */}
-        <BrandPanel />
-
-        {/* ── Right form col ── */}
-        <Stack
-          sx={{
-            flex: 1,
-            minWidth: 0,
-            justifyContent: "center",
-            px: { xs: 0, lg: fluid1920(24, { min: 0, max: 32 }) },
-            maxWidth: { lg: 480 },
-          }}
-        >
-          {/* Mobile logo */}
           <Box
-            component="img"
-            src="/nav/logo.svg"
-            alt="Corners"
             sx={{
-              display: { xs: "block", lg: "none" },
-              width: 120,
-              height: "auto",
-              mb: fluid1920(32, { min: 24, max: 40 }),
+              bgcolor: "rgba(255,255,255,0.42)",
+              border: `1px solid ${BORDER}`,
+              borderRadius: shopRadius,
+              px: { xs: 2.5, sm: 3 },
+              py: { xs: 2.5, sm: 3 },
+              backdropFilter: "blur(6px)",
             }}
-          />
-
+          >
           {/* Header */}
-          <Stack gap="6px" sx={{ mb: fluid1920(36, { min: 24, max: 40 }) }}>
+          <Stack
+            gap={{ xs: "8px", lg: "6px" }}
+            sx={{ mb: { xs: 2.5, lg: fluid1920(36, { min: 24, max: 40 }) } }}
+          >
             <Typography
               component="h1"
               sx={{
                 fontFamily: FONT_SURGENA,
                 fontWeight: 600,
-                fontSize: fluid1920(42, { min: 28, max: 48 }),
+                fontSize: { xs: 30, sm: 34, lg: fluid1920(42, { min: 28, max: 48 }) },
                 color: DARK,
-                lineHeight: 1.05,
+                lineHeight: 1.08,
                 letterSpacing: "-0.01em",
               }}
             >
@@ -467,8 +341,10 @@ export function LoginPage() {
               sx={{
                 fontFamily: FONT_NAV,
                 fontWeight: 400,
-                fontSize: fluid1920(14, { min: 13, max: 15 }),
+                fontSize: { xs: 13, sm: 14 },
                 color: MUTED,
+                lineHeight: 1.6,
+                maxWidth: { xs: 320, lg: "none" },
               }}
             >
               {USE_OAUTH
@@ -481,61 +357,42 @@ export function LoginPage() {
 
           {/* ── OAuth panel (New Customer Accounts) ── */}
           {USE_OAUTH && (
-            <Stack gap={fluid1920(16, { min: 12, max: 18 })}>
+            <Stack gap={{ xs: 1.75, lg: fluid1920(16, { min: 12, max: 18 }) }}>
               <ButtonBase
                 type="button"
                 onClick={() => void initiateOAuthLogin(redirectTo)}
                 sx={{
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "10px",
-                  width: "100%",
+                  ...primaryBtnSx,
                   bgcolor: DARK,
                   color: PAGE_BG,
-                  py: fluid1920(15, { min: 12, max: 17 }),
-                  borderRadius: "12px",
-                  fontFamily: FONT_NAV,
-                  fontWeight: 700,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
                   "&:hover": { opacity: 0.85 },
-                  transition: "opacity 0.15s",
                 }}
               >
-                {/* Shopify bag icon */}
                 <Box
-                  component="svg"
-                  viewBox="0 0 24 24"
-                  fill="none"
+                  component="img"
+                  src="/favicon.svg"
+                  alt=""
                   aria-hidden
-                  sx={{ width: 18, height: 18, flexShrink: 0 }}
-                >
-                  <path
-                    d="M6 2L3 6v14a2 2 0 002 2h14a2 2 0 002-2V6l-3-4z"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinejoin="round"
-                  />
-                  <path
-                    d="M3 6h18M16 10a4 4 0 01-8 0"
-                    stroke="currentColor"
-                    strokeWidth="1.6"
-                    strokeLinecap="round"
-                  />
-                </Box>
-                Continue with Shopify
+                  sx={{
+                    width: "auto",
+                    height: 18,
+                    flexShrink: 0,
+                    objectFit: "contain",
+                    display: "block",
+                  }}
+                />
+                Log in to Corners
               </ButtonBase>
 
               <Typography
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 400,
-                  fontSize: fluid1920(12, { min: 11, max: 13 }),
-                  color: TAN,
+                  fontSize: { xs: 11, sm: 12 },
+                  color: HELPER_TEXT,
                   textAlign: "center",
                   lineHeight: 1.55,
+                  px: { xs: 0.5, lg: 0 },
                 }}
               >
                 You'll be taken to Shopify's secure login page, then brought back here.
@@ -544,7 +401,7 @@ export function LoginPage() {
               <Stack direction="row" alignItems="center" gap="12px">
                 <Box sx={{ flex: 1, height: "1px", bgcolor: BORDER }} />
                 <Typography
-                  sx={{ fontFamily: FONT_NAV, fontWeight: 400, fontSize: "12px", color: TAN }}
+                  sx={{ fontFamily: FONT_NAV, fontWeight: 400, fontSize: "12px", color: HELPER_TEXT }}
                 >
                   or
                 </Typography>
@@ -554,21 +411,7 @@ export function LoginPage() {
               <ButtonBase
                 component={RouterLink}
                 to="/"
-                sx={{
-                  width: "100%",
-                  py: fluid1920(14, { min: 11, max: 16 }),
-                  borderRadius: "12px",
-                  border: `1.5px solid ${BORDER}`,
-                  fontFamily: FONT_NAV,
-                  fontWeight: 600,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
-                  color: MUTED,
-                  bgcolor: "transparent",
-                  "&:hover": { borderColor: ACCENT, color: ACCENT },
-                  transition: "all 0.15s",
-                }}
+                sx={ghostBtnSx}
               >
                 Continue as Guest
               </ButtonBase>
@@ -577,10 +420,11 @@ export function LoginPage() {
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 400,
-                  fontSize: fluid1920(12, { min: 11, max: 13 }),
-                  color: TAN,
+                  fontSize: { xs: 11, sm: 12 },
+                  color: HELPER_TEXT,
                   textAlign: "center",
                   lineHeight: 1.5,
+                  pt: { xs: 0.5, lg: 0 },
                 }}
               >
                 By signing in you agree to our{" "}
@@ -793,24 +637,12 @@ export function LoginPage() {
                 type="submit"
                 disabled={isLoading}
                 sx={{
+                  ...primaryBtnSx,
                   mt: "4px",
-                  display: "flex",
-                  alignItems: "center",
-                  justifyContent: "center",
-                  gap: "8px",
-                  width: "100%",
                   bgcolor: ACCENT,
                   color: PAGE_BG,
-                  py: fluid1920(15, { min: 12, max: 17 }),
-                  borderRadius: "12px",
-                  fontFamily: FONT_NAV,
-                  fontWeight: 700,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
                   opacity: isLoading ? 0.7 : 1,
                   "&:hover": { opacity: isLoading ? 0.7 : 0.92 },
-                  transition: "opacity 0.15s",
                 }}
               >
                 {isLoading && (
@@ -844,21 +676,7 @@ export function LoginPage() {
               <ButtonBase
                 component={RouterLink}
                 to="/"
-                sx={{
-                  width: "100%",
-                  py: fluid1920(14, { min: 11, max: 16 }),
-                  borderRadius: "12px",
-                  border: `1.5px solid ${BORDER}`,
-                  fontFamily: FONT_NAV,
-                  fontWeight: 600,
-                  fontSize: fluid1920(13, { min: 12, max: 14 }),
-                  textTransform: "uppercase",
-                  letterSpacing: "0.07em",
-                  color: MUTED,
-                  bgcolor: "transparent",
-                  "&:hover": { borderColor: ACCENT, color: ACCENT },
-                  transition: "all 0.15s",
-                }}
+                sx={ghostBtnSx}
               >
                 Continue as Guest
               </ButtonBase>
@@ -867,10 +685,11 @@ export function LoginPage() {
                 sx={{
                   fontFamily: FONT_NAV,
                   fontWeight: 400,
-                  fontSize: fluid1920(12, { min: 11, max: 13 }),
-                  color: TAN,
+                  fontSize: { xs: 11, sm: 12 },
+                  color: HELPER_TEXT,
                   textAlign: "center",
                   lineHeight: 1.5,
+                  pt: { xs: 0.5, lg: 0 },
                 }}
               >
                 By signing in you agree to our{" "}
@@ -891,7 +710,7 @@ export function LoginPage() {
           </Box>
           </>
           )}
-        </Stack>
+          </Box>
       </Stack>
     </Box>
   );

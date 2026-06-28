@@ -199,7 +199,7 @@ export function CustomizationsPage() {
                 }}
               >
                 Every home is personal. Your furniture and rugs should feel the same.
-                At Corners, we offer thoughtful, limited-scope customization to maintain
+                At Corners, we offer thoughtful, limited-scope customisation to maintain
                 design integrity and craftsmanship.
               </Typography>
 
@@ -215,7 +215,7 @@ export function CustomizationsPage() {
                   opacity: 0.98,
                 }}
               >
-                Furniture upholstery can be customized. Rugs are fully custom-made to
+                Furniture upholstery can be customised. Rugs are fully custom-made to
                 your space and palette.
               </Typography>
             </Stack>

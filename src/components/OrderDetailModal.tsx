@@ -269,7 +269,7 @@ export function OrderDetailModal({
                 overflow: "hidden",
                 bgcolor: "rgba(255,255,255,0.45)",
                 border: `1px solid ${BORDER}`,
-                minHeight: 280,
+                minHeight: { xs: 200, sm: 280 },
                 display: "flex",
                 alignItems: "center",
                 justifyContent: "center",

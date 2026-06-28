@@ -3,7 +3,7 @@
   "collections": {
     "furniture": {
       "hero_image": "furniture-hero.webp",
-      "hero_description": "Corners is about emotional connection with personal spaces. Especially the overlooked corners of a home.",
+      "hero_description": "Corners is about emotional connection with personal spaces—especially the overlooked corners of a home.",
       "hero_object_position": "50% 42%"
     },
     "rugs": {
@@ -24,7 +24,7 @@
   },
   "products": {
     "eira-chair": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Furniture",
       "category_path": "/category/furniture",
       "hero_image_1": "eira-chair-view1.webp",
@@ -45,7 +45,7 @@
       "return_copy": "Your satisfaction matters deeply to us. We encourage you to check your product upon delivery and report any concerns within 48 hours to our Customer Success team. Returns or exchanges are evaluated based on the condition of the item received. Since every piece is crafted to order, we're unable to accept cancellations or offer refunds for change of mind."
     },
     "eira-table": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Furniture",
       "category_path": "/category/furniture",
       "hero_image_1": "eira-chair-view1.webp",
@@ -61,7 +61,7 @@
       "delivery_lead_time": "5 weeks"
     },
     "dunari-chair": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Furniture",
       "category_path": "/category/furniture",
       "gallery_top_left": "lifestyle-1.webp",
@@ -77,7 +77,7 @@
       "show_dimensions": true
     },
     "dunari-table": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Furniture",
       "category_path": "/category/furniture",
       "gallery_top_left": "lifestyle-1.webp",
@@ -94,7 +94,7 @@
       "show_dimensions": true
     },
     "dunari-ottoman": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Furniture",
       "category_path": "/category/furniture",
       "hero_image_1": "dunari-ottoman-view1.webp",
@@ -113,7 +113,7 @@
       "show_dimensions": true
     },
     "dunari-rug": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Rugs",
       "category_path": "/category/rugs",
       "hero_background": "rug-hero-lifestyle.webp",
@@ -126,7 +126,7 @@
       "made_to_order": true
     },
     "eira-rug": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Rugs",
       "category_path": "/category/rugs",
       "hero_background": "rug-hero-lifestyle.webp",
@@ -135,7 +135,7 @@
       "made_to_order": true
     },
     "biophilic-rug": {
-      "theme": "Japendi",
+      "theme": "Japandi",
       "category_label": "Rugs",
       "category_path": "/category/rugs",
       "hero_background": "rug-hero-lifestyle.webp",
