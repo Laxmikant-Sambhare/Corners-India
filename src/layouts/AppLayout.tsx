@@ -9,6 +9,7 @@ import { SiteFooter } from "../components/SiteFooter";
 import { DiscoverCollectionSection } from "../components/DiscoverCollectionSection";
 import { DiscoverPromoVideo } from "../components/DiscoverPromoVideo";
 import { HeroCarousel } from "../components/HeroCarousel";
+import { PageAssetLoader } from "../components/PageAssetLoader";
 import {
   isCatalogLayoutPathname,
   isFullBleedHeroPathname,
@@ -57,71 +58,73 @@ export function AppLayout() {
         borderColor: "divider",
       }}
     >
-      {isHome ? (
-        <Box sx={HERO_BLOCK_SX}>
-          <HeroCarousel />
-          <DiscoverByCategoryCarousel />
-          <DiscoverPromoVideo />
-          <DiscoverCollectionSection />
-          <CollectionSpotlightSection />
-          <FaqFooterSection />
-          <AppNavbar
-            key={pathname}
-            reserveLayoutSpace={false}
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 5,
-            }}
-          />
-        </Box>
-      ) : isCatalogLayout || isPdp || isFullBleedHero ? (
-        <Box sx={HERO_BLOCK_SX}>
-          <Outlet />
-          <AppNavbar
-            key={pathname}
-            reserveLayoutSpace={false}
-            sx={{
-              position: "absolute",
-              top: 0,
-              left: 0,
-              right: 0,
-              zIndex: 5,
-            }}
-          />
-        </Box>
-      ) : (
-        <AppNavbar key={pathname} />
-      )}
-
-      {!isHome && !isCatalogLayout && !isPdp && !isFullBleedHero && (
-        <Box
-          component="main"
-          sx={{
-            flex: 1,
-            px: {
-              xs: layoutPaddingX.xs,
-              sm: layoutPaddingX.sm,
-              md: layoutMarginX,
-            },
-            py: pagePaddingY,
-            position: "relative",
-            zIndex: 1,
-            width: "100%",
-            maxWidth: "100%",
-            minWidth: 0,
-            boxSizing: "border-box",
-          }}
-        >
-          <Container maxWidth="xl" disableGutters sx={{ maxWidth: "100%" }}>
+      <PageAssetLoader key={pathname}>
+        {isHome ? (
+          <Box sx={HERO_BLOCK_SX}>
+            <HeroCarousel />
+            <DiscoverByCategoryCarousel />
+            <DiscoverPromoVideo />
+            <DiscoverCollectionSection />
+            <CollectionSpotlightSection />
+            <FaqFooterSection />
+            <AppNavbar
+              key={pathname}
+              reserveLayoutSpace={false}
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 5,
+              }}
+            />
+          </Box>
+        ) : isCatalogLayout || isPdp || isFullBleedHero ? (
+          <Box sx={HERO_BLOCK_SX}>
             <Outlet />
-          </Container>
-        </Box>
-      )}
+            <AppNavbar
+              key={pathname}
+              reserveLayoutSpace={false}
+              sx={{
+                position: "absolute",
+                top: 0,
+                left: 0,
+                right: 0,
+                zIndex: 5,
+              }}
+            />
+          </Box>
+        ) : (
+          <AppNavbar key={pathname} />
+        )}
 
-      <SiteFooter />
+        {!isHome && !isCatalogLayout && !isPdp && !isFullBleedHero && (
+          <Box
+            component="main"
+            sx={{
+              flex: 1,
+              px: {
+                xs: layoutPaddingX.xs,
+                sm: layoutPaddingX.sm,
+                md: layoutMarginX,
+              },
+              py: pagePaddingY,
+              position: "relative",
+              zIndex: 1,
+              width: "100%",
+              maxWidth: "100%",
+              minWidth: 0,
+              boxSizing: "border-box",
+            }}
+          >
+            <Container maxWidth="xl" disableGutters sx={{ maxWidth: "100%" }}>
+              <Outlet />
+            </Container>
+          </Box>
+        )}
+
+        <SiteFooter />
+      </PageAssetLoader>
     </Box>
   );
 }
